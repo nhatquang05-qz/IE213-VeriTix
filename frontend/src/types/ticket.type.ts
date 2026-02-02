@@ -4,7 +4,7 @@ export const TicketStatus = {
   USED: 'used',
 } as const;
 
-export type TicketStatus = typeof TicketStatus[keyof typeof TicketStatus];
+export type TicketStatus = (typeof TicketStatus)[keyof typeof TicketStatus];
 
 export interface ITicket {
   _id: string;
