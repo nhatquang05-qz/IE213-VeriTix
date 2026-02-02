@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaFacebook, FaGoogle } from 'react-icons/fa';
+import axios from 'axios';
 import '../assets/styles/auth.css';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
 
+  
   const [formData, setFormData] = useState({
+    fullName: '', 
     email: '',
     phone: '',
     dob: '',
@@ -15,6 +18,7 @@ const RegisterPage = () => {
   });
 
   const [fieldErrors, setFieldErrors] = useState({
+    fullName: false, 
     email: false,
     phone: false,
     dob: false,
@@ -23,6 +27,7 @@ const RegisterPage = () => {
   });
 
   const [errorMsg, setErrorMsg] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -31,22 +36,18 @@ const RegisterPage = () => {
     if (fieldErrors[name as keyof typeof fieldErrors]) {
       setFieldErrors({ ...fieldErrors, [name]: false });
     }
-
     if (errorMsg) setErrorMsg('');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const newFieldErrors = {
-      email: false,
-      phone: false,
-      dob: false,
-      password: false,
-      confirmPassword: false,
+      fullName: false, email: false, phone: false, dob: false, password: false, confirmPassword: false,
     };
     let hasError = false;
 
+    
     Object.keys(formData).forEach((key) => {
       if (!formData[key as keyof typeof formData]) {
         newFieldErrors[key as keyof typeof fieldErrors] = true;
@@ -78,9 +79,32 @@ const RegisterPage = () => {
       return;
     }
 
-    console.log('Đăng ký thành công:', formData);
-    alert('Đăng ký thành công! Hãy đăng nhập.');
-    navigate('/login');
+    try {
+      setLoading(true);
+      
+      
+      const response = await axios.post('http://localhost:5000/api/auth/register', {
+        fullName: formData.fullName, 
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        
+      });
+
+      console.log('Register success:', response.data);
+      alert('Đăng ký thành công! Hãy đăng nhập ngay.');
+      navigate('/login');
+
+    } catch (err: any) {
+      console.error('Lỗi đăng ký:', err);
+      const msg = err.response?.data?.message || 'Lỗi kết nối server!';
+      setErrorMsg(msg);
+      if (msg.includes('Email') || msg.includes('tồn tại')) {
+         setFieldErrors({ ...newFieldErrors, email: true });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -89,6 +113,23 @@ const RegisterPage = () => {
         <h2 className="auth-title">Tạo Tài Khoản</h2>
 
         <form onSubmit={handleSubmit} className="auth-form">
+          
+          {}
+          <div className="form-group">
+            <label>
+              Họ và tên <span style={{ color: 'red' }}>*</span>
+            </label>
+            <input
+              type="text"
+              name="fullName"
+              className={`auth-input ${fieldErrors.fullName ? 'error' : ''}`}
+              placeholder="Nguyễn Văn A"
+              value={formData.fullName}
+              onChange={handleChange}
+              disabled={loading}
+            />
+          </div>
+
           {}
           <div className="form-group">
             <label>
@@ -101,6 +142,7 @@ const RegisterPage = () => {
               placeholder="example@gmail.com"
               value={formData.email}
               onChange={handleChange}
+              disabled={loading}
             />
           </div>
 
@@ -116,6 +158,7 @@ const RegisterPage = () => {
               placeholder="0912..."
               value={formData.phone}
               onChange={handleChange}
+              disabled={loading}
             />
           </div>
 
@@ -130,6 +173,7 @@ const RegisterPage = () => {
               className={`auth-input ${fieldErrors.dob ? 'error' : ''}`}
               value={formData.dob}
               onChange={handleChange}
+              disabled={loading}
             />
           </div>
 
@@ -142,9 +186,10 @@ const RegisterPage = () => {
               type="password"
               name="password"
               className={`auth-input ${fieldErrors.password ? 'error' : ''}`}
-              placeholder="Tối thiểu 8 ký tự và 1 chữ cái in hoa..."
+              placeholder="Min 8 ký tự, 1 chữ in hoa..."
               value={formData.password}
               onChange={handleChange}
+              disabled={loading}
             />
           </div>
 
@@ -160,18 +205,19 @@ const RegisterPage = () => {
               placeholder="Xác nhận mật khẩu..."
               value={formData.confirmPassword}
               onChange={handleChange}
+              disabled={loading}
             />
           </div>
 
-          {}
-          {errorMsg && <div className="login-error-msg">{errorMsg}</div>}
+          {errorMsg && <div className="login-error-msg"> {errorMsg}</div>}
 
           <button
             type="submit"
             className="btn btn-primary"
             style={{ width: '100%', marginTop: '10px' }}
+            disabled={loading}
           >
-            Đăng Ký
+            {loading ? 'Đang xử lý...' : 'Đăng Ký'}
           </button>
 
           <div className="auth-actions" style={{ justifyContent: 'center' }}>
@@ -197,14 +243,7 @@ const RegisterPage = () => {
 
         <p className="auth-footer-text">
           Bằng việc đăng ký, bạn đồng ý với{' '}
-          <Link to="/terms" className="auth-link">
-            Điều khoản dịch vụ
-          </Link>{' '}
-          &{' '}
-          <Link to="/privacy" className="auth-link">
-            Chính sách bảo mật
-          </Link>
-          .
+          <Link to="/terms" className="auth-link">Điều khoản dịch vụ</Link> & <Link to="/privacy" className="auth-link">Chính sách bảo mật</Link>.
         </p>
       </div>
     </div>
