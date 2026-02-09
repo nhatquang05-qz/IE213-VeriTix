@@ -7,7 +7,7 @@ import MainLayout from './components/MainLayout';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-
+import CreateEventPage from './pages/CreateEventPage';
 
 function TestConnection() {
   const [status, setStatus] = useState("");
@@ -82,11 +82,9 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          
-          {}
+          <Route path="/register" element={<RegisterPage />} />          
           <Route path="/test" element={<TestConnection />} />
-          
+          <Route path="/create-event" element={<CreateEventPage />} />
         </Routes>
       </MainLayout>
     </BrowserRouter>
