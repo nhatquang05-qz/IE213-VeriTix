@@ -9,11 +9,11 @@ import MarathonImg from '../assets/images/Marathon.jpg';
 import TTHVTCXImg from '../assets/images/TTHVTCX.jpg';
 import TrienLamImg from '../assets/images/TrienLam.jpg';
 import StandUpImg from '../assets/images/StandUp.png';
+import TrungQuanImg from '../assets/images/Trung_Quan.jpg';
 import '../assets/styles/HomePage.css';
 import { useBlockchainAnimation } from '../hooks/useBlockchainAnimation';
 
 const HomePage: React.FC = () => {
-  // Khởi tạo animation blockchain
   useBlockchainAnimation();
 
   return (
@@ -26,7 +26,7 @@ const HomePage: React.FC = () => {
           <div className="hero-content">
             <h1 className="hero-title">Bán Vé Bảo Mật<br/>Trên Blockchain</h1>
             <p className="hero-subtitle">Trải nghiệm tương lai của vé sự kiện với xác thực blockchain và thanh toán số liền mạch</p>
-            
+
             <div className="hero-ticket">
               <div className="ticket-glow"></div>
               <div className="ticket-content">
@@ -55,11 +55,365 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Ticket Listing Section */}
+      <section className="ticket-listing">
+        <div className="container">
+
+          {/* Âm Nhạc & Concert */}
+          <div className="category-section">
+            <div className="category-header">
+              <h2 className="category-title">🎵 Âm Nhạc & Concert</h2>
+              <a href="#" className="view-more-btn">Xem Thêm →</a>
+            </div>
+            <div className="ticket-grid">
+
+              <div className="ticket-card">
+                <div className="card-image">
+                  <img src={skyTourImg} alt="Sky Tour" className="event-img" />
+                  <div className="event-badge">HOT</div>
+                  <div className="card-overlay">
+                    <button className="buy-btn">Mua Vé</button>
+                  </div>
+                </div>
+                <div className="card-body">
+                  <h3 className="card-title">Sơn Tùng M-TP Sky Tour 2025</h3>
+                  <p className="card-meta">
+                    <span className="meta-icon">📍</span> Mỹ Đình Stadium
+                  </p>
+                  <p className="card-meta">
+                    <span className="meta-icon">📅</span> 15/03/2025
+                  </p>
+                  <div className="card-footer">
+                    <span className="price-label">Giá từ</span>
+                    <span className="price-value">1.200.000đ</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="ticket-card">
+                <div className="card-image">
+                  <img src={TuPhuImg} alt="Tu Phu" className="event-img" />
+                  <div className="card-overlay">
+                    <button className="buy-btn">Mua Vé</button>
+                  </div>
+                </div>
+                <div className="card-body">
+                  <h3 className="card-title">Hoàng Thùy Linh - Tứ Phủ Concert</h3>
+                  <p className="card-meta">
+                    <span className="meta-icon">📍</span> Cung Văn Hóa
+                  </p>
+                  <p className="card-meta">
+                    <span className="meta-icon">📅</span> 22/03/2025
+                  </p>
+                  <div className="card-footer">
+                    <span className="price-label">Giá từ</span>
+                    <span className="price-value">800.000đ</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="ticket-card">
+                <div className="card-image">
+                  <img src={RapVietImg} alt="Rap Viet" className="event-img" />
+                  <div className="event-badge">MỚI</div>
+                  <div className="card-overlay">
+                    <button className="buy-btn">Mua Vé</button>
+                  </div>
+                </div>
+                <div className="card-body">
+                  <h3 className="card-title">Rap Việt Live Concert 2025</h3>
+                  <p className="card-meta">
+                    <span className="meta-icon">📍</span> Nhà Thi Đấu Phú Thọ
+                  </p>
+                  <p className="card-meta">
+                    <span className="meta-icon">📅</span> 05/04/2025
+                  </p>
+                  <div className="card-footer">
+                    <span className="price-label">Giá từ</span>
+                    <span className="price-value">600.000đ</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="ticket-card">
+                <div className="card-image">
+                  <img src={TrungQuanImg} alt="Trung Quan" className="event-img" />
+                  <div className="card-overlay">
+                    <button className="buy-btn">Mua Vé</button>
+                  </div>
+                </div>
+                <div className="card-body">
+                  <h3 className="card-title">Trung Quân - Chiều Nay Không Có Mưa Bay</h3>
+                  <p className="card-meta">
+                    <span className="meta-icon">📍</span> Lâm Đồng
+                  </p>
+                  <p className="card-meta">
+                    <span className="meta-icon">📅</span> 21/02/2026
+                  </p>
+                  <div className="card-footer">
+                    <span className="price-label">Giá từ</span>
+                    <span className="price-value">800.000đ</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          {/* Thể Thao */}
+          <div className="category-section">
+            <div className="category-header">
+              <h2 className="category-title">⚽ Thể Thao</h2>
+              <a href="#" className="view-more-btn">Xem Thêm →</a>
+            </div>
+            <div className="ticket-grid">
+
+              <div className="ticket-card">
+                <div className="card-image">
+                  <img src={VLeagueImg} alt="V-League" className="event-img" />
+                  <div className="event-badge">HOT</div>
+                  <div className="card-overlay">
+                    <button className="buy-btn">Mua Vé</button>
+                  </div>
+                </div>
+                <div className="card-body">
+                  <h3 className="card-title">V-League 2025: Hà Nội FC vs HAGL</h3>
+                  <p className="card-meta">
+                    <span className="meta-icon">📍</span> Sân Hàng Đẫy
+                  </p>
+                  <p className="card-meta">
+                    <span className="meta-icon">📅</span> 10/03/2025
+                  </p>
+                  <div className="card-footer">
+                    <span className="price-label">Giá từ</span>
+                    <span className="price-value">150.000đ</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="ticket-card">
+                <div className="card-image">
+                  <img src={VBAImg} alt="VBA" className="event-img" />
+                  <div className="card-overlay">
+                    <button className="buy-btn">Mua Vé</button>
+                  </div>
+                </div>
+                <div className="card-body">
+                  <h3 className="card-title">Giải VBA 2025 - Chung Kết</h3>
+                  <p className="card-meta">
+                    <span className="meta-icon">📍</span> Nhà Thi Đấu Phú Thọ
+                  </p>
+                  <p className="card-meta">
+                    <span className="meta-icon">📅</span> 18/04/2025
+                  </p>
+                  <div className="card-footer">
+                    <span className="price-label">Giá từ</span>
+                    <span className="price-value">200.000đ</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="ticket-card">
+                <div className="card-image">
+                  <img src={MarathonImg} alt="Marathon" className="event-img" />
+                  <div className="card-overlay">
+                    <button className="buy-btn">Mua Vé</button>
+                  </div>
+                </div>
+                <div className="card-body">
+                  <h3 className="card-title">Marathon Quốc Tế TP. Hồ Chí Minh</h3>
+                  <p className="card-meta">
+                    <span className="meta-icon">📍</span> TP. Hồ Chí Minh
+                  </p>
+                  <p className="card-meta">
+                    <span className="meta-icon">📅</span> 05/05/2025
+                  </p>
+                  <div className="card-footer">
+                    <span className="price-label">Giá từ</span>
+                    <span className="price-value">50.000đ</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="ticket-card">
+                <div className="card-image">
+                  <img src={VLeagueImg} alt="V-League" className="event-img" />
+                  <div className="card-overlay">
+                    <button className="buy-btn">Mua Vé</button>
+                  </div>
+                </div>
+                <div className="card-body">
+                  <h3 className="card-title">V-League 2025: Hà Nội FC vs HAGL</h3>
+                  <p className="card-meta">
+                    <span className="meta-icon">📍</span> Sân Hàng Đẫy
+                  </p>
+                  <p className="card-meta">
+                    <span className="meta-icon">📅</span> 10/03/2025
+                  </p>
+                  <div className="card-footer">
+                    <span className="price-label">Giá từ</span>
+                    <span className="price-value">150.000đ</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          {/* Nghệ Thuật & Kịch */}
+          <div className="category-section">
+            <div className="category-header">
+              <h2 className="category-title">🎭 Nghệ Thuật & Kịch</h2>
+              <a href="#" className="view-more-btn">Xem Thêm →</a>
+            </div>
+            <div className="ticket-grid">
+
+              <div className="ticket-card">
+                <div className="card-image">
+                  <img src={TTHVTCXImg} alt="Toi Thay Hoa Vang" className="event-img" />
+                  <div className="event-badge">HOT</div>
+                  <div className="card-overlay">
+                    <button className="buy-btn">Mua Vé</button>
+                  </div>
+                </div>
+                <div className="card-body">
+                  <h3 className="card-title">Vở Kịch "Tôi Thấy Hoa Vàng Trên Cỏ Xanh"</h3>
+                  <p className="card-meta">
+                    <span className="meta-icon">📍</span> Nhà Hát Lớn Hà Nội
+                  </p>
+                  <p className="card-meta">
+                    <span className="meta-icon">📅</span> 08/04/2025
+                  </p>
+                  <div className="card-footer">
+                    <span className="price-label">Giá từ</span>
+                    <span className="price-value">300.000đ</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="ticket-card">
+                <div className="card-image">
+                  <img src={TrienLamImg} alt="Trien Lam" className="event-img" />
+                  <div className="card-overlay">
+                    <button className="buy-btn">Mua Vé</button>
+                  </div>
+                </div>
+                <div className="card-body">
+                  <h3 className="card-title">Triển Lãm Nghệ Thuật Đương Đại Việt Nam</h3>
+                  <p className="card-meta">
+                    <span className="meta-icon">📍</span> Bảo Tàng Mỹ Thuật
+                  </p>
+                  <p className="card-meta">
+                    <span className="meta-icon">📅</span> 15/03/2025
+                  </p>
+                  <div className="card-footer">
+                    <span className="price-label">Giá từ</span>
+                    <span className="price-value">80.000đ</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="ticket-card">
+                <div className="card-image">
+                  <img src={StandUpImg} alt="StandUp" className="event-img" />
+                  <div className="card-overlay">
+                    <button className="buy-btn">Mua Vé</button>
+                  </div>
+                </div>
+                <div className="card-body">
+                  <h3 className="card-title">Stand-up Comedy - Trấn Thành Live Show</h3>
+                  <p className="card-meta">
+                    <span className="meta-icon">📍</span> TP. Hồ Chí Minh
+                  </p>
+                  <p className="card-meta">
+                    <span className="meta-icon">📅</span> 22/04/2025
+                  </p>
+                  <div className="card-footer">
+                    <span className="price-label">Giá từ</span>
+                    <span className="price-value">450.000đ</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="ticket-card">
+                <div className="card-image">
+                  <img src={TTHVTCXImg} alt="Toi Thay Hoa Vang" className="event-img" />
+                  <div className="card-overlay">
+                    <button className="buy-btn">Mua Vé</button>
+                  </div>
+                </div>
+                <div className="card-body">
+                  <h3 className="card-title">Vở Kịch "Tôi Thấy Hoa Vàng Trên Cỏ Xanh"</h3>
+                  <p className="card-meta">
+                    <span className="meta-icon">📍</span> Nhà Hát Lớn Hà Nội
+                  </p>
+                  <p className="card-meta">
+                    <span className="meta-icon">📅</span> 08/04/2025
+                  </p>
+                  <div className="card-footer">
+                    <span className="price-label">Giá từ</span>
+                    <span className="price-value">300.000đ</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* Blockchain Trust Section */}
+      <section className="blockchain-trust">
+        <div className="container">
+          <div className="trust-content">
+            <div className="trust-text">
+              <h2>Xây Dựng Trên Niềm Tin<br/>Vận Hành Bởi Blockchain</h2>
+              <p className="trust-desc">VeriTix sử dụng công nghệ blockchain phi tập trung để đảm bảo mỗi giao dịch đều minh bạch, an toàn và không thể thay đổi. Hệ thống của chúng tôi loại bỏ hoàn toàn vé giả, gian lận và đảm bảo quyền lợi tối đa cho người dùng.</p>
+              <p className="trust-desc">Với mạng lưới node toàn cầu, mọi vé được xác minh trong vài giây, mang đến trải nghiệm mua vé nhanh chóng và đáng tin cậy nhất.</p>
+            </div>
+            <div className="trust-visual">
+              <div className="network-node">
+                <svg width="40" height="40" viewBox="0 0 40 40">
+                  <circle cx="20" cy="20" r="15" fill="white" opacity="0.2"/>
+                  <circle cx="20" cy="20" r="8" fill="white"/>
+                </svg>
+              </div>
+              <div className="network-node">
+                <svg width="40" height="40" viewBox="0 0 40 40">
+                  <circle cx="20" cy="20" r="15" fill="white" opacity="0.2"/>
+                  <circle cx="20" cy="20" r="8" fill="white"/>
+                </svg>
+              </div>
+              <div className="network-node">
+                <svg width="40" height="40" viewBox="0 0 40 40">
+                  <circle cx="20" cy="20" r="15" fill="white" opacity="0.2"/>
+                  <circle cx="20" cy="20" r="8" fill="white"/>
+                </svg>
+              </div>
+              <div className="network-node">
+                <svg width="40" height="40" viewBox="0 0 40 40">
+                  <circle cx="20" cy="20" r="15" fill="white" opacity="0.2"/>
+                  <circle cx="20" cy="20" r="8" fill="white"/>
+                </svg>
+              </div>
+              <div className="network-node" style={{width: '100px', height: '100px'}}>
+                <svg width="50" height="50" viewBox="0 0 50 50">
+                  <circle cx="25" cy="25" r="20" fill="white" opacity="0.2"/>
+                  <circle cx="25" cy="25" r="10" fill="white"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section — moved above footer */}
       <section className="features">
         <div className="container">
           <h2 className="section-title">Tại Sao Chọn VeriTix</h2>
           <div className="features-grid">
+
             <div className="feature-card">
               <div className="feature-icon">
                 <svg className="icon-svg" viewBox="0 0 24 24">
@@ -119,230 +473,7 @@ const HomePage: React.FC = () => {
               <h3>Chuyển Nhượng Nhanh</h3>
               <p className="feature-desc">Chuyển vé cho bạn bè chỉ trong vài giây với hệ thống blockchain nhanh chóng, an toàn và minh bạch hoàn toàn.</p>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Ticket Listing Section */}
-      <section className="ticket-listing">
-        <div className="container">
-          {/* Âm Nhạc */}
-          <div className="category-section">
-            <div className="category-header">
-              <h2 className="category-title">Âm Nhạc & Concert</h2>
-              <a href="#" className="view-more-btn">Xem Thêm →</a>
-            </div>
-            <div className="ticket-list">
-              <div className="ticket-item">
-                <div className="ticket-image">
-                  <img src={skyTourImg} alt="Sky Tour" className="event-img" />
-                  <div className="event-badge">HOT</div>
-                </div>
-                <div className="ticket-details">
-                  <h3 className="ticket-title">Sơn Tùng M-TP Sky Tour 2025</h3>
-                  <p className="ticket-info">
-                    <span className="info-icon">📍</span> Mỹ Đình Stadium • 15/03/2025
-                  </p>
-                </div>
-                <div className="ticket-price">
-                  <div className="price-label">Giá từ</div>
-                  <div className="price-value">1.200.000đ</div>
-                </div>
-              </div>
-
-              <div className="ticket-item">
-                <div className="ticket-image">
-                  <img src={TuPhuImg} alt="Tu Phu" className="event-img" />
-                </div>
-                <div className="ticket-details">
-                  <h3 className="ticket-title">Hoàng Thùy Linh - Tứ Phủ Concert</h3>
-                  <p className="ticket-info">
-                    <span className="info-icon">📍</span> Cung Văn Hóa • 22/03/2025
-                  </p>
-                </div>
-                <div className="ticket-price">
-                  <div className="price-label">Giá từ</div>
-                  <div className="price-value">800.000đ</div>
-                </div>
-              </div>
-
-              <div className="ticket-item">
-                <div className="ticket-image">
-                  <img src={RapVietImg} alt="Rap Việt" className="event-img" />
-                </div>
-                <div className="ticket-details">
-                  <h3 className="ticket-title">Rap Việt All Stars Live Concert</h3>
-                  <p className="ticket-info">
-                    <span className="info-icon">📍</span> TP. Hồ Chí Minh • 01/04/2025
-                  </p>
-                </div>
-                <div className="ticket-price">
-                  <div className="price-label">Giá từ</div>
-                  <div className="price-value">600.000đ</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Thể Thao */}
-          <div className="category-section">
-            <div className="category-header">
-              <h2 className="category-title">Thể Thao</h2>
-              <a href="#" className="view-more-btn">Xem Thêm →</a>
-            </div>
-            <div className="ticket-list">
-              <div className="ticket-item">
-                <div className="ticket-image">
-                  <img src={VLeagueImg} alt="V-League" className="event-img" />
-                  <div className="event-badge">HOT</div>
-                </div>
-                <div className="ticket-details">
-                  <h3 className="ticket-title">V-League 2025: Hà Nội FC vs HAGL</h3>
-                  <p className="ticket-info">
-                    <span className="info-icon">📍</span> Sân Hàng Đẫy • 10/03/2025
-                  </p>
-                </div>
-                <div className="ticket-price">
-                  <div className="price-label">Giá từ</div>
-                  <div className="price-value">150.000đ</div>
-                </div>
-              </div>
-
-              <div className="ticket-item">
-                <div className="ticket-image">
-                  <img src={VBAImg} alt="VBA" className="event-img" />
-                </div>
-                <div className="ticket-details">
-                  <h3 className="ticket-title">Giải VBA 2025 - Chung Kết</h3>
-                  <p className="ticket-info">
-                    <span className="info-icon">📍</span> Nhà Thi Đấu Phú Thọ • 18/04/2025
-                  </p>
-                </div>
-                <div className="ticket-price">
-                  <div className="price-label">Giá từ</div>
-                  <div className="price-value">200.000đ</div>
-                </div>
-              </div>
-
-              <div className="ticket-item">
-                <div className="ticket-image">
-                  <img src={MarathonImg} alt="Marathon" className="event-img" />
-                </div>
-                <div className="ticket-details">
-                  <h3 className="ticket-title">Marathon Quốc Tế TP. Hồ Chí Minh</h3>
-                  <p className="ticket-info">
-                    <span className="info-icon">📍</span> TP. Hồ Chí Minh • 05/05/2025
-                  </p>
-                </div>
-                <div className="ticket-price">
-                  <div className="price-label">Giá từ</div>
-                  <div className="price-value">50.000đ</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Nghệ Thuật & Kịch */}
-          <div className="category-section">
-            <div className="category-header">
-              <h2 className="category-title">Nghệ Thuật & Kịch</h2>
-              <a href="#" className="view-more-btn">Xem Thêm →</a>
-            </div>
-            <div className="ticket-list">
-              <div className="ticket-item">
-                <div className="ticket-image">
-                  <img src={TTHVTCXImg} alt="Vở Kịch 'Tôi Thấy Hoa Vàng Trên Cỏ Xanh'" className="event-img" />
-                  <div className="event-badge">HOT</div>
-                </div>
-                <div className="ticket-details">
-                  <h3 className="ticket-title">Vở Kịch "Tôi Thấy Hoa Vàng Trên Cỏ Xanh"</h3>
-                  <p className="ticket-info">
-                    <span className="info-icon">📍</span> Nhà Hát Lớn Hà Nội • 08/04/2025
-                  </p>
-                </div>
-                <div className="ticket-price">
-                  <div className="price-label">Giá từ</div>
-                  <div className="price-value">300.000đ</div>
-                </div>
-              </div>
-
-              <div className="ticket-item">
-                <div className="ticket-image">
-                  <img src={TrienLamImg} alt="Triển Lãm Nghệ Thuật Đương Đại Việt Nam" className="event-img" />
-                </div>
-                <div className="ticket-details">
-                  <h3 className="ticket-title">Triển Lãm Nghệ Thuật Đương Đại Việt Nam</h3>
-                  <p className="ticket-info">
-                    <span className="info-icon">📍</span> Bảo Tàng Mỹ Thuật • 15/03/2025
-                  </p>
-                </div>
-                <div className="ticket-price">
-                  <div className="price-label">Giá từ</div>
-                  <div className="price-value">80.000đ</div>
-                </div>
-              </div>
-
-              <div className="ticket-item">
-                <div className="ticket-image">
-                  <img src={StandUpImg} alt="Stand-up Comedy - Trấn Thành Live Show" className="event-img" />
-                </div>
-                <div className="ticket-details">
-                  <h3 className="ticket-title">Stand-up Comedy - Trấn Thành Live Show</h3>
-                  <p className="ticket-info">
-                    <span className="info-icon">📍</span> TP. Hồ Chí Minh • 22/04/2025
-                  </p>
-                </div>
-                <div className="ticket-price">
-                  <div className="price-label">Giá từ</div>
-                  <div className="price-value">450.000đ</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Blockchain Trust Section */}
-      <section className="blockchain-trust">
-        <div className="container">
-          <div className="trust-content">
-            <div className="trust-text">
-              <h2>Xây Dựng Trên Niềm Tin<br/>Vận Hành Bởi Blockchain</h2>
-              <p className="trust-desc">VeriTix sử dụng công nghệ blockchain phi tập trung để đảm bảo mỗi giao dịch đều minh bạch, an toàn và không thể thay đổi. Hệ thống của chúng tôi loại bỏ hoàn toàn vé giả, gian lận và đảm bảo quyền lợi tối đa cho người dùng.</p>
-              <p className="trust-desc">Với mạng lưới node toàn cầu, mọi vé được xác minh trong vài giây, mang đến trải nghiệm mua vé nhanh chóng và đáng tin cậy nhất.</p>
-            </div>
-            <div className="trust-visual">
-              <div className="network-node">
-                <svg width="40" height="40" viewBox="0 0 40 40">
-                  <circle cx="20" cy="20" r="15" fill="white" opacity="0.2"/>
-                  <circle cx="20" cy="20" r="8" fill="white"/>
-                </svg>
-              </div>
-              <div className="network-node">
-                <svg width="40" height="40" viewBox="0 0 40 40">
-                  <circle cx="20" cy="20" r="15" fill="white" opacity="0.2"/>
-                  <circle cx="20" cy="20" r="8" fill="white"/>
-                </svg>
-              </div>
-              <div className="network-node">
-                <svg width="40" height="40" viewBox="0 0 40 40">
-                  <circle cx="20" cy="20" r="15" fill="white" opacity="0.2"/>
-                  <circle cx="20" cy="20" r="8" fill="white"/>
-                </svg>
-              </div>
-              <div className="network-node">
-                <svg width="40" height="40" viewBox="0 0 40 40">
-                  <circle cx="20" cy="20" r="15" fill="white" opacity="0.2"/>
-                  <circle cx="20" cy="20" r="8" fill="white"/>
-                </svg>
-              </div>
-              <div className="network-node" style={{width: '100px', height: '100px'}}>
-                <svg width="50" height="50" viewBox="0 0 50 50">
-                  <circle cx="25" cy="25" r="20" fill="white" opacity="0.2"/>
-                  <circle cx="25" cy="25" r="10" fill="white"/>
-                </svg>
-              </div>
-            </div>
           </div>
         </div>
       </section>
