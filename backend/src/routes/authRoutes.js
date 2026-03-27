@@ -1,8 +1,9 @@
 const express = require('express');
-const router = express.Router();
-const authController = require('../controllers/authController');
+const { getNonce, verifySignature } = require('../controllers/authController');
 
-router.post('/register', authController.register);
-router.post('/login', authController.login);
+const router = express.Router();
+
+router.get('/nonce/:walletAddress', getNonce);
+router.post('/verify', verifySignature);
 
 module.exports = router;
