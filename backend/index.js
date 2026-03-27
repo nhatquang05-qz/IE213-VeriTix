@@ -6,6 +6,7 @@ const connectDB = require('./src/config/db');
 const { startBlockchainListener } = require('./src/services/blockchain.service');
 const { notFound, errorHandler } = require('./src/middlewares/errorMiddleware');
 
+const eventRoutes = require('./src/routes/eventRoutes');
 const authRoutes = require('./src/routes/authRoutes');
 
 const app = express();
@@ -17,7 +18,7 @@ connectDB();
 startBlockchainListener();
 
 app.use('/api/auth', authRoutes);
-// app.use('/api/events', eventRoutes); 
+app.use('/api/events', eventRoutes); 
 
 app.get('/', (req, res) => {
   res.send('VeriTix API đang chạy ngon lành! 🚀');
