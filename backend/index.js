@@ -5,7 +5,9 @@ require('dotenv').config();
 const connectDB = require('./src/config/db');
 const { startBlockchainListener } = require('./src/services/blockchain.service');
 const { notFound, errorHandler } = require('./src/middlewares/errorMiddleware');
-
+const authRoutes = require('./src/routes/authRoutes');
+const eventRoutes = require('./src/routes/eventRoutes');
+const ticketRoutes = require('./src/routes/ticketRoutes');
 const eventRoutes = require('./src/routes/eventRoutes');
 const authRoutes = require('./src/routes/authRoutes');
 
@@ -19,6 +21,7 @@ startBlockchainListener();
 
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes); 
+app.use('/api/tickets', ticketRoutes);
 
 app.get('/', (req, res) => {
   res.send('VeriTix API đang chạy ngon lành! 🚀');
