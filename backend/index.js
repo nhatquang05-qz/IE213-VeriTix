@@ -8,8 +8,6 @@ const { notFound, errorHandler } = require('./src/middlewares/errorMiddleware');
 const authRoutes = require('./src/routes/authRoutes');
 const eventRoutes = require('./src/routes/eventRoutes');
 const ticketRoutes = require('./src/routes/ticketRoutes');
-const eventRoutes = require('./src/routes/eventRoutes');
-const authRoutes = require('./src/routes/authRoutes');
 
 const app = express();
 
