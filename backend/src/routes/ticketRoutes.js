@@ -1,10 +1,12 @@
 const express = require('express');
-const { getMyTickets } = require('../controllers/ticketController');
+const { getMyTickets, checkInTicket } = require('../controllers/ticketController'); 
 
-const { protect } = require('../middlewares/authMiddleware');
+const { protect, organizerOnly } = require('../middlewares/authMiddleware');
 
 const router = express.Router();
 
 router.get('/my-tickets', protect, getMyTickets);
+
+router.post('/checkin', protect, organizerOnly, checkInTicket);
 
 module.exports = router;
