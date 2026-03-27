@@ -1,9 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+
 const connectDB = require('./src/config/db');
 const { startBlockchainListener } = require('./src/services/blockchain.service');
 const { notFound, errorHandler } = require('./src/middlewares/errorMiddleware');
+
+const authRoutes = require('./src/routes/authRoutes');
 
 const app = express();
 
@@ -13,7 +16,7 @@ app.use(express.json());
 connectDB();
 startBlockchainListener();
 
-// app.use('/api/auth', authRoutes);
+app.use('/api/auth', authRoutes);
 // app.use('/api/events', eventRoutes); 
 
 app.get('/', (req, res) => {
