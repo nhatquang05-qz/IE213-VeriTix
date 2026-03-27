@@ -1,46 +1,15 @@
 const mongoose = require('mongoose');
 
 const ticketSchema = new mongoose.Schema({
+  blockchainTicketId: { type: Number, required: true, unique: true, index: true }, // Token ID của ERC721/1155
   
-  tokenId: { 
-    type: Number, 
-    required: true, 
-    index: true 
-  },
+  eventId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', required: true },
   
-  event: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Event', 
-    required: true 
-  },
+  ownerWallet: { type: String, required: true, lowercase: true }, // Ai đang giữ vé này
   
-  owner: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User', 
-    required: true 
-  },
+  purchasePrice: { type: String, required: true }, // Mua giá bao nhiêu
   
-  
-  ownerWallet: { 
-    type: String, 
-    required: true, 
-    lowercase: true 
-  },
-
-  
-  tokenURI: { type: String, required: true }, 
-  
-  status: { 
-    type: String, 
-    enum: ['active', 'listed', 'used'], 
-    default: 'active' 
-  },
-
-  pricePaid: { type: Number },   
-  purchasedAt: { type: Date, default: Date.now }
-});
-
-
-ticketSchema.index({ tokenId: 1 }, { unique: true });
+  status: { type: String, enum: ['AVAILABLE', 'SOLD', 'RESELLING', 'USED'], default: 'AVAILABLE' }
+}, { timestamps: true });
 
 module.exports = mongoose.model('Ticket', ticketSchema);
