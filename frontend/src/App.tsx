@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ethers } from 'ethers'; 
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from './config/contract'; 
 
-import MainLayout from './components/MainLayout';
+import MainLayout from './components/Navbar';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';

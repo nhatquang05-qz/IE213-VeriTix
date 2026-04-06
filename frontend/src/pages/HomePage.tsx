@@ -1,20 +1,20 @@
-import { Link } from 'react-router-dom';
-import '../assets/styles/HomePage.css';
+import React from 'react';
+import '../assets/styles/Homepage.css';
+import useBlockchainAnimation from '../hooks/useBlockchainAnimation';
+import HomepageHero from '../components/HomepageHero';
+import FeaturesSection from '../components/FeaturesSection';
+import TicketListing from '../components/TicketListing';
+import BlockchainTrust from '../components/BlockchainTrust';
 
-const HomePage = () => {
+const HomePage: React.FC = () => {
+  useBlockchainAnimation();
+
   return (
-    <div className="hero-section">
-      <h1 className="hero-title">
-        Mua vé sự kiện an toàn với <span className="text-highlight"> VeriTix</span>
-      </h1>
-      <p className="hero-desc">
-        Giải pháp bán vé minh bạch, chống vé giả và cho phép bán lại an toàn tuyệt đối.
-      </p>
-      <div className="hero-actions">
-        <Link to="/marketplace" className="btn btn-primary">
-          Mua vé ngay
-        </Link>
-      </div>
+    <div className="homepage">
+      <HomepageHero />
+      <FeaturesSection />
+      <TicketListing />
+      <BlockchainTrust />
     </div>
   );
 };
