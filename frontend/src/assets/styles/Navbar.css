@@ -1,0 +1,48 @@
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 40px;
+  background: #071426;
+  color: white;
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 22px;
+  color: #4cc9f0;
+}
+
+.search-bar input {
+  width: 320px;
+  padding: 10px 16px;
+  border-radius: 20px;
+  border: none;
+  background: #0f1f3d;
+  color: white;
+}
+
+.nav-links span {
+  margin: 0 12px;
+  cursor: pointer;
+}
+
+.nav-actions button {
+  margin-left: 10px;
+}
+
+.btn-outline {
+  border: 1px solid #4cc9f0;
+  background: transparent;
+  color: #4cc9f0;
+  padding: 8px 16px;
+  border-radius: 20px;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, #3a86ff, #4cc9f0);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  color: white;
+}

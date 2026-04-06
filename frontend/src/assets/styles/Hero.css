@@ -1,0 +1,30 @@
+.hero {
+  text-align: center;
+  padding: 120px 20px;
+  background: radial-gradient(circle at top, #0a1f44, #020817);
+  color: white;
+  position: relative;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: #3a86ff;
+  filter: blur(200px);
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0.3;
+}
+
+.hero h1 {
+  font-size: 52px;
+  color: #4cc9f0;
+}
+
+.hero p {
+  margin-top: 20px;
+  opacity: 0.8;
+}

@@ -1,0 +1,10 @@
+.highlight-card {
+  margin: 40px auto;
+  width: 70%;
+  padding: 30px;
+  border-radius: 20px;
+  background: linear-gradient(90deg, #1d4ed8, #2563eb);
+  color: white;
+  text-align: center;
+  box-shadow: 0 0 30px rgba(37, 99, 235, 0.4);
+}
