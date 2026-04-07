@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import "../assets/styles/Homepage.css";
+import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = ({ children }: { children: React.ReactNode }) => {
+<<<<<<< Updated upstream
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -20,6 +22,10 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
     console.log('Connect Wallet clicked');
     // TODO: Implement wallet connection logic
   };
+=======
+
+  const { walletAddress, connectWallet } = useAuth();
+>>>>>>> Stashed changes
 
   return (
     <div>
@@ -67,6 +73,7 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
               <a href="#" className="nav-link">
                 Vé Của Tôi
               </a>
+<<<<<<< Updated upstream
               <button 
                 className="nav-link"
                 onClick={handleConnectWallet}
@@ -74,6 +81,26 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
               >
                 Connect Wallet
               </button>
+=======
+
+              {/* GHÉP NỐI THẦN THÁNH NẰM Ở ĐÂY */}
+              {walletAddress ? (
+                /* Nếu có ví rồi -> Hiện địa chỉ ví (cắt ngắn cho đẹp) */
+                <button className="nav-cta" style={{ background: '#10b981', color: 'white', border: 'none', cursor: 'pointer' }}>
+                  {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+                </button>
+              ) : (
+                /* Nếu chưa có ví -> Hiện nút kết nối và gắn sự kiện onClick */
+                <button 
+                  onClick={connectWallet} 
+                  className="nav-cta"
+                  style={{ border: 'none', cursor: 'pointer' }}
+                >
+                  Kết Nối Ví
+                </button>
+              )}
+
+>>>>>>> Stashed changes
               <a href="#" className="nav-cta">
                 Bắt Đầu
               </a>
