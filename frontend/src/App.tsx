@@ -5,6 +5,7 @@ import { CONTRACT_ADDRESS, CONTRACT_ABI } from './config/contract';
 
 import MainLayout from './components/Navbar';
 import HomePage from './pages/HomePage';
+import EventDetail from './pages/EventDetail';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import CreateEventPage from './pages/CreateEventPage';
@@ -85,6 +86,7 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />          
           <Route path="/test" element={<TestConnection />} />
           <Route path="/create-event" element={<CreateEventPage />} />
+          <Route path="/events/:id" element={<EventDetail />} />
         </Routes>
       </MainLayout>
     </BrowserRouter>

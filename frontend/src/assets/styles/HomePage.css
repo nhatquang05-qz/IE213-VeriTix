@@ -569,6 +569,12 @@ nav {
     margin: 0 auto;
 }
 
+.ticket-item-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+}
+
 .ticket-item {
     background: linear-gradient(90deg, rgba(30, 58, 138, 0.4) 0%, rgba(0, 102, 255, 0.2) 100%);
     border-radius: 16px;

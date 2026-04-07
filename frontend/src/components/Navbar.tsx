@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import "../assets/styles/Homepage.css";
 
 const Navbar = ({ children }: { children: React.ReactNode }) => {
@@ -58,15 +59,15 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
                   </svg>
                 </button>
               </div>
-              <a href="#" className="nav-link">
+              <Link to="/" className="nav-link">
                 Trang Chủ
-              </a>
-              <a href="#" className="nav-link">
+              </Link>
+              <Link to="/" className="nav-link">
                 Sự Kiện
-              </a>
-              <a href="#" className="nav-link">
+              </Link>
+              <Link to="/" className="nav-link">
                 Vé Của Tôi
-              </a>
+              </Link>
               <button 
                 className="nav-link"
                 onClick={handleConnectWallet}

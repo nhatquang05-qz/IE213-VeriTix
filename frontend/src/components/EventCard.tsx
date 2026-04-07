@@ -12,8 +12,8 @@ const EventCard = ({ event }: { event: IEvent }) => {
         <p>{new Date(event.startDate).toLocaleDateString()}</p>
 
         <div className="event-footer">
-          <span>{event.price}đ</span>
-          <button>Xem chi tiết</button>
+          <span className="event-price">{event.price.toLocaleString()}đ</span>
+          <div className="detail-button">Xem chi tiết</div>
         </div>
       </div>
     </div>
