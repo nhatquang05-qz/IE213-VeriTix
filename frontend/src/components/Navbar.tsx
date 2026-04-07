@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import "../assets/styles/Homepage.css";
+// Sửa import: Gọi useAuth thay vì AuthContext
 import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = ({ children }: { children: React.ReactNode }) => {
-<<<<<<< Updated upstream
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  // Sửa cách gọi hook và đổi 'account' thành 'walletAddress'
+  const { connectWallet, walletAddress } = useAuth();
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -17,15 +20,6 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
 
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
-
-  const handleConnectWallet = () => {
-    console.log('Connect Wallet clicked');
-    // TODO: Implement wallet connection logic
-  };
-=======
-
-  const { walletAddress, connectWallet } = useAuth();
->>>>>>> Stashed changes
 
   return (
     <div>
@@ -73,34 +67,17 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
               <a href="#" className="nav-link">
                 Vé Của Tôi
               </a>
-<<<<<<< Updated upstream
-              <button 
-                className="nav-link"
-                onClick={handleConnectWallet}
-                style={{ background: 'none', border: 'none', padding: '0', cursor: 'pointer' }}
-              >
-                Connect Wallet
-              </button>
-=======
 
-              {/* GHÉP NỐI THẦN THÁNH NẰM Ở ĐÂY */}
-              {walletAddress ? (
-                /* Nếu có ví rồi -> Hiện địa chỉ ví (cắt ngắn cho đẹp) */
-                <button className="nav-cta" style={{ background: '#10b981', color: 'white', border: 'none', cursor: 'pointer' }}>
-                  {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
-                </button>
-              ) : (
-                /* Nếu chưa có ví -> Hiện nút kết nối và gắn sự kiện onClick */
-                <button 
-                  onClick={connectWallet} 
-                  className="nav-cta"
-                  style={{ border: 'none', cursor: 'pointer' }}
-                >
+              {!walletAddress ? (
+                <button onClick={connectWallet} className="connect-btn" style={{ background: '#f3f4f6', color: 'white', border: 'none', cursor: 'pointer', padding: '8px 16px', borderRadius: '4px' }}>
                   Kết Nối Ví
                 </button>
+              ) : (
+                <span className="wallet-address" style={{ background: '#10b981', padding: '8px 16px', borderRadius: '4px', fontWeight: 'bold' }}>
+                  {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+                </span>
               )}
 
->>>>>>> Stashed changes
               <a href="#" className="nav-cta">
                 Bắt Đầu
               </a>
