@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ethers } from 'ethers'; 
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from './config/contract'; 
+import { AuthProvider } from './contexts/AuthContext';
 
 import MainLayout from './components/Navbar';
 import HomePage from './pages/HomePage';
@@ -78,6 +79,7 @@ function TestConnection() {
 
 function App() {
   return (
+  <AuthProvider>
     <BrowserRouter>
       <MainLayout>
         <Routes>
@@ -87,9 +89,11 @@ function App() {
           <Route path="/test" element={<TestConnection />} />
           <Route path="/create-event" element={<CreateEventPage />} />
           <Route path="/events/:id" element={<EventDetail />} />
+          
         </Routes>
       </MainLayout>
     </BrowserRouter>
+  </AuthProvider>
   );
 }
 

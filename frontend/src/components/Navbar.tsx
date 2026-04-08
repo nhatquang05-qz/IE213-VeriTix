@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import "../assets/styles/Homepage.css";
+// Sửa import: Gọi useAuth thay vì AuthContext
+import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = ({ children }: { children: React.ReactNode }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  // Sửa cách gọi hook và đổi 'account' thành 'walletAddress'
+  const { connectWallet, walletAddress } = useAuth();
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -16,11 +21,6 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
 
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
-
-  const handleConnectWallet = () => {
-    console.log('Connect Wallet clicked');
-    // TODO: Implement wallet connection logic
-  };
 
   return (
     <div>
@@ -67,14 +67,21 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
               </Link>
               <Link to="/" className="nav-link">
                 Vé Của Tôi
+
+
               </Link>
-              <button 
-                className="nav-link"
-                onClick={handleConnectWallet}
-                style={{ background: 'none', border: 'none', padding: '0', cursor: 'pointer' }}
-              >
-                Connect Wallet
-              </button>
+
+              {!walletAddress ? (
+                <button onClick={connectWallet} className="connect-btn" style={{ background: '#f3f4f6', color: 'white', border: 'none', cursor: 'pointer', padding: '8px 16px', borderRadius: '4px' }}>
+                  Kết Nối Ví
+                </button>
+              ) : (
+                <span className="wallet-address" style={{ background: '#10b981', padding: '8px 16px', borderRadius: '4px', fontWeight: 'bold' }}>
+                  {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+                </span>
+              )}
+
+
               <a href="#" className="nav-cta">
                 Bắt Đầu
               </a>
