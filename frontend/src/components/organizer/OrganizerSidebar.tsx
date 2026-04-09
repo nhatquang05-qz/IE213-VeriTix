@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState } from 'react';
 
 /* ══════════════════════════════════════════
-   OrganizerSidebar — Collapsible + Responsive
+   OrganizerSidebar — Collapsible + Mobile Drawer
+   Veritix Organizer Dashboard
    ══════════════════════════════════════════ */
 
 type NavItem = {
@@ -17,7 +18,7 @@ const NAV_ITEMS: NavItem[] = [
   { key: 'terms', label: 'Điều khoản', icon: '≡' },
 ];
 
-/* ── Icons ── */
+/* ── SVG Icons ── */
 const ChevronLeft = () => (
   <svg
     width="18"
@@ -63,7 +64,7 @@ const XIcon = () => (
 );
 
 /* ── Context cho expanded state ── */
-export const SidebarContext = createContext<{ expanded: boolean }>({ expanded: true });
+const SidebarContext = createContext<{ expanded: boolean }>({ expanded: true });
 
 /* ── SidebarItem (tooltip khi thu gọn) ── */
 const SidebarItem: React.FC<{ icon: string; text: string; active?: boolean }> = ({
@@ -79,48 +80,72 @@ const SidebarItem: React.FC<{ icon: string; text: string; active?: boolean }> = 
       href="#"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className={`
-        relative flex items-center rounded-[8px] text-[13.5px] font-medium
-        no-underline whitespace-nowrap
-        transition-all duration-200 ease-out
-        ${expanded ? 'gap-[10px] px-[12px] py-[9px] justify-start' : 'gap-0 px-0 py-[9px] justify-center'}
-        ${
-          active
-            ? 'bg-[rgba(56,189,248,0.1)] text-[#38bdf8]'
-            : hovered
-              ? 'bg-[#1a2235] text-[#f1f5f9]'
-              : 'text-[#94a3b8]'
-        }
-      `}
+      style={{
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        gap: expanded ? 10 : 0,
+        padding: expanded ? '9px 12px' : '9px 0',
+        justifyContent: expanded ? 'flex-start' : 'center',
+        borderRadius: 8,
+        fontSize: 13.5,
+        fontWeight: 500,
+        textDecoration: 'none',
+        color: active ? '#38bdf8' : hovered ? '#f1f5f9' : '#94a3b8',
+        background: active ? 'rgba(56,189,248,0.1)' : hovered ? '#1a2235' : 'transparent',
+        transition: 'all 0.2s ease',
+        whiteSpace: 'nowrap',
+      }}
     >
-      <span className="text-[15px] opacity-80 shrink-0 w-[20px] text-center">{icon}</span>
+      <span style={{ fontSize: 15, opacity: 0.8, flexShrink: 0, width: 20, textAlign: 'center' }}>
+        {icon}
+      </span>
       <span
-        className="overflow-hidden transition-all duration-300 ease-out"
-        style={{ width: expanded ? 150 : 0, opacity: expanded ? 1 : 0 }}
+        style={{
+          overflow: 'hidden',
+          transition: 'width 0.3s ease, opacity 0.2s ease',
+          width: expanded ? 150 : 0,
+          opacity: expanded ? 1 : 0,
+        }}
       >
         {text}
       </span>
 
-      {/* Tooltip khi collapsed */}
+      {/* Tooltip khi sidebar thu gọn */}
       {!expanded && hovered && (
         <div
-          className={`
-          absolute left-[calc(100%+14px)] top-1/2 -translate-y-1/2
-          bg-[#1e293b] text-[#f1f5f9] px-[14px] py-[6px] rounded-[8px]
-          text-[12.5px] font-medium
-          border border-[rgba(99,179,237,0.18)]
-          shadow-[0_8px_32px_rgba(0,0,0,0.5)]
-          z-[200] whitespace-nowrap pointer-events-none
-          animate-[vtx-tooltip-in_0.15s_ease-out]
-        `}
+          style={{
+            position: 'absolute',
+            left: 'calc(100% + 14px)',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            background: '#1e293b',
+            color: '#f1f5f9',
+            padding: '6px 14px',
+            borderRadius: 8,
+            fontSize: 12.5,
+            fontWeight: 500,
+            border: '1px solid rgba(99,179,237,0.18)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+            zIndex: 200,
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none',
+            animation: 'vtx-tooltip-in 0.15s ease-out',
+          }}
         >
           {text}
           <div
-            className={`
-            absolute left-[-5px] top-1/2 -translate-y-1/2 rotate-45
-            w-[10px] h-[10px] bg-[#1e293b]
-            border-l border-b border-[rgba(99,179,237,0.18)]
-          `}
+            style={{
+              position: 'absolute',
+              left: -5,
+              top: '50%',
+              transform: 'translateY(-50%) rotate(45deg)',
+              width: 10,
+              height: 10,
+              background: '#1e293b',
+              borderLeft: '1px solid rgba(99,179,237,0.18)',
+              borderBottom: '1px solid rgba(99,179,237,0.18)',
+            }}
           />
         </div>
       )}
@@ -129,7 +154,7 @@ const SidebarItem: React.FC<{ icon: string; text: string; active?: boolean }> = 
 };
 
 /* ══════════════════════════════════════════
-   Desktop Sidebar (collapsible)
+   Desktop Sidebar (collapsible, fixed bên trái)
    ══════════════════════════════════════════ */
 type OrganizerSidebarProps = {
   expanded: boolean;
@@ -139,32 +164,76 @@ type OrganizerSidebarProps = {
 const OrganizerSidebar: React.FC<OrganizerSidebarProps> = ({ expanded, onToggle }) => {
   return (
     <aside
-      className="fixed top-0 left-0 bottom-0 z-50 hidden md:flex flex-col bg-[#111827] border-r border-[rgba(99,179,237,0.12)] py-[24px] overflow-hidden"
       style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        bottom: 0,
+        zIndex: 50,
         width: expanded ? 220 : 68,
+        background: '#111827',
+        borderRight: '1px solid rgba(99,179,237,0.12)',
+        display: 'flex',
+        flexDirection: 'column',
+        padding: '24px 0',
         transition: 'width 0.3s cubic-bezier(0.4,0,0.2,1)',
+        overflow: 'hidden',
       }}
     >
       {/* Logo + Toggle */}
       <div
-        className={`border-b border-[rgba(99,179,237,0.12)] flex items-center min-h-[44px] gap-[8px] ${expanded ? 'px-[20px] pb-[20px] justify-between' : 'px-0 pb-[20px] justify-center'}`}
+        style={{
+          padding: expanded ? '0 20px 20px' : '0 0 20px',
+          borderBottom: '1px solid rgba(99,179,237,0.12)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: expanded ? 'space-between' : 'center',
+          gap: 8,
+          minHeight: 44,
+        }}
       >
         <div
-          className="overflow-hidden whitespace-nowrap"
           style={{
+            overflow: 'hidden',
+            transition: 'width 0.3s ease, opacity 0.25s ease',
             width: expanded ? 120 : 0,
             opacity: expanded ? 1 : 0,
-            transition: 'width 0.3s ease, opacity 0.25s ease',
+            whiteSpace: 'nowrap',
           }}
         >
-          <span className="text-[15px] font-bold tracking-[0.04em] text-[#38bdf8]">Veritix</span>
-          <p className="text-[11px] text-[#94a3b8] mt-[2px] uppercase tracking-[0.06em]">
+          <span
+            style={{ fontSize: 15, fontWeight: 700, letterSpacing: '0.04em', color: '#38bdf8' }}
+          >
+            Veritix
+          </span>
+          <p
+            style={{
+              fontSize: 11,
+              color: '#94a3b8',
+              marginTop: 2,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+            }}
+          >
             Organizer Center
           </p>
         </div>
         <button
           onClick={onToggle}
-          className="bg-[rgba(56,189,248,0.08)] border border-[rgba(99,179,237,0.15)] rounded-[8px] p-[6px] text-[#94a3b8] cursor-pointer flex items-center justify-center shrink-0 transition-colors duration-150 hover:text-[#38bdf8] hover:bg-[rgba(56,189,248,0.15)]"
+          className="vtx-toggle-btn"
+          style={{
+            background: 'rgba(56,189,248,0.08)',
+            border: '1px solid rgba(99,179,237,0.15)',
+            borderRadius: 8,
+            padding: 6,
+            color: '#94a3b8',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'color 0.15s, background 0.15s',
+            flexShrink: 0,
+          }}
         >
           {expanded ? <ChevronLeft /> : <ChevronRight />}
         </button>
@@ -173,7 +242,13 @@ const OrganizerSidebar: React.FC<OrganizerSidebarProps> = ({ expanded, onToggle 
       {/* Nav */}
       <SidebarContext.Provider value={{ expanded }}>
         <nav
-          className={`flex-1 flex flex-col gap-[4px] ${expanded ? 'px-[12px] py-[16px]' : 'px-[10px] py-[16px]'}`}
+          style={{
+            flex: 1,
+            padding: expanded ? '16px 12px' : '16px 10px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 4,
+          }}
         >
           {NAV_ITEMS.map((item) => (
             <SidebarItem key={item.key} icon={item.icon} text={item.label} active={item.active} />
@@ -183,21 +258,57 @@ const OrganizerSidebar: React.FC<OrganizerSidebarProps> = ({ expanded, onToggle 
 
       {/* Footer */}
       <div
-        className={`border-t border-[rgba(99,179,237,0.12)] flex items-center gap-[10px] ${expanded ? 'px-[20px] pt-[16px] justify-start' : 'px-0 pt-[16px] justify-center'}`}
+        style={{
+          padding: expanded ? '16px 20px 0' : '16px 0 0',
+          borderTop: '1px solid rgba(99,179,237,0.12)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: expanded ? 'flex-start' : 'center',
+          gap: 10,
+        }}
       >
-        <div className="w-[34px] h-[34px] rounded-[8px] bg-[rgba(56,189,248,0.15)] flex items-center justify-center text-[#38bdf8] text-[13px] font-bold shrink-0">
+        <div
+          style={{
+            width: 34,
+            height: 34,
+            borderRadius: 8,
+            background: 'rgba(56,189,248,0.15)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 13,
+            fontWeight: 700,
+            color: '#38bdf8',
+            flexShrink: 0,
+          }}
+        >
           OR
         </div>
         <div
-          className="overflow-hidden whitespace-nowrap"
           style={{
+            overflow: 'hidden',
+            transition: 'width 0.3s ease, opacity 0.25s ease',
             width: expanded ? 140 : 0,
             opacity: expanded ? 1 : 0,
-            transition: 'width 0.3s ease, opacity 0.25s ease',
+            whiteSpace: 'nowrap',
           }}
         >
-          <p className="text-[13px] font-semibold text-[#f1f5f9] truncate">Organizer</p>
-          <p className="text-[11px] text-[#94a3b8] truncate">dashboard@veritix.io</p>
+          <p
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: '#f1f5f9',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            Organizer
+          </p>
+          <p
+            style={{ fontSize: 11, color: '#94a3b8', overflow: 'hidden', textOverflow: 'ellipsis' }}
+          >
+            dashboard@veritix.io
+          </p>
         </div>
       </div>
     </aside>
@@ -205,7 +316,7 @@ const OrganizerSidebar: React.FC<OrganizerSidebarProps> = ({ expanded, onToggle 
 };
 
 /* ══════════════════════════════════════════
-   Mobile Sidebar Drawer
+   Mobile Sidebar Drawer (overlay)
    ══════════════════════════════════════════ */
 type MobileSidebarProps = {
   open: boolean;
@@ -218,59 +329,146 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({ open, onClose }) =
       {/* Backdrop */}
       <div
         onClick={onClose}
-        className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-[4px] transition-opacity duration-300"
-        style={{ opacity: open ? 1 : 0, pointerEvents: open ? 'auto' : 'none' }}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 90,
+          background: 'rgba(0,0,0,0.6)',
+          backdropFilter: 'blur(4px)',
+          opacity: open ? 1 : 0,
+          pointerEvents: open ? 'auto' : 'none',
+          transition: 'opacity 0.3s ease',
+        }}
       />
       {/* Drawer */}
       <aside
-        className="fixed top-0 left-0 bottom-0 z-[100] w-[270px] bg-[#111827] border-r border-[rgba(99,179,237,0.12)] flex flex-col py-[24px] transition-transform duration-300"
         style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          bottom: 0,
+          zIndex: 100,
+          width: 270,
+          background: '#111827',
+          borderRight: '1px solid rgba(99,179,237,0.12)',
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '24px 0',
           transform: open ? 'translateX(0)' : 'translateX(-100%)',
+          transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)',
           boxShadow: open ? '8px 0 40px rgba(0,0,0,0.5)' : 'none',
         }}
       >
         {/* Header */}
-        <div className="px-[20px] pb-[20px] border-b border-[rgba(99,179,237,0.12)] flex items-center justify-between">
+        <div
+          style={{
+            padding: '0 20px 20px',
+            borderBottom: '1px solid rgba(99,179,237,0.12)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
           <div>
-            <span className="text-[15px] font-bold tracking-[0.04em] text-[#38bdf8]">Veritix</span>
-            <p className="text-[11px] text-[#94a3b8] mt-[2px] uppercase tracking-[0.06em]">
+            <span
+              style={{ fontSize: 15, fontWeight: 700, letterSpacing: '0.04em', color: '#38bdf8' }}
+            >
+              Veritix
+            </span>
+            <p
+              style={{
+                fontSize: 11,
+                color: '#94a3b8',
+                marginTop: 2,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+              }}
+            >
               Organizer Center
             </p>
           </div>
           <button
             onClick={onClose}
-            className="bg-[rgba(56,189,248,0.08)] border border-[rgba(99,179,237,0.15)] rounded-[8px] p-[6px] text-[#94a3b8] cursor-pointer flex items-center justify-center hover:text-[#38bdf8]"
+            className="vtx-toggle-btn"
+            style={{
+              background: 'rgba(56,189,248,0.08)',
+              border: '1px solid rgba(99,179,237,0.15)',
+              borderRadius: 8,
+              padding: 6,
+              color: '#94a3b8',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
             <XIcon />
           </button>
         </div>
         {/* Nav */}
-        <nav className="flex-1 px-[12px] py-[16px] flex flex-col gap-[4px]">
+        <nav
+          style={{
+            flex: 1,
+            padding: '16px 12px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 4,
+          }}
+        >
           {NAV_ITEMS.map((item) => (
             <a
               key={item.key}
               href="#"
               onClick={onClose}
-              className={`
-                flex items-center gap-[10px] px-[14px] py-[11px]
-                rounded-[8px] text-[14px] font-medium no-underline
-                transition-colors duration-150
-                ${item.active ? 'bg-[rgba(56,189,248,0.1)] text-[#38bdf8]' : 'text-[#94a3b8]'}
-              `}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '11px 14px',
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 500,
+                textDecoration: 'none',
+                color: item.active ? '#38bdf8' : '#94a3b8',
+                background: item.active ? 'rgba(56,189,248,0.1)' : 'transparent',
+                transition: 'background 0.15s',
+              }}
             >
-              <span className="text-[16px] opacity-80">{item.icon}</span>
+              <span style={{ fontSize: 16, opacity: 0.8 }}>{item.icon}</span>
               {item.label}
             </a>
           ))}
         </nav>
         {/* Footer */}
-        <div className="px-[20px] pt-[16px] border-t border-[rgba(99,179,237,0.12)] flex items-center gap-[10px]">
-          <div className="w-[34px] h-[34px] rounded-[8px] bg-[rgba(56,189,248,0.15)] flex items-center justify-center text-[#38bdf8] text-[13px] font-bold shrink-0">
+        <div
+          style={{
+            padding: '16px 20px 0',
+            borderTop: '1px solid rgba(99,179,237,0.12)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+          }}
+        >
+          <div
+            style={{
+              width: 34,
+              height: 34,
+              borderRadius: 8,
+              background: 'rgba(56,189,248,0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 13,
+              fontWeight: 700,
+              color: '#38bdf8',
+              flexShrink: 0,
+            }}
+          >
             OR
           </div>
           <div>
-            <p className="text-[13px] font-semibold text-[#f1f5f9]">Organizer</p>
-            <p className="text-[11px] text-[#94a3b8]">dashboard@veritix.io</p>
+            <p style={{ fontSize: 13, fontWeight: 600, color: '#f1f5f9' }}>Organizer</p>
+            <p style={{ fontSize: 11, color: '#94a3b8' }}>dashboard@veritix.io</p>
           </div>
         </div>
       </aside>

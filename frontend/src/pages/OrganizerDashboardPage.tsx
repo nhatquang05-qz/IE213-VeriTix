@@ -4,87 +4,24 @@ import { useState, useEffect, useMemo } from 'react';
 import OrganizerSidebar, { MobileSidebar } from '../components/organizer/OrganizerSidebar';
 import OrganizerStatsCard from '../components/organizer/OrganizerStatsCard';
 import OrganizerEventList from '../components/organizer/OrganizerEventList';
+import type { OrganizerEvent } from '../components/organizer/OrganizerEventList';
 
 /* ══════════════════════════════════════════════════════════
    Veritix — Organizer Dashboard Page
-   React + Tailwind v4 · Component-based · Responsive
+   React · Inline styles · Responsive
+   Dữ liệu 100% từ API — KHÔNG dùng Mock Data
    ══════════════════════════════════════════════════════════ */
 
-/* ── Mock data (fallback khi API chưa sẵn sàng) ── */
-const MOCK_DATA = {
-  summary: { totalRevenueETH: '12.4500', totalTicketsSold: 1842, totalEvents: 7 },
-  events: [
-    {
-      _id: '1',
-      blockchainId: 1001,
-      name: 'Blockchain Summit Vietnam 2026',
-      status: 'ACTIVE',
-      maxSupply: 500,
-      sold: 347,
-      revenueETH: '5.2300',
-      bannerUrl: '',
-    },
-    {
-      _id: '2',
-      blockchainId: 1002,
-      name: 'Web3 Music Festival — Đà Lạt',
-      status: 'ACTIVE',
-      maxSupply: 1200,
-      sold: 890,
-      revenueETH: '3.8100',
-      bannerUrl: '',
-    },
-    {
-      _id: '3',
-      blockchainId: 1003,
-      name: 'NFT Art Exhibition Saigon',
-      status: 'ENDED',
-      maxSupply: 300,
-      sold: 300,
-      revenueETH: '2.1000',
-      bannerUrl: '',
-    },
-    {
-      _id: '4',
-      blockchainId: 1004,
-      name: 'DeFi Workshop Hà Nội',
-      status: 'DRAFT',
-      maxSupply: 150,
-      sold: 0,
-      revenueETH: '0.0000',
-      bannerUrl: '',
-    },
-    {
-      _id: '5',
-      blockchainId: 1005,
-      name: 'Metaverse Gaming Night',
-      status: 'ENDED',
-      maxSupply: 200,
-      sold: 185,
-      revenueETH: '1.3100',
-      bannerUrl: '',
-    },
-    {
-      _id: '6',
-      blockchainId: 1006,
-      name: 'DAO Governance Meetup — Đắk Lắk',
-      status: 'ACTIVE',
-      maxSupply: 80,
-      sold: 42,
-      revenueETH: '0.0000',
-      bannerUrl: '',
-    },
-    {
-      _id: '7',
-      blockchainId: 1007,
-      name: 'Crypto Charity Gala 2026',
-      status: 'DRAFT',
-      maxSupply: 400,
-      sold: 78,
-      revenueETH: '0.0000',
-      bannerUrl: '',
-    },
-  ],
+/* ── Types ── */
+type DashboardSummary = {
+  totalRevenueETH: string;
+  totalTicketsSold: number;
+  totalEvents: number;
+};
+
+type DashboardData = {
+  summary: DashboardSummary;
+  events: OrganizerEvent[];
 };
 
 const FILTER_TABS = [
@@ -94,7 +31,7 @@ const FILTER_TABS = [
   { id: 'DRAFT', label: 'Nháp' },
 ];
 
-/* ── Icons ── */
+/* ── SVG Icons ── */
 const MenuIcon = () => (
   <svg
     width="22"
@@ -148,7 +85,7 @@ const SearchIcon = () => (
 export default function OrganizerDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [data, setData] = useState<typeof MOCK_DATA | null>(null);
+  const [data, setData] = useState<DashboardData | null>(null);
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
@@ -162,9 +99,9 @@ export default function OrganizerDashboardPage() {
       const w = window.innerWidth;
       setIsMobile(w < 768);
       setIsTablet(w >= 768 && w < 1024);
-      if (w < 768) setSidebarExpanded(true);
-      if (w >= 768 && w < 1024) setSidebarExpanded(false);
-      if (w >= 1024) setSidebarExpanded(true);
+      if (w < 768) setSidebarExpanded(true); // mobile: ko dùng desktop sidebar
+      if (w >= 768 && w < 1024) setSidebarExpanded(false); // tablet: sidebar thu gọn
+      if (w >= 1024) setSidebarExpanded(true); // desktop: sidebar mở rộng
     };
     check();
     window.addEventListener('resize', check);
@@ -179,12 +116,26 @@ export default function OrganizerDashboardPage() {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
+
       const res = await fetch('/api/events/organizer/dashboard', { headers });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      setData(await res.json());
+
+      /* Kiểm tra content-type trước khi parse JSON */
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error('Server không trả về JSON. Vui lòng kiểm tra lại API endpoint.');
+      }
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.message || `Lỗi HTTP ${res.status}`);
+      }
+
+      const json: DashboardData = await res.json();
+      setData(json);
     } catch (err) {
-      console.warn('API unavailable, using mock data:', (err as Error).message);
-      setData(MOCK_DATA);
+      const message = err instanceof Error ? err.message : 'Đã xảy ra lỗi khi tải dữ liệu';
+      setError(message);
+      setData(null);
     } finally {
       setLoading(false);
     }
@@ -206,140 +157,312 @@ export default function OrganizerDashboardPage() {
   }, [data?.events, query, statusFilter]);
 
   const summary = data?.summary;
+
+  /*
+    Layout quan trọng:
+    - Desktop (≥1024): sidebar fixed 220px bên trái → main marginLeft = 220
+    - Tablet (768–1023): sidebar fixed 68px (thu gọn) → main marginLeft = 68
+    - Mobile (<768): KHÔNG có desktop sidebar → main marginLeft = 0, dùng MobileSidebar (drawer overlay)
+  */
   const sidebarW = isMobile ? 0 : sidebarExpanded ? 220 : 68;
+  const compact = isMobile;
 
   return (
-    <div className="flex min-h-screen bg-[#0b1120] text-[#f1f5f9] font-[family-name:'Be_Vietnam_Pro',sans-serif]">
-      {/* Desktop/Tablet Sidebar */}
-      {!isMobile && (
-        <OrganizerSidebar
-          expanded={sidebarExpanded}
-          onToggle={() => setSidebarExpanded((p) => !p)}
-        />
-      )}
+    <>
+      {/* ── Global Styles ── */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap');
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Be Vietnam Pro', sans-serif; overflow-x: hidden; }
 
-      {/* Mobile Drawer */}
-      {isMobile && <MobileSidebar open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />}
+        @keyframes vtx-spin { to { transform: rotate(360deg); } }
+        .vtx-spinner { animation: vtx-spin 0.7s linear infinite; }
 
-      {/* ── Main Content ── */}
-      <main
-        className="flex-1 overflow-auto flex flex-col min-w-0"
+        @keyframes vtx-tooltip-in {
+          from { opacity: 0; transform: translateY(-50%) translateX(-6px); }
+          to   { opacity: 1; transform: translateY(-50%) translateX(0); }
+        }
+
+        @keyframes vtx-fade-up {
+          from { opacity: 0; transform: translateY(14px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .vtx-anim { animation: vtx-fade-up 0.4s ease-out both; }
+        .vtx-anim-d1 { animation-delay: 0.04s; }
+        .vtx-anim-d2 { animation-delay: 0.10s; }
+        .vtx-anim-d3 { animation-delay: 0.16s; }
+        .vtx-anim-d4 { animation-delay: 0.22s; }
+        .vtx-anim-d5 { animation-delay: 0.28s; }
+
+        .vtx-search:focus { border-color: #38bdf8 !important; }
+        .vtx-search::placeholder { color: #94a3b8; }
+        .vtx-btn:hover { background: rgba(56,189,248,0.08) !important; color: #38bdf8 !important; }
+        .vtx-toggle-btn:hover { color: #38bdf8 !important; background: rgba(56,189,248,0.15) !important; }
+        .vtx-filter:hover { color: #f1f5f9 !important; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(99,179,237,0.18); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(99,179,237,0.32); }
+      `}</style>
+
+      <div
         style={{
-          marginLeft: sidebarW,
-          padding: isMobile ? '18px 14px' : '28px 32px',
-          gap: isMobile ? 16 : 24,
-          transition: 'margin-left 0.3s cubic-bezier(0.4,0,0.2,1)',
+          display: 'flex',
+          minHeight: '100vh',
+          background: '#0b1120',
+          color: '#f1f5f9',
+          fontFamily: "'Be Vietnam Pro', sans-serif",
         }}
       >
-        {/* ── Header ── */}
-        <div className="flex items-center justify-between flex-wrap gap-[12px]">
-          <div className="flex items-center gap-[12px]">
-            {/* Mobile hamburger */}
-            {isMobile && (
-              <button
-                onClick={() => setMobileMenuOpen(true)}
-                className="bg-[#1a2235] border border-[rgba(99,179,237,0.22)] rounded-[8px] p-[7px] text-[#94a3b8] cursor-pointer flex items-center justify-center transition-colors duration-150 hover:bg-[rgba(56,189,248,0.08)] hover:text-[#38bdf8]"
-              >
-                <MenuIcon />
-              </button>
-            )}
-            <div>
-              <h1
-                className={`font-bold text-[#f1f5f9] ${isMobile ? 'text-[18px]' : 'text-[22px]'}`}
-              >
-                Sự kiện của tôi
-              </h1>
-              <p className="text-[13px] text-[#94a3b8] mt-[2px]">
-                Tổng quan hoạt động tổ chức sự kiện
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={fetchDashboard}
-            className="bg-[#1a2235] border border-[rgba(99,179,237,0.22)] text-[#94a3b8] px-[14px] py-[7px] rounded-[8px] text-[13px] cursor-pointer flex items-center gap-[6px] transition-colors duration-150 hover:bg-[rgba(56,189,248,0.08)] hover:text-[#38bdf8]"
-          >
-            <RefreshIcon /> Làm mới
-          </button>
-        </div>
+        {/* ══ Desktop/Tablet Sidebar (fixed bên trái, ẩn trên mobile) ══ */}
+        {!isMobile && (
+          <OrganizerSidebar
+            expanded={sidebarExpanded}
+            onToggle={() => setSidebarExpanded((p) => !p)}
+          />
+        )}
 
-        {/* ── Stats Grid ── */}
-        <div
-          className="grid gap-[14px]"
+        {/* ══ Mobile Drawer (chỉ hiện trên mobile, overlay) ══ */}
+        {isMobile && (
+          <MobileSidebar open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
+        )}
+
+        {/* ══ Main Content ══ */}
+        <main
           style={{
-            gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
+            flex: 1,
+            overflow: 'auto',
+            marginLeft: sidebarW,
+            padding: isMobile ? '18px 14px' : '28px 32px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: isMobile ? 16 : 24,
+            transition: 'margin-left 0.3s cubic-bezier(0.4,0,0.2,1)',
+            minWidth: 0,
           }}
         >
-          <OrganizerStatsCard
-            label="Tổng doanh thu"
-            value={parseFloat(summary?.totalRevenueETH ?? '0').toFixed(4)}
-            unit="ETH"
-            tone="cyan"
-          />
-          <OrganizerStatsCard
-            label="Vé đã bán"
-            value={(summary?.totalTicketsSold ?? 0).toLocaleString()}
-            tone="green"
-          />
-          <OrganizerStatsCard label="Số sự kiện" value={summary?.totalEvents ?? 0} tone="purple" />
-        </div>
+          {/* ── Header ── */}
+          <div
+            className="vtx-anim vtx-anim-d1"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 12,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              {/* Mobile hamburger */}
+              {isMobile && (
+                <button
+                  className="vtx-btn"
+                  onClick={() => setMobileMenuOpen(true)}
+                  style={{
+                    background: '#1a2235',
+                    border: '1px solid rgba(99,179,237,0.22)',
+                    borderRadius: 8,
+                    padding: 7,
+                    color: '#94a3b8',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'background 0.15s, color 0.15s',
+                  }}
+                >
+                  <MenuIcon />
+                </button>
+              )}
+              <div>
+                <h1 style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: '#f1f5f9' }}>
+                  Sự kiện của tôi
+                </h1>
+                <p style={{ fontSize: 13, color: '#94a3b8', marginTop: 2 }}>
+                  Tổng quan hoạt động tổ chức sự kiện
+                </p>
+              </div>
+            </div>
+            <button
+              className="vtx-btn"
+              onClick={fetchDashboard}
+              style={{
+                background: '#1a2235',
+                border: '1px solid rgba(99,179,237,0.22)',
+                color: '#94a3b8',
+                padding: '7px 14px',
+                borderRadius: 8,
+                fontSize: 13,
+                fontFamily: "'Be Vietnam Pro', sans-serif",
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                transition: 'background 0.15s, color 0.15s',
+              }}
+            >
+              <RefreshIcon /> Làm mới
+            </button>
+          </div>
 
-        {/* ── Controls ── */}
-        <div className="flex gap-[10px] flex-wrap items-center">
-          <div className="flex-1 min-w-[140px] md:min-w-[200px] relative">
-            <span className="absolute left-[12px] top-1/2 -translate-y-1/2 text-[#94a3b8] pointer-events-none flex">
-              <SearchIcon />
-            </span>
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={isMobile ? 'Tìm kiếm…' : 'Tìm kiếm theo tên hoặc mã sự kiện…'}
-              className="w-full bg-[#111827] border border-[rgba(99,179,237,0.22)] rounded-[9px] py-[9px] pl-[36px] pr-[12px] text-[13.5px] text-[#f1f5f9] outline-none transition-[border-color] duration-150 placeholder:text-[#94a3b8] focus:border-[#38bdf8]"
+          {/* ── Stats Grid ── */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile
+                ? '1fr'
+                : isTablet
+                  ? 'repeat(2, 1fr)'
+                  : 'repeat(3, 1fr)',
+              gap: 14,
+            }}
+          >
+            <div className="vtx-anim vtx-anim-d2">
+              <OrganizerStatsCard
+                label="Tổng doanh thu"
+                value={parseFloat(summary?.totalRevenueETH ?? '0').toFixed(4)}
+                unit="ETH"
+                tone="cyan"
+              />
+            </div>
+            <div className="vtx-anim vtx-anim-d3">
+              <OrganizerStatsCard
+                label="Vé đã bán"
+                value={(summary?.totalTicketsSold ?? 0).toLocaleString()}
+                tone="green"
+              />
+            </div>
+            <div className="vtx-anim vtx-anim-d4">
+              <OrganizerStatsCard
+                label="Số sự kiện"
+                value={summary?.totalEvents ?? 0}
+                tone="purple"
+              />
+            </div>
+          </div>
+
+          {/* ── Controls: Search + Filter ── */}
+          <div
+            className="vtx-anim vtx-anim-d4"
+            style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}
+          >
+            <div style={{ flex: 1, minWidth: isMobile ? 140 : 200, position: 'relative' }}>
+              <span
+                style={{
+                  position: 'absolute',
+                  left: 12,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: '#94a3b8',
+                  pointerEvents: 'none',
+                  display: 'flex',
+                }}
+              >
+                <SearchIcon />
+              </span>
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={isMobile ? 'Tìm kiếm…' : 'Tìm kiếm theo tên hoặc mã sự kiện…'}
+                className="vtx-search"
+                style={{
+                  width: '100%',
+                  background: '#111827',
+                  border: '1px solid rgba(99,179,237,0.22)',
+                  borderRadius: 9,
+                  padding: '9px 12px 9px 36px',
+                  fontSize: 13.5,
+                  fontFamily: "'Be Vietnam Pro', sans-serif",
+                  color: '#f1f5f9',
+                  outline: 'none',
+                  transition: 'border-color 0.15s',
+                }}
+              />
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                background: '#111827',
+                border: '1px solid rgba(99,179,237,0.12)',
+                borderRadius: 9,
+                padding: 3,
+                gap: 2,
+              }}
+            >
+              {FILTER_TABS.map((tab) => {
+                const isActive = statusFilter === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setStatusFilter(tab.id)}
+                    className={isActive ? '' : 'vtx-filter'}
+                    style={{
+                      padding: isMobile ? '6px 10px' : '6px 14px',
+                      borderRadius: 7,
+                      fontSize: 12.5,
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                      border: 'none',
+                      fontFamily: "'Be Vietnam Pro', sans-serif",
+                      color: isActive ? '#0b1120' : '#94a3b8',
+                      background: isActive ? '#38bdf8' : 'transparent',
+                      transition: 'background 0.15s, color 0.15s',
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ── Event List Section ── */}
+          <div
+            className="vtx-anim vtx-anim-d5"
+            style={{
+              background: '#111827',
+              border: '1px solid rgba(99,179,237,0.12)',
+              borderRadius: 14,
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                padding: isMobile ? '12px 14px' : '16px 20px',
+                borderBottom: '1px solid rgba(99,179,237,0.12)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <span style={{ fontSize: 14, fontWeight: 600, color: '#f1f5f9' }}>
+                Danh sách sự kiện
+              </span>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  background: 'rgba(56,189,248,0.12)',
+                  color: '#38bdf8',
+                  padding: '2px 9px',
+                  borderRadius: 20,
+                }}
+              >
+                {filteredEvents.length} sự kiện
+              </span>
+            </div>
+            <OrganizerEventList
+              events={filteredEvents}
+              loading={loading}
+              error={error}
+              compact={compact}
             />
           </div>
-          <div className="flex bg-[#111827] border border-[rgba(99,179,237,0.12)] rounded-[9px] p-[3px] gap-[2px]">
-            {FILTER_TABS.map((tab) => {
-              const isActive = statusFilter === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setStatusFilter(tab.id)}
-                  className={`
-                    rounded-[7px] text-[12.5px] font-medium cursor-pointer
-                    whitespace-nowrap border-none transition-colors duration-150
-                    ${isMobile ? 'px-[10px] py-[6px]' : 'px-[14px] py-[6px]'}
-                    ${
-                      isActive
-                        ? 'bg-[#38bdf8] text-[#0b1120]'
-                        : 'bg-transparent text-[#94a3b8] hover:text-[#f1f5f9]'
-                    }
-                  `}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* ── Event List Section ── */}
-        <div className="bg-[#111827] border border-[rgba(99,179,237,0.12)] rounded-[14px] overflow-hidden">
-          <div
-            className={`border-b border-[rgba(99,179,237,0.12)] flex items-center justify-between ${isMobile ? 'px-[14px] py-[12px]' : 'px-[20px] py-[16px]'}`}
-          >
-            <span className="text-[14px] font-semibold text-[#f1f5f9]">Danh sách sự kiện</span>
-            <span className="text-[11px] font-semibold bg-[rgba(56,189,248,0.12)] text-[#38bdf8] px-[9px] py-[2px] rounded-[20px]">
-              {filteredEvents.length} sự kiện
-            </span>
-          </div>
-          <OrganizerEventList
-            events={filteredEvents}
-            loading={loading}
-            error={error}
-            compact={isMobile}
-          />
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    </>
   );
 }

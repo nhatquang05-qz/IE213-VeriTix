@@ -2,6 +2,7 @@ import React from 'react';
 
 /* ══════════════════════════════════════════
    OrganizerStatsCard — Thẻ thống kê
+   Veritix Organizer Dashboard
    ══════════════════════════════════════════ */
 
 type Tone = 'cyan' | 'green' | 'purple';
@@ -13,19 +14,10 @@ type OrganizerStatsCardProps = {
   tone?: Tone;
 };
 
-const toneMap: Record<Tone, { gradient: string; textColor: string }> = {
-  cyan: {
-    gradient: 'from-[rgba(56,189,248,0.08)]',
-    textColor: 'text-[#38bdf8]',
-  },
-  green: {
-    gradient: 'from-[rgba(52,211,153,0.08)]',
-    textColor: 'text-[#34d399]',
-  },
-  purple: {
-    gradient: 'from-[rgba(167,139,250,0.08)]',
-    textColor: 'text-[#a78bfa]',
-  },
+const toneMap: Record<Tone, { accent: string; color: string }> = {
+  cyan: { accent: 'rgba(56,189,248,0.08)', color: '#38bdf8' },
+  green: { accent: 'rgba(52,211,153,0.08)', color: '#34d399' },
+  purple: { accent: 'rgba(167,139,250,0.08)', color: '#a78bfa' },
 };
 
 const OrganizerStatsCard: React.FC<OrganizerStatsCardProps> = ({
@@ -38,20 +30,50 @@ const OrganizerStatsCard: React.FC<OrganizerStatsCardProps> = ({
 
   return (
     <div
-      className={`
-        relative overflow-hidden rounded-[12px]
-        border border-[rgba(99,179,237,0.12)] bg-[#111827]
-        bg-gradient-to-br ${t.gradient} via-transparent to-transparent via-60%
-        px-[20px] py-[18px]
-      `}
+      style={{
+        background: '#111827',
+        border: '1px solid rgba(99,179,237,0.12)',
+        borderRadius: 12,
+        padding: '18px 20px',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
     >
-      <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#94a3b8] relative z-[1]">
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: `linear-gradient(135deg, ${t.accent}, transparent 60%)`,
+          pointerEvents: 'none',
+        }}
+      />
+      <p
+        style={{
+          fontSize: 11,
+          fontWeight: 600,
+          letterSpacing: '0.07em',
+          textTransform: 'uppercase',
+          color: '#94a3b8',
+          position: 'relative',
+        }}
+      >
         {label}
       </p>
-      <p className={`mt-[6px] text-[28px] font-bold leading-[1.1] relative z-[1] ${t.textColor}`}>
+      <p
+        style={{
+          fontSize: 28,
+          fontWeight: 700,
+          marginTop: 6,
+          lineHeight: 1.1,
+          color: t.color,
+          position: 'relative',
+        }}
+      >
         {value}
       </p>
-      {unit && <p className="mt-[4px] text-[11px] text-[#94a3b8] relative z-[1]">{unit}</p>}
+      {unit && (
+        <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 4, position: 'relative' }}>{unit}</p>
+      )}
     </div>
   );
 };
