@@ -37,7 +37,7 @@ function TestConnection() {
       
       console.log("Contract Instance:", contract);
       
-      
+     
       setStatus("KẾT NỐI THÀNH CÔNG");
       alert(`Đã kết nối ví: ${userAddress}\nContract Address: ${CONTRACT_ADDRESS}`);
 
@@ -47,6 +47,7 @@ function TestConnection() {
     }
   };
 
+  
   return (
     <div style={{ padding: '50px', textAlign: 'center' }}>
       <h2>TEST KẾT NỐI BLOCKCHAIN</h2>
@@ -89,7 +90,7 @@ function App() {
           <Route path="/test" element={<TestConnection />} />
           <Route path="/create-event" element={<CreateEventPage />} />
           <Route path="/events/:id" element={<EventDetail />} />
-          
+
         </Routes>
       </MainLayout>
     </BrowserRouter>
