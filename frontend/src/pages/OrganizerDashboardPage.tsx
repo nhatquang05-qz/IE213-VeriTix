@@ -160,11 +160,11 @@ export default function OrganizerDashboardPage() {
 
   /*
     Layout quan trọng:
-    - Desktop (≥1024): sidebar fixed 220px bên trái → main marginLeft = 220
-    - Tablet (768–1023): sidebar fixed 68px (thu gọn) → main marginLeft = 68
+    - Desktop (≥1024): sidebar fixed 220px bên trái → main marginLeft = 10
+    - Tablet (768–1023): sidebar fixed 68px (thu gọn) → main marginLeft = 10
     - Mobile (<768): KHÔNG có desktop sidebar → main marginLeft = 0, dùng MobileSidebar (drawer overlay)
   */
-  const sidebarW = isMobile ? 0 : sidebarExpanded ? 220 : 68;
+  const sidebarW = isMobile ? 0 : sidebarExpanded ? 10 : 10;
   const compact = isMobile;
 
   return (
