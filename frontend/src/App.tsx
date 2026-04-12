@@ -93,6 +93,7 @@ function App() {
         <Route path="/" element={withMainLayout(<HomePage />)} />
         <Route path="/login" element={withMainLayout(<LoginPage />)} />
         <Route path="/register" element={withMainLayout(<RegisterPage />)} />
+        <Route path="/events/:id" element={<EventDetail />} />
         <Route path="/test" element={withMainLayout(<TestConnection />)} />
         <Route path="/create-event" element={withMainLayout(<CreateEventPage />)} />
       </Routes>

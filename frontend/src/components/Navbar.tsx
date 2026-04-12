@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import "../assets/styles/Homepage.css";
-// Sửa import: Gọi useAuth thay vì AuthContext
 import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = ({ children }: { children: React.ReactNode }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Sửa cách gọi hook và đổi 'account' thành 'walletAddress'
   const { connectWallet, walletAddress } = useAuth();
 
   useEffect(() => {
@@ -28,12 +26,14 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
         <div className="container">
           <div className="nav-content">
             <div className="logo-container">
-              <img
-                src="/src/assets/images/Logo VeriTix.png"
-                alt="VeriTix Logo"
-                className="logo-image"
-              />
-              <div className="logo">VeriTix</div>
+              <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+                <img
+                  src="/src/assets/images/Logo VeriTix.png"
+                  alt="VeriTix Logo"
+                  className="logo-image"
+                />
+                <div className="logo">VeriTix</div>
+              </Link>
             </div>
             <div className={`nav-links ${mobileMenuOpen ? 'mobile-open' : ''}`}>
               <div className="search-bar">
@@ -59,32 +59,25 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
                   </svg>
                 </button>
               </div>
-              <Link to="/" className="nav-link">
-                Trang Chủ
-              </Link>
-              <Link to="/" className="nav-link">
-                Sự Kiện
-              </Link>
-              <Link to="/" className="nav-link">
-                Vé Của Tôi
-
-
-              </Link>
+              
+              <Link to="/" className="nav-link">Trang Chủ</Link>
+              <Link to="/organizer-dashboard" className="nav-link">Dashboard</Link>
+              <Link to="/create-event" className="nav-link">Tạo Sự Kiện</Link>
 
               {!walletAddress ? (
-                <button onClick={connectWallet} className="connect-btn" style={{ background: '#f3f4f6', color: 'white', border: 'none', cursor: 'pointer', padding: '8px 16px', borderRadius: '4px' }}>
+                <button onClick={connectWallet} className="connect-btn" style={{ background: '#f3f4f6', color: 'black', border: 'none', cursor: 'pointer', padding: '8px 16px', borderRadius: '4px', fontWeight: 'bold' }}>
                   Kết Nối Ví
                 </button>
               ) : (
-                <span className="wallet-address" style={{ background: '#10b981', padding: '8px 16px', borderRadius: '4px', fontWeight: 'bold' }}>
+                <span className="wallet-address" style={{ background: '#10b981', color: 'white', padding: '8px 16px', borderRadius: '4px', fontWeight: 'bold' }}>
                   {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
                 </span>
               )}
 
-
-              <a href="#" className="nav-cta">
+              {/* Nút Bắt Đầu trỏ thẳng tới trang tạo sự kiện */}
+              <Link to="/create-event" className="nav-cta">
                 Bắt Đầu
-              </a>
+              </Link>
             </div>
             {isMobile && (
               <button 
