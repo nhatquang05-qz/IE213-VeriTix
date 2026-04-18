@@ -5,7 +5,6 @@ import { getEventById } from "../services/api";
 import { buyTicket } from "../services/contract.service";
 import { useWeb3 } from "../hooks/useWeb3";
 import type { IEvent } from "../types/event.type";
-import "../assets/styles/event.css";
 
 const EventDetail = () => {
   const { id } = useParams();
@@ -67,47 +66,47 @@ const EventDetail = () => {
   }, [id]);
 
   if (!event) {
-    return <div className="event-detail-loading">Đang tải thông tin sự kiện...</div>;
+    return <div className="py-30 px-10 text-white text-center">Đang tải thông tin sự kiện...</div>;
   }
 
   const remainingTickets = event.maxSupply - event.soldCount;
 
   return (
-    <section className="event-detail-page">
-      <div className="event-detail-hero" style={{ backgroundImage: `url(${event.imageUrl})` }}>
-        <div className="event-detail-hero-overlay">
-          <Link to="/" className="back-link">
+    <section className="text-white">
+      <div className="min-h-[420px] bg-cover bg-center relative" style={{ backgroundImage: `url(${event.imageUrl})` }}>
+        <div className="bg-black/55 min-h-[420px] flex flex-col justify-end p-10">
+          <Link to="/" className="text-blue-200 no-underline mb-4.5 inline-block">
             ← Quay lại trang chủ
           </Link>
           <div className="event-detail-hero-content">
-            <span className="event-category">Sự kiện nổi bật</span>
-            <h1>{event.title}</h1>
-            <p className="event-detail-meta">
+            <span className="text-sm text-blue-300">Sự kiện nổi bật</span>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl m-0 mb-3">{event.title}</h1>
+            <p className="text-blue-100 my-2">
               {event.location} • {new Date(event.startDate).toLocaleDateString("vi-VN", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric" })}
             </p>
-            <div className="event-detail-price">{event.price.toLocaleString()}đ</div>
+            <div className="mt-4.5 text-2xl font-bold">{event.price.toLocaleString()}đ</div>
           </div>
         </div>
       </div>
 
-      <div className="event-detail-body">
-        <div className="event-detail-description">
-          <h2>Giới thiệu sự kiện</h2>
+      <div className="p-15 grid gap-8 grid-cols-2">
+        <div className="bg-blue-950/90 rounded-3xl p-8">
+          <h2 className="mb-4">Giới thiệu sự kiện</h2>
           <p>{event.description}</p>
-          <div className="buy-section">
+          <div className="mt-6 flex items-center justify-between gap-4">
             <div>
-              <div className="event-detail-location">Địa điểm: {event.location}</div>
-              <div className="event-detail-capacity">Số vé còn: {remainingTickets}</div>
+              <div className="text-blue-100 my-2">Địa điểm: {event.location}</div>
+              <div className="text-blue-100 my-2">Số vé còn: {remainingTickets}</div>
             </div>
-            <button className="buy-button" onClick={handleBuyTicket} disabled={loading || remainingTickets <= 0}>
+            <button className="bg-blue-500 text-white border-none rounded-xl py-3.5 px-6 cursor-pointer text-base disabled:opacity-50 disabled:cursor-not-allowed" onClick={handleBuyTicket} disabled={loading || remainingTickets <= 0}>
               {remainingTickets <= 0 ? 'Hết vé' : loading ? 'Đang xử lý...' : 'Mua vé ngay'}
             </button>
           </div>
 
           {transactionStatus && (
-            <div className="transaction-status">
-              <h3>Trạng thái giao dịch</h3>
-              <div className="transaction-info">
+            <div className="mt-6">
+              <h3 className="mb-4">Trạng thái giao dịch</h3>
+              <div className="space-y-2">
                 <p><strong>Trạng thái:</strong> 
                   {transactionStatus === 'pending' && 'Đang xử lý...'}
                   {transactionStatus === 'confirmed' && 'Đã xác nhận'}
@@ -115,7 +114,7 @@ const EventDetail = () => {
                 </p>
                 {transactionHash && (
                   <p><strong>Transaction Hash:</strong> 
-                    <a href={`https://etherscan.io/tx/${transactionHash}`} target="_blank" rel="noopener noreferrer">
+                    <a href={`https://etherscan.io/tx/${transactionHash}`} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">
                       {transactionHash.slice(0, 10)}...{transactionHash.slice(-8)}
                     </a>
                   </p>
@@ -128,25 +127,25 @@ const EventDetail = () => {
           )}
         </div>
 
-        <aside className="event-detail-summary">
-          <h3>Thông tin chi tiết</h3>
-          <div className="event-detail-summary-item">
+        <aside className="bg-blue-950/90 rounded-3xl p-8 grid gap-4.5">
+          <h3 className="mb-4">Thông tin chi tiết</h3>
+          <div className="flex justify-between p-3.5 rounded-xl bg-white/5">
             <span>Ngày tổ chức</span>
             <span>{new Date(event.startDate).toLocaleDateString("vi-VN")}</span>
           </div>
-          <div className="event-detail-summary-item">
+          <div className="flex justify-between p-3.5 rounded-xl bg-white/5">
             <span>Giá vé</span>
             <span>{event.price.toLocaleString()}đ</span>
           </div>
-          <div className="event-detail-summary-item">
+          <div className="flex justify-between p-3.5 rounded-xl bg-white/5">
             <span>Số lượng</span>
             <span>{event.maxSupply.toLocaleString()}</span>
           </div>
-          <div className="event-detail-summary-item">
+          <div className="flex justify-between p-3.5 rounded-xl bg-white/5">
             <span>Đã bán</span>
             <span>{event.soldCount.toLocaleString()}</span>
           </div>
-          <div className="event-detail-summary-item">
+          <div className="flex justify-between p-3.5 rounded-xl bg-white/5">
             <span>Ví nhà tổ chức</span>
             <span>{event.organizerWallet}</span>
           </div>

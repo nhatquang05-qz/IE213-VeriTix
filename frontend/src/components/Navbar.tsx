@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import "../assets/styles/Homepage.css";
 
 const Navbar = ({ children }: { children: React.ReactNode }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -24,76 +23,59 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div>
-      <nav>
-        <div className="container">
-          <div className="nav-content">
-            <div className="logo-container">
+      <nav className="py-4 fixed top-0 left-0 right-0 bg-slate-900/95 backdrop-blur-[10px] shadow-2xl z-50 transition-all duration-300">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex justify-between items-center gap-8">
+            <div className="flex items-center gap-3 whitespace-nowrap flex-shrink-0">
               <img
                 src="/src/assets/images/Logo VeriTix.png"
                 alt="VeriTix Logo"
-                className="logo-image"
+                className="w-8 h-8 object-contain"
               />
-              <div className="logo">VeriTix</div>
+              <div className="text-2xl font-bold bg-gradient-to-br from-cyan-400 to-blue-500 bg-clip-text text-transparent letter-[-0.025em] whitespace-nowrap">VeriTix</div>
             </div>
-            <div className={`nav-links ${mobileMenuOpen ? 'mobile-open' : ''}`}>
-              <div className="search-bar">
+            <div className={`flex items-center gap-5 flex-wrap ${mobileMenuOpen ? 'flex-col absolute top-full left-0 right-0 bg-slate-900/95 backdrop-blur-[10px] p-4' : ''}`}>
+              <div className="w-full max-w-[400px] min-w-[280px]">
                 <input
                   type="text"
-                  className="search-input"
+                  className="w-full py-2.5 px-4 rounded-full border-none bg-slate-800 text-white placeholder-gray-400"
                   placeholder="Tìm kiếm sự kiện, nghệ sĩ, địa điểm..."
                 />
-                <button className="search-btn">
-                  <svg
-                    className="search-icon"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M21 21L16.65 16.65M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
               </div>
-              <Link to="/" className="nav-link">
+              <Link to="/" className="inline-flex items-center justify-center text-white no-underline gap-1.5 hover:text-cyan-400 transition-colors">
                 Trang Chủ
               </Link>
-              <Link to="/" className="nav-link">
+              <Link to="/" className="inline-flex items-center justify-center text-white no-underline gap-1.5 hover:text-cyan-400 transition-colors">
                 Sự Kiện
               </Link>
-              <Link to="/" className="nav-link">
+              <Link to="/" className="inline-flex items-center justify-center text-white no-underline gap-1.5 hover:text-cyan-400 transition-colors">
                 Vé Của Tôi
               </Link>
               <button 
-                className="nav-link"
+                className="inline-flex items-center justify-center text-white no-underline gap-1.5 hover:text-cyan-400 transition-colors bg-none border-none p-0 cursor-pointer"
                 onClick={handleConnectWallet}
-                style={{ background: 'none', border: 'none', padding: '0', cursor: 'pointer' }}
               >
                 Connect Wallet
               </button>
-              <a href="#" className="nav-cta">
+              <a href="#" className="border border-cyan-400 bg-transparent text-cyan-400 py-2 px-4 rounded-full hover:bg-cyan-400 hover:text-white transition-colors">
                 Bắt Đầu
               </a>
             </div>
             {isMobile && (
               <button 
-                className="nav-menu-btn"
+                className="flex flex-col gap-1 p-2 bg-none border-none cursor-pointer"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 aria-label="Toggle menu"
               >
-                <span></span>
-                <span></span>
-                <span></span>
+                <span className="w-6 h-0.5 bg-white"></span>
+                <span className="w-6 h-0.5 bg-white"></span>
+                <span className="w-6 h-0.5 bg-white"></span>
               </button>
             )}
           </div>
         </div>
       </nav>
-      <main>
+      <main className="pt-26">
         {children}
       </main>
     </div>
