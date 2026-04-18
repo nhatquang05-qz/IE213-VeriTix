@@ -4,12 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-import OrganizerSidebar, { MobileSidebar } from '../components/organizer/OrganizerSidebar';
-import { StepIndicator, STEPS } from '../components/organizer/CreateEventSteps';
-import type { EventFormData } from '../components/organizer/CreateEventSteps';
-import Step1EventInfo from '../components/organizer/Step1EventInfo';
-import Step2TicketConfig from '../components/organizer/Step2TicketConfig';
-import Step3PaymentPublish from '../components/organizer/Step3PaymentPublish';
+import OrganizerSidebar, { MobileSidebar } from '../../components/organizer/OrganizerSidebar';
+import { StepIndicator, STEPS } from '../../components/organizer/CreateEventSteps';
+import type { EventFormData } from '../../components/organizer/CreateEventSteps';
+import Step1EventInfo from '../../components/organizer/Step1EventInfo';
+import Step2TicketConfig from '../../components/organizer/Step2TicketConfig';
+import Step3PaymentPublish from '../../components/organizer/Step3PaymentPublish';
 
 /* ══════════════════════════════════════════════════════════════════
    Veritix — Tạo Sự Kiện (3-Step Wizard)

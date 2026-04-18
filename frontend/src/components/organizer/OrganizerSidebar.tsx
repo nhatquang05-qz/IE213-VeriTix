@@ -1,22 +1,17 @@
 import React, { createContext, useContext, useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { ORGANIZER_NAV_ITEMS } from '../../constants/sidebar';
 
 /* ══════════════════════════════════════════
    OrganizerSidebar — Collapsible + Mobile Drawer
    Veritix Organizer Dashboard
+
+   Refactored:
+   - <a href="#"> → NavLink (react-router-dom)
+   - Dùng ORGANIZER_NAV_ITEMS từ constants/sidebar.ts
+   - Active state tự detect từ URL
+   - Tailwind CSS
    ══════════════════════════════════════════ */
-
-type NavItem = {
-  key: string;
-  label: string;
-  icon: string;
-  active?: boolean;
-};
-
-const NAV_ITEMS: NavItem[] = [
-  { key: 'events', label: 'Sự kiện của tôi', icon: '◈', active: true },
-  { key: 'reports', label: 'Quản lý báo cáo', icon: '⊞' },
-  { key: 'terms', label: 'Điều khoản', icon: '≡' },
-];
 
 /* ── SVG Icons ── */
 const ChevronLeft = () => (
@@ -66,44 +61,39 @@ const XIcon = () => (
 /* ── Context cho expanded state ── */
 const SidebarContext = createContext<{ expanded: boolean }>({ expanded: true });
 
-/* ── SidebarItem (tooltip khi thu gọn) ── */
-const SidebarItem: React.FC<{ icon: string; text: string; active?: boolean }> = ({
-  icon,
-  text,
-  active,
-}) => {
+/* ── SidebarItem (NavLink + tooltip khi thu gọn) ── */
+const SidebarItem: React.FC<{
+  icon: string;
+  text: string;
+  to: string;
+}> = ({ icon, text, to }) => {
   const { expanded } = useContext(SidebarContext);
   const [hovered, setHovered] = useState(false);
 
   return (
-    <a
-      href="#"
+    <NavLink
+      to={to}
+      end={to === '/organizer/events'}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      style={{
-        position: 'relative',
-        display: 'flex',
-        alignItems: 'center',
-        gap: expanded ? 10 : 0,
-        padding: expanded ? '9px 12px' : '9px 0',
-        justifyContent: expanded ? 'flex-start' : 'center',
-        borderRadius: 8,
-        fontSize: 13.5,
-        fontWeight: 500,
-        textDecoration: 'none',
-        color: active ? '#38bdf8' : hovered ? '#f1f5f9' : '#94a3b8',
-        background: active ? 'rgba(56,189,248,0.1)' : hovered ? '#1a2235' : 'transparent',
-        transition: 'all 0.2s ease',
-        whiteSpace: 'nowrap',
-      }}
+      className={({ isActive }) => `
+        relative flex items-center rounded-lg text-[13.5px] font-medium
+        no-underline whitespace-nowrap transition-all duration-200
+        ${expanded ? 'gap-2.5 px-3 py-2.5' : 'justify-center px-0 py-2.5'}
+        ${
+          isActive
+            ? 'text-sky-400 bg-sky-400/10'
+            : 'text-slate-400 hover:text-slate-100 hover:bg-[#1a2235]'
+        }
+      `}
     >
-      <span style={{ fontSize: 15, opacity: 0.8, flexShrink: 0, width: 20, textAlign: 'center' }}>
-        {icon}
-      </span>
+      {/* Icon */}
+      <span className="text-[15px] opacity-80 shrink-0 w-5 text-center">{icon}</span>
+
+      {/* Label — ẩn khi collapsed */}
       <span
+        className="overflow-hidden transition-all duration-300"
         style={{
-          overflow: 'hidden',
-          transition: 'width 0.3s ease, opacity 0.2s ease',
           width: expanded ? 150 : 0,
           opacity: expanded ? 1 : 0,
         }}
@@ -114,42 +104,26 @@ const SidebarItem: React.FC<{ icon: string; text: string; active?: boolean }> = 
       {/* Tooltip khi sidebar thu gọn */}
       {!expanded && hovered && (
         <div
-          style={{
-            position: 'absolute',
-            left: 'calc(100% + 14px)',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            background: '#1e293b',
-            color: '#f1f5f9',
-            padding: '6px 14px',
-            borderRadius: 8,
-            fontSize: 12.5,
-            fontWeight: 500,
-            border: '1px solid rgba(99,179,237,0.18)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-            zIndex: 200,
-            whiteSpace: 'nowrap',
-            pointerEvents: 'none',
-            animation: 'vtx-tooltip-in 0.15s ease-out',
-          }}
+          className="
+          absolute left-[calc(100%+14px)] top-1/2 -translate-y-1/2 z-[200]
+          bg-[#1e293b] text-slate-100 px-3.5 py-1.5 rounded-lg
+          text-[12.5px] font-medium whitespace-nowrap pointer-events-none
+          border border-sky-400/[0.18] shadow-[0_8px_32px_rgba(0,0,0,0.5)]
+          animate-[vtx-tooltip-in_0.15s_ease-out]
+        "
         >
           {text}
+          {/* Arrow */}
           <div
-            style={{
-              position: 'absolute',
-              left: -5,
-              top: '50%',
-              transform: 'translateY(-50%) rotate(45deg)',
-              width: 10,
-              height: 10,
-              background: '#1e293b',
-              borderLeft: '1px solid rgba(99,179,237,0.18)',
-              borderBottom: '1px solid rgba(99,179,237,0.18)',
-            }}
+            className="
+            absolute -left-[5px] top-1/2 -translate-y-1/2 rotate-45
+            w-2.5 h-2.5 bg-[#1e293b]
+            border-l border-b border-sky-400/[0.18]
+          "
           />
         </div>
       )}
-    </a>
+    </NavLink>
   );
 };
 
@@ -162,153 +136,92 @@ type OrganizerSidebarProps = {
 };
 
 const OrganizerSidebar: React.FC<OrganizerSidebarProps> = ({ expanded, onToggle }) => {
+  const navigate = useNavigate();
+
   return (
     <aside
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        bottom: 0,
-        zIndex: 50,
-        width: expanded ? 220 : 68,
-        background: '#111827',
-        borderRight: '1px solid rgba(99,179,237,0.12)',
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '24px 0',
-        transition: 'width 0.3s cubic-bezier(0.4,0,0.2,1)',
-        overflow: 'hidden',
-      }}
+      className="
+        fixed top-0 left-0 bottom-0 z-50
+        bg-[#111827] border-r border-sky-400/[0.12]
+        flex flex-col py-6
+        transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
+        overflow-hidden
+      "
+      style={{ width: expanded ? 220 : 68 }}
     >
-      {/* Logo + Toggle */}
+      {/* ── Logo + Toggle ── */}
       <div
-        style={{
-          padding: expanded ? '0 20px 20px' : '0 0 20px',
-          borderBottom: '1px solid rgba(99,179,237,0.12)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: expanded ? 'space-between' : 'center',
-          gap: 8,
-          minHeight: 44,
-        }}
+        className={`
+          border-b border-sky-400/[0.12] flex items-center min-h-[44px]
+          ${expanded ? 'px-5 pb-5 justify-between gap-2' : 'pb-5 justify-center'}
+        `}
       >
+        {/* Logo text — ẩn khi collapsed */}
         <div
-          style={{
-            overflow: 'hidden',
-            transition: 'width 0.3s ease, opacity 0.25s ease',
-            width: expanded ? 120 : 0,
-            opacity: expanded ? 1 : 0,
-            whiteSpace: 'nowrap',
-          }}
+          className="overflow-hidden whitespace-nowrap cursor-pointer transition-all duration-300"
+          style={{ width: expanded ? 120 : 0, opacity: expanded ? 1 : 0 }}
+          onClick={() => navigate('/organizer')}
         >
-          <span
-            style={{ fontSize: 15, fontWeight: 700, letterSpacing: '0.04em', color: '#38bdf8' }}
-          >
-            Veritix
-          </span>
-          <p
-            style={{
-              fontSize: 11,
-              color: '#94a3b8',
-              marginTop: 2,
-              letterSpacing: '0.06em',
-              textTransform: 'uppercase',
-            }}
-          >
+          <span className="text-[15px] font-bold tracking-[0.04em] text-sky-400">Veritix</span>
+          <p className="text-[11px] text-slate-400 mt-0.5 tracking-[0.06em] uppercase">
             Organizer Center
           </p>
         </div>
+
+        {/* Toggle button */}
         <button
           onClick={onToggle}
-          className="vtx-toggle-btn"
-          style={{
-            background: 'rgba(56,189,248,0.08)',
-            border: '1px solid rgba(99,179,237,0.15)',
-            borderRadius: 8,
-            padding: 6,
-            color: '#94a3b8',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'color 0.15s, background 0.15s',
-            flexShrink: 0,
-          }}
+          className="
+            bg-sky-400/[0.08] border border-sky-400/[0.15] rounded-lg
+            p-1.5 text-slate-400 cursor-pointer shrink-0
+            flex items-center justify-center
+            transition-colors duration-150
+            hover:text-slate-200 hover:bg-sky-400/[0.14]
+          "
         >
           {expanded ? <ChevronLeft /> : <ChevronRight />}
         </button>
       </div>
 
-      {/* Nav */}
+      {/* ── Navigation ── */}
       <SidebarContext.Provider value={{ expanded }}>
         <nav
-          style={{
-            flex: 1,
-            padding: expanded ? '16px 12px' : '16px 10px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 4,
-          }}
+          className={`
+            flex-1 flex flex-col gap-1 pt-4
+            ${expanded ? 'px-3' : 'px-2.5'}
+          `}
         >
-          {NAV_ITEMS.map((item) => (
-            <SidebarItem key={item.key} icon={item.icon} text={item.label} active={item.active} />
+          {ORGANIZER_NAV_ITEMS.map((item) => (
+            <SidebarItem key={item.key} icon={item.icon} text={item.label} to={item.path} />
           ))}
         </nav>
       </SidebarContext.Provider>
 
-      {/* Footer */}
+      {/* ── Footer (user info) ── */}
       <div
-        style={{
-          padding: expanded ? '16px 20px 0' : '16px 0 0',
-          borderTop: '1px solid rgba(99,179,237,0.12)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: expanded ? 'flex-start' : 'center',
-          gap: 10,
-        }}
+        className={`
+          border-t border-sky-400/[0.12] pt-4 flex items-center gap-2.5
+          ${expanded ? 'px-5 justify-start' : 'justify-center'}
+        `}
       >
+        {/* Avatar */}
         <div
-          style={{
-            width: 34,
-            height: 34,
-            borderRadius: 8,
-            background: 'rgba(56,189,248,0.15)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 13,
-            fontWeight: 700,
-            color: '#38bdf8',
-            flexShrink: 0,
-          }}
+          className="
+          w-[34px] h-[34px] rounded-lg shrink-0
+          bg-sky-400/[0.15] flex items-center justify-center
+          text-[13px] font-bold text-sky-400
+        "
         >
           OR
         </div>
+
+        {/* Name — ẩn khi collapsed */}
         <div
-          style={{
-            overflow: 'hidden',
-            transition: 'width 0.3s ease, opacity 0.25s ease',
-            width: expanded ? 140 : 0,
-            opacity: expanded ? 1 : 0,
-            whiteSpace: 'nowrap',
-          }}
+          className="overflow-hidden whitespace-nowrap transition-all duration-300"
+          style={{ width: expanded ? 140 : 0, opacity: expanded ? 1 : 0 }}
         >
-          <p
-            style={{
-              fontSize: 13,
-              fontWeight: 600,
-              color: '#f1f5f9',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
-            Organizer
-          </p>
-          <p
-            style={{ fontSize: 11, color: '#94a3b8', overflow: 'hidden', textOverflow: 'ellipsis' }}
-          >
-            dashboard@veritix.io
-          </p>
+          <p className="text-[13px] font-semibold text-slate-100 truncate">Organizer</p>
+          <p className="text-[11px] text-slate-400 truncate">dashboard@veritix.io</p>
         </div>
       </div>
     </aside>
@@ -329,146 +242,84 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({ open, onClose }) =
       {/* Backdrop */}
       <div
         onClick={onClose}
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 90,
-          background: 'rgba(0,0,0,0.6)',
-          backdropFilter: 'blur(4px)',
-          opacity: open ? 1 : 0,
-          pointerEvents: open ? 'auto' : 'none',
-          transition: 'opacity 0.3s ease',
-        }}
+        className={`
+          fixed inset-0 z-[90] bg-black/60 backdrop-blur-sm
+          transition-opacity duration-300
+          ${open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}
+        `}
       />
+
       {/* Drawer */}
       <aside
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          bottom: 0,
-          zIndex: 100,
-          width: 270,
-          background: '#111827',
-          borderRight: '1px solid rgba(99,179,237,0.12)',
-          display: 'flex',
-          flexDirection: 'column',
-          padding: '24px 0',
-          transform: open ? 'translateX(0)' : 'translateX(-100%)',
-          transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)',
-          boxShadow: open ? '8px 0 40px rgba(0,0,0,0.5)' : 'none',
-        }}
+        className={`
+          fixed top-0 left-0 bottom-0 z-[100] w-[270px]
+          bg-[#111827] border-r border-sky-400/[0.12]
+          flex flex-col py-6
+          transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
+          ${open ? 'translate-x-0 shadow-[8px_0_40px_rgba(0,0,0,0.5)]' : '-translate-x-full shadow-none'}
+        `}
       >
         {/* Header */}
-        <div
-          style={{
-            padding: '0 20px 20px',
-            borderBottom: '1px solid rgba(99,179,237,0.12)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
+        <div className="px-5 pb-5 border-b border-sky-400/[0.12] flex items-center justify-between">
           <div>
-            <span
-              style={{ fontSize: 15, fontWeight: 700, letterSpacing: '0.04em', color: '#38bdf8' }}
-            >
-              Veritix
-            </span>
-            <p
-              style={{
-                fontSize: 11,
-                color: '#94a3b8',
-                marginTop: 2,
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase',
-              }}
-            >
+            <span className="text-[15px] font-bold tracking-[0.04em] text-sky-400">Veritix</span>
+            <p className="text-[11px] text-slate-400 mt-0.5 tracking-[0.06em] uppercase">
               Organizer Center
             </p>
           </div>
           <button
             onClick={onClose}
-            className="vtx-toggle-btn"
-            style={{
-              background: 'rgba(56,189,248,0.08)',
-              border: '1px solid rgba(99,179,237,0.15)',
-              borderRadius: 8,
-              padding: 6,
-              color: '#94a3b8',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            className="
+              bg-sky-400/[0.08] border border-sky-400/[0.15] rounded-lg
+              p-1.5 text-slate-400 cursor-pointer
+              flex items-center justify-center
+              hover:text-slate-200 hover:bg-sky-400/[0.14]
+              transition-colors duration-150
+            "
           >
             <XIcon />
           </button>
         </div>
-        {/* Nav */}
-        <nav
-          style={{
-            flex: 1,
-            padding: '16px 12px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 4,
-          }}
-        >
-          {NAV_ITEMS.map((item) => (
-            <a
+
+        {/* Navigation */}
+        <nav className="flex-1 px-3 pt-4 flex flex-col gap-1">
+          {ORGANIZER_NAV_ITEMS.map((item) => (
+            <NavLink
               key={item.key}
-              href="#"
+              to={item.path}
+              end={item.path === '/organizer/events'}
               onClick={onClose}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '11px 14px',
-                borderRadius: 8,
-                fontSize: 14,
-                fontWeight: 500,
-                textDecoration: 'none',
-                color: item.active ? '#38bdf8' : '#94a3b8',
-                background: item.active ? 'rgba(56,189,248,0.1)' : 'transparent',
-                transition: 'background 0.15s',
-              }}
+              className={({ isActive }) => `
+                flex items-center gap-2.5 px-3.5 py-3 rounded-lg
+                text-[14px] font-medium no-underline
+                transition-colors duration-150
+                ${
+                  isActive
+                    ? 'text-sky-400 bg-sky-400/10'
+                    : 'text-slate-400 hover:text-slate-100 hover:bg-[#1a2235]'
+                }
+              `}
             >
-              <span style={{ fontSize: 16, opacity: 0.8 }}>{item.icon}</span>
+              <span className="text-[16px] opacity-80">{item.icon}</span>
               {item.label}
-            </a>
+            </NavLink>
           ))}
         </nav>
+
         {/* Footer */}
-        <div
-          style={{
-            padding: '16px 20px 0',
-            borderTop: '1px solid rgba(99,179,237,0.12)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-          }}
-        >
+        <div className="px-5 pt-4 border-t border-sky-400/[0.12] flex items-center gap-2.5">
           <div
-            style={{
-              width: 34,
-              height: 34,
-              borderRadius: 8,
-              background: 'rgba(56,189,248,0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 13,
-              fontWeight: 700,
-              color: '#38bdf8',
-              flexShrink: 0,
-            }}
+            className="
+            w-[34px] h-[34px] rounded-lg shrink-0
+            bg-sky-400/[0.15] flex items-center justify-center
+            text-[13px] font-bold text-sky-400
+          "
           >
             OR
           </div>
           <div>
-            <p style={{ fontSize: 13, fontWeight: 600, color: '#f1f5f9' }}>Organizer</p>
-            <p style={{ fontSize: 11, color: '#94a3b8' }}>dashboard@veritix.io</p>
+            <p className="text-[13px] font-semibold text-slate-100">Organizer</p>
+            <p className="text-[11px] text-slate-400">dashboard@veritix.io</p>
           </div>
         </div>
       </aside>
