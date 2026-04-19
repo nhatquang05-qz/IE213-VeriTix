@@ -82,37 +82,30 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     const connectWallet = async () => {
         if (typeof window.ethereum !== 'undefined') {
             try {
-                // 1. Ép con cáo bật lên xin quyền
                 const provider = new BrowserProvider(window.ethereum);
                 const signer = await provider.getSigner();
                 const address = await signer.getAddress();
                 
                 console.log("1. Đã lấy được ví từ MetaMask:", address);
 
-                // 2. Gõ cửa API lấy Nonce
                 const nonceRes = await axios.get(`${BACKEND_URL}/nonce/${address}`);
                 const nonce = nonceRes.data.nonce;
                 
                 console.log("2. Backend đã nhả Nonce:", nonce);
 
-                // 3. ⚠️ CHUẨN BỊ ĐOẠN TIN NHẮN KHỚP 100% VỚI BACKEND ĐỂ KÝ
                 const messageToSign = `Chào mừng đến với VeriTix!\n\nKý tin nhắn này để xác nhận bạn là chủ sở hữu ví.\n\nMã bảo mật (Nonce): ${nonce}`;
 
-                // 4. Bắt MetaMask hiện bảng Ký Tên (Sign)
                 const signature = await signer.signMessage(messageToSign);
                 
                 console.log("3. Đã ký xong!");
 
-                // 5. Ném chữ ký cho Backend kiểm tra
                 const verifyRes = await axios.post(`${BACKEND_URL}/verify`, {
                     walletAddress: address,
                     signature: signature
                 });
 
-                // 6. Nhận Token VIP từ Backend
                 const token = verifyRes.data.token;
                 
-                // Lưu thẳng vào LocalStorage
                 localStorage.setItem('token', token);
                 localStorage.setItem('walletAddress', address);
                 setWalletAddress(address);
