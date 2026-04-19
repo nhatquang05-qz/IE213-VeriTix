@@ -1,26 +1,33 @@
 import { ROUTES } from './routes';
+import type { IconType } from 'react-icons';
+import { MdEventNote, MdAssessment, MdGroups } from 'react-icons/md';
 
 // Cấp 1 — Sidebar chính Organizer
-export const ORGANIZER_NAV_ITEMS = [
+export const ORGANIZER_NAV_ITEMS: {
+  key: string;
+  label: string;
+  icon: IconType;
+  path: string;
+}[] = [
   {
     key: 'events',
     label: 'Sự kiện của tôi',
-    icon: '◈', // hoặc dùng react-icons
+    icon: MdEventNote,
     path: ROUTES.ORGANIZER_EVENTS,
   },
   {
     key: 'reports',
     label: 'Quản lý báo cáo',
-    icon: '⊞',
+    icon: MdAssessment,
     path: ROUTES.ORGANIZER_REPORTS,
   },
   {
     key: 'terms',
     label: 'Điều hành ban tổ chức',
-    icon: '≡',
+    icon: MdGroups,
     path: ROUTES.ORGANIZER_TERMS,
   },
-] as const;
+];
 
 // Cấp 2 — Sidebar chi tiết sự kiện
 export const EVENT_DETAIL_NAV = [

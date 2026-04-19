@@ -1,10 +1,9 @@
 import React from 'react';
+import { MdDeleteOutline, MdErrorOutline } from 'react-icons/md';
 
 /* ══════════════════════════════════════════
    ConfirmDialog — Modal xác nhận dùng chung
-   
-   Sử dụng cho: xoá voucher, xoá thành viên, hủy sự kiện, …
-   Hỗ trợ 2 variant: 'danger' (màu rose) và 'primary' (emerald).
+   Hỗ trợ 2 variant: 'danger' (rose) và 'primary' (emerald)
    ══════════════════════════════════════════ */
 
 type Variant = 'danger' | 'primary';
@@ -21,37 +20,9 @@ type Props = {
   onConfirm: () => void;
 };
 
-/* ── Icon theo variant ── */
 const ICON: Record<Variant, React.ReactNode> = {
-  danger: (
-    <svg
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-    >
-      <polyline points="3 6 5 6 21 6" />
-      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-    </svg>
-  ),
-  primary: (
-    <svg
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-    >
-      <circle cx="12" cy="12" r="10" />
-      <line x1="12" y1="8" x2="12" y2="12" />
-      <line x1="12" y1="16" x2="12.01" y2="16" />
-    </svg>
-  ),
+  danger: <MdDeleteOutline size={22} />,
+  primary: <MdErrorOutline size={22} />,
 };
 
 const VARIANT_STYLES: Record<Variant, { icon: string; button: string }> = {
@@ -81,13 +52,10 @@ const ConfirmDialog: React.FC<Props> = ({
 
   return (
     <>
-      {/* Backdrop */}
       <div
         className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm"
         onClick={loading ? undefined : onClose}
       />
-
-      {/* Modal */}
       <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
         <div
           className="
@@ -106,7 +74,7 @@ const ConfirmDialog: React.FC<Props> = ({
             <h3 className="text-[15px] font-bold text-white mb-2">{title}</h3>
             {message && <p className="text-[13px] text-slate-500 leading-relaxed">{message}</p>}
           </div>
-          <div className="flex gap-3 px-6 pb-6">
+          <div className="flex flex-col-reverse sm:flex-row gap-2.5 sm:gap-3 px-6 pb-6">
             <button
               onClick={onClose}
               disabled={loading}

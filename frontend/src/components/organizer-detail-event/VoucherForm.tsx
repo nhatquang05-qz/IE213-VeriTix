@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { MdClose, MdKeyboardArrowDown } from 'react-icons/md';
 import type { VoucherFormData, DiscountType, IVoucher } from '../../types/voucher.type';
 
 const inputCls = `
@@ -9,7 +10,6 @@ const inputCls = `
   transition-all hover:border-white/[0.15]
 `;
 
-/* Mở rộng VoucherFormData với các field mới – backward compatible */
 export type VoucherFormDataExtended = VoucherFormData & {
   name?: string;
   description?: string;
@@ -23,7 +23,6 @@ type VoucherFormProps = {
   open: boolean;
   onClose: () => void;
   onSubmit: (form: VoucherFormDataExtended) => void;
-  /** Nếu có → chế độ Edit, prefill form */
   initial?: IVoucher | null;
 };
 
@@ -47,13 +46,12 @@ const VoucherForm: React.FC<VoucherFormProps> = ({ open, onClose, onSubmit, init
 
   const isEdit = !!initial;
 
-  // ── Prefill khi edit / reset khi open ──
   useEffect(() => {
     if (!open) return;
     if (initial) {
       setForm({
         code: initial.code,
-        name: '', // IVoucher chưa có field name – để trống, backend mở rộng sau
+        name: '',
         description: '',
         mode: 'single',
         quantity: '',
@@ -80,7 +78,6 @@ const VoucherForm: React.FC<VoucherFormProps> = ({ open, onClose, onSubmit, init
   };
 
   const handleSubmit = () => {
-    // Validation cơ bản
     if (form.mode === 'single' && !form.code.trim()) return;
     if (form.mode === 'bulk' && (!form.quantity || !form.prefix)) return;
     onSubmit(form);
@@ -93,47 +90,35 @@ const VoucherForm: React.FC<VoucherFormProps> = ({ open, onClose, onSubmit, init
 
   return (
     <>
-      {/* Backdrop */}
       <div className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
-      {/* Modal */}
-      <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 overflow-y-auto">
+      <div className="fixed inset-0 z-[90] flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
         <div
           className="
             bg-[#111827] border border-white/[0.08] rounded-2xl
             w-full max-w-2xl shadow-[0_24px_64px_rgba(0,0,0,0.5)]
             animate-[vtx-fade_0.25s_ease]
-            my-6 max-h-[calc(100vh-3rem)] flex flex-col
+            my-4 sm:my-6 max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)] flex flex-col
           "
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
+          <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-white/[0.06] shrink-0">
             <h3 className="text-[15px] font-bold text-white">
               {isEdit ? 'Chỉnh sửa voucher' : 'Tạo voucher'}
             </h3>
             <button
               onClick={onClose}
-              className="text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+              className="text-slate-500 hover:text-slate-300 transition-colors cursor-pointer p-1 -m-1"
+              aria-label="Đóng"
             >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              >
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
+              <MdClose size={20} />
             </button>
           </div>
 
-          {/* Body – scrollable */}
-          <div className="px-6 py-5 overflow-y-auto flex flex-col gap-5">
-            {/* ── Mode selector (ẩn khi edit) ── */}
+          {/* Body */}
+          <div className="px-5 sm:px-6 py-5 overflow-y-auto flex flex-col gap-5">
+            {/* Mode selector */}
             {!isEdit && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {[
@@ -155,7 +140,7 @@ const VoucherForm: React.FC<VoucherFormProps> = ({ open, onClose, onSubmit, init
                       type="button"
                       onClick={() => setField('mode', opt.key)}
                       className={`
-                        text-left p-4 rounded-xl border cursor-pointer transition-all
+                        text-left p-3.5 sm:p-4 rounded-xl border cursor-pointer transition-all
                         ${
                           active
                             ? 'bg-emerald-500/[0.06] border-emerald-500/40 shadow-[0_0_0_3px_rgba(16,185,129,0.08)]'
@@ -163,11 +148,11 @@ const VoucherForm: React.FC<VoucherFormProps> = ({ open, onClose, onSubmit, init
                         }
                       `}
                     >
-                      <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
                         <span className="text-[13px] font-bold text-white">{opt.title}</span>
                         <span
                           className={`
-                            text-[11px] font-semibold px-2.5 py-0.5 rounded-full
+                            shrink-0 text-[10.5px] sm:text-[11px] font-semibold px-2 sm:px-2.5 py-0.5 rounded-full
                             ${
                               active
                                 ? 'bg-emerald-500 text-white'
@@ -189,7 +174,7 @@ const VoucherForm: React.FC<VoucherFormProps> = ({ open, onClose, onSubmit, init
             <div>
               <h4 className="text-[13px] font-bold text-slate-300 mb-3">Thông tin cơ bản</h4>
 
-              {/* Tên chương trình khuyến mãi */}
+              {/* Tên chương trình */}
               <div className="mb-4">
                 <label className="text-[12px] font-medium text-slate-400 mb-1.5 block">
                   Tên chương trình khuyến mãi <span className="text-rose-400">*</span>
@@ -201,7 +186,7 @@ const VoucherForm: React.FC<VoucherFormProps> = ({ open, onClose, onSubmit, init
                     onChange={(e) => setField('name', e.target.value.slice(0, 80))}
                     placeholder="Nhập tên chương trình khuyến mãi"
                     maxLength={80}
-                    className={inputCls}
+                    className={`${inputCls} pr-14`}
                   />
                   <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-700 font-mono pointer-events-none">
                     {(form.name || '').length} / 80
@@ -212,7 +197,7 @@ const VoucherForm: React.FC<VoucherFormProps> = ({ open, onClose, onSubmit, init
                 </p>
               </div>
 
-              {/* Single mode: Mã voucher */}
+              {/* Single: Mã voucher */}
               {form.mode === 'single' && (
                 <div className="mb-4">
                   <label className="text-[12px] font-medium text-slate-400 mb-1.5 block">
@@ -239,7 +224,7 @@ const VoucherForm: React.FC<VoucherFormProps> = ({ open, onClose, onSubmit, init
                 </div>
               )}
 
-              {/* Bulk mode: Số lượng + Prefix */}
+              {/* Bulk: Quantity + Prefix */}
               {form.mode === 'bulk' && !isEdit && (
                 <>
                   <div className="mb-4">
@@ -279,13 +264,13 @@ const VoucherForm: React.FC<VoucherFormProps> = ({ open, onClose, onSubmit, init
                         }
                         placeholder="HELLO"
                         maxLength={10}
-                        className={`${inputCls} font-mono uppercase`}
+                        className={`${inputCls} font-mono uppercase pr-14`}
                       />
                       <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-700 font-mono pointer-events-none">
                         {(form.prefix || '').length} / 10
                       </span>
                     </div>
-                    <p className="text-[10px] text-slate-700 mt-1">
+                    <p className="text-[10px] text-slate-700 mt-1 break-words">
                       Mã sẽ được tạo ngẫu nhiên theo mẫu: {form.prefix || 'HELLO'}
                       <span className="text-slate-500"> + &lt;random&gt;</span>
                     </p>
@@ -293,7 +278,7 @@ const VoucherForm: React.FC<VoucherFormProps> = ({ open, onClose, onSubmit, init
                 </>
               )}
 
-              {/* Thời gian sử dụng mã – style giống CreateEventPage (2 input datetime-local) */}
+              {/* Thời gian sử dụng mã */}
               <div className="mb-4">
                 <label className="text-[12px] font-medium text-slate-400 mb-1.5 block">
                   Thời gian sử dụng mã <span className="text-rose-400">*</span>
@@ -345,7 +330,6 @@ const VoucherForm: React.FC<VoucherFormProps> = ({ open, onClose, onSubmit, init
                   Loại khuyến mãi <span className="text-rose-400">*</span>
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-[180px_1fr] gap-3">
-                  {/* Dropdown loại */}
                   <div className="relative">
                     <select
                       value={form.discountType}
@@ -355,20 +339,11 @@ const VoucherForm: React.FC<VoucherFormProps> = ({ open, onClose, onSubmit, init
                       <option value="PERCENTAGE">Theo %</option>
                       <option value="FIXED">Theo Ξ</option>
                     </select>
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"
-                    >
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
+                    <MdKeyboardArrowDown
+                      size={18}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"
+                    />
                   </div>
-                  {/* Mức giảm */}
                   <div className="relative">
                     <input
                       type="number"
@@ -391,7 +366,7 @@ const VoucherForm: React.FC<VoucherFormProps> = ({ open, onClose, onSubmit, init
                 <label className="text-[12px] font-medium text-slate-400 mb-2 block">
                   Tổng số vé được áp dụng <span className="text-rose-400">*</span>
                 </label>
-                <div className="flex items-center gap-5 mb-2">
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mb-2">
                   {[
                     { key: false, label: 'Giới hạn' },
                     { key: true, label: 'Không giới hạn' },
@@ -429,8 +404,8 @@ const VoucherForm: React.FC<VoucherFormProps> = ({ open, onClose, onSubmit, init
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-white/[0.06]">
+          {/* Footer: stack mobile, row desktop */}
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center sm:justify-end gap-2.5 sm:gap-3 px-5 sm:px-6 py-4 border-t border-white/[0.06] shrink-0">
             <button
               onClick={onClose}
               className="

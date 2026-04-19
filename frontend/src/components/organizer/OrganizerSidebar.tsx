@@ -1,72 +1,22 @@
 import React, { createContext, useContext, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { MdChevronLeft, MdChevronRight, MdClose } from 'react-icons/md';
 import { ORGANIZER_NAV_ITEMS } from '../../constants/sidebar';
 
 /* ══════════════════════════════════════════
    OrganizerSidebar — Collapsible + Mobile Drawer
    Veritix Organizer Dashboard
-
-   Refactored:
-   - <a href="#"> → NavLink (react-router-dom)
-   - Dùng ORGANIZER_NAV_ITEMS từ constants/sidebar.ts
-   - Active state tự detect từ URL
-   - Tailwind CSS
    ══════════════════════════════════════════ */
-
-/* ── SVG Icons ── */
-const ChevronLeft = () => (
-  <svg
-    width="18"
-    height="18"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="15 18 9 12 15 6" />
-  </svg>
-);
-const ChevronRight = () => (
-  <svg
-    width="18"
-    height="18"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="9 18 15 12 9 6" />
-  </svg>
-);
-const XIcon = () => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="18" y1="6" x2="6" y2="18" />
-    <line x1="6" y1="6" x2="18" y2="18" />
-  </svg>
-);
 
 /* ── Context cho expanded state ── */
 const SidebarContext = createContext<{ expanded: boolean }>({ expanded: true });
 
 /* ── SidebarItem (NavLink + tooltip khi thu gọn) ── */
 const SidebarItem: React.FC<{
-  icon: string;
+  icon: React.ElementType;
   text: string;
   to: string;
-}> = ({ icon, text, to }) => {
+}> = ({ icon: Icon, text, to }) => {
   const { expanded } = useContext(SidebarContext);
   const [hovered, setHovered] = useState(false);
 
@@ -88,39 +38,23 @@ const SidebarItem: React.FC<{
       `}
     >
       {/* Icon */}
-      <span className="text-[15px] opacity-80 shrink-0 w-5 text-center">{icon}</span>
+      <span className="opacity-80 shrink-0 w-5 flex items-center justify-center">
+        <Icon size={17} />
+      </span>
 
       {/* Label — ẩn khi collapsed */}
       <span
         className="overflow-hidden transition-all duration-300"
-        style={{
-          width: expanded ? 150 : 0,
-          opacity: expanded ? 1 : 0,
-        }}
+        style={{ width: expanded ? 150 : 0, opacity: expanded ? 1 : 0 }}
       >
         {text}
       </span>
 
       {/* Tooltip khi sidebar thu gọn */}
       {!expanded && hovered && (
-        <div
-          className="
-          absolute left-[calc(100%+14px)] top-1/2 -translate-y-1/2 z-[200]
-          bg-[#1e293b] text-slate-100 px-3.5 py-1.5 rounded-lg
-          text-[12.5px] font-medium whitespace-nowrap pointer-events-none
-          border border-sky-400/[0.18] shadow-[0_8px_32px_rgba(0,0,0,0.5)]
-          animate-[vtx-tooltip-in_0.15s_ease-out]
-        "
-        >
+        <div className="absolute left-[calc(100%+14px)] top-1/2 -translate-y-1/2 z-[200] bg-[#1e293b] text-slate-100 px-3.5 py-1.5 rounded-lg text-[12.5px] font-medium whitespace-nowrap pointer-events-none border border-sky-400/[0.18] shadow-[0_8px_32px_rgba(0,0,0,0.5)] animate-[vtx-tooltip-in_0.15s_ease-out]">
           {text}
-          {/* Arrow */}
-          <div
-            className="
-            absolute -left-[5px] top-1/2 -translate-y-1/2 rotate-45
-            w-2.5 h-2.5 bg-[#1e293b]
-            border-l border-b border-sky-400/[0.18]
-          "
-          />
+          <div className="absolute -left-[5px] top-1/2 -translate-y-1/2 rotate-45 w-2.5 h-2.5 bg-[#1e293b] border-l border-b border-sky-400/[0.18]" />
         </div>
       )}
     </NavLink>
@@ -179,7 +113,7 @@ const OrganizerSidebar: React.FC<OrganizerSidebarProps> = ({ expanded, onToggle 
             hover:text-slate-200 hover:bg-sky-400/[0.14]
           "
         >
-          {expanded ? <ChevronLeft /> : <ChevronRight />}
+          {expanded ? <MdChevronLeft size={18} /> : <MdChevronRight size={18} />}
         </button>
       </div>
 
@@ -205,13 +139,7 @@ const OrganizerSidebar: React.FC<OrganizerSidebarProps> = ({ expanded, onToggle 
         `}
       >
         {/* Avatar */}
-        <div
-          className="
-          w-[34px] h-[34px] rounded-lg shrink-0
-          bg-sky-400/[0.15] flex items-center justify-center
-          text-[13px] font-bold text-sky-400
-        "
-        >
+        <div className="w-[34px] h-[34px] rounded-lg shrink-0 bg-sky-400/[0.15] flex items-center justify-center text-[13px] font-bold text-sky-400">
           OR
         </div>
 
@@ -277,7 +205,7 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({ open, onClose }) =
               transition-colors duration-150
             "
           >
-            <XIcon />
+            <MdClose size={20} />
           </button>
         </div>
 
@@ -308,13 +236,7 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({ open, onClose }) =
 
         {/* Footer */}
         <div className="px-5 pt-4 border-t border-sky-400/[0.12] flex items-center gap-2.5">
-          <div
-            className="
-            w-[34px] h-[34px] rounded-lg shrink-0
-            bg-sky-400/[0.15] flex items-center justify-center
-            text-[13px] font-bold text-sky-400
-          "
-          >
+          <div className="w-[34px] h-[34px] rounded-lg shrink-0 bg-sky-400/[0.15] flex items-center justify-center text-[13px] font-bold text-sky-400">
             OR
           </div>
           <div>

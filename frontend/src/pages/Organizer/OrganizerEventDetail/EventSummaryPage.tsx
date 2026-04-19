@@ -1,23 +1,15 @@
 import React, { useMemo, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
+import { MdGridView, MdAttachMoney, MdTrendingUp } from 'react-icons/md';
+import { TbCube3dSphere } from 'react-icons/tb';
 import type { EventDetailContext } from '../../../types/organizer.type';
 
 /* ══════════════════════════════════════════
-   EventSummaryPage — Trang "Tổng kết" (Redesigned)
-
-   Thay đổi so với bản cũ:
-   - ❌ Bỏ section "Thông tin sự kiện"
-   - ✅ Thêm biểu đồ "Doanh thu theo thời gian" với toggle 24h / 30 ngày
-        (ref: image2.png – 2 trục Y: Doanh thu & Số vé bán)
-   - ✅ Thêm bảng "Vé đã bán" (ref: image3.png)
-        Cột: Loại vé | Giá bán | Đã bán | Bị khoá | Tỉ lệ bán
-
-   Lưu ý cấu trúc:
-   - Import React ĐẶT LÊN TRÊN CÙNG (nguyên nhân blank-screen ở bản cũ là do
-     import bị đặt giữa file, sau khi đã tham chiếu React.FC → bundler crash trên HMR)
+   EventSummaryPage — Trang "Tổng kết"
+  
    ══════════════════════════════════════════ */
 
-/* ── SVG Donut Ring ── */
+/* ── SVG Donut Ring (giữ nguyên - data viz) ── */
 const DonutRing: React.FC<{
   percent: number;
   color: string;
@@ -64,14 +56,8 @@ const DonutRing: React.FC<{
   );
 };
 
-/* ══════════════════════════════════════════
-   RevenueChart — SVG chart 2 trục (ref: image2.png)
-   - Trái: Doanh thu (Ξ) – tím
-   - Phải: Số vé bán – emerald
-   - Mock data theo timeframe; khi có API thay vào prop `data`
-   ══════════════════════════════════════════ */
+/* ── RevenueChart (giữ nguyên SVG - data viz) ── */
 type TimeFrame = '24h' | '30d';
-
 type ChartPoint = { label: string; revenue: number; tickets: number };
 
 const RevenueChart: React.FC<{ data: ChartPoint[]; timeframe: TimeFrame }> = ({
@@ -87,7 +73,6 @@ const RevenueChart: React.FC<{ data: ChartPoint[]; timeframe: TimeFrame }> = ({
   const maxRevenue = Math.max(1, ...data.map((d) => d.revenue));
   const maxTickets = Math.max(1, ...data.map((d) => d.tickets));
 
-  // Bước label trục X để tránh chữ đè nhau (24h hiển thị 12 mốc, 30d hiển thị 10 mốc)
   const step = timeframe === '24h' ? 2 : 3;
 
   const xAt = (i: number) =>
@@ -102,17 +87,15 @@ const RevenueChart: React.FC<{ data: ChartPoint[]; timeframe: TimeFrame }> = ({
     .map((d, i) => `${i === 0 ? 'M' : 'L'} ${xAt(i)} ${yTickAt(d.tickets)}`)
     .join(' ');
 
-  // Grid 5 dòng ngang
   const gridLines = [0, 0.25, 0.5, 0.75, 1];
 
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="w-full overflow-x-auto -mx-1 px-1">
       <svg
         viewBox={`0 0 ${W} ${H}`}
         preserveAspectRatio="xMidYMid meet"
-        className="w-full min-w-[560px] h-auto"
+        className="w-full min-w-[440px] sm:min-w-[560px] h-auto"
       >
-        {/* Grid */}
         {gridLines.map((g) => (
           <line
             key={g}
@@ -125,7 +108,6 @@ const RevenueChart: React.FC<{ data: ChartPoint[]; timeframe: TimeFrame }> = ({
           />
         ))}
 
-        {/* Y-axis trái: Doanh thu */}
         {gridLines.map((g) => {
           const val = maxRevenue * (1 - g);
           return (
@@ -143,7 +125,6 @@ const RevenueChart: React.FC<{ data: ChartPoint[]; timeframe: TimeFrame }> = ({
           );
         })}
 
-        {/* Y-axis phải: Số vé */}
         {gridLines.map((g) => {
           const val = maxTickets * (1 - g);
           return (
@@ -161,7 +142,6 @@ const RevenueChart: React.FC<{ data: ChartPoint[]; timeframe: TimeFrame }> = ({
           );
         })}
 
-        {/* X-axis labels */}
         {data.map((d, i) =>
           i % step === 0 ? (
             <text
@@ -177,7 +157,6 @@ const RevenueChart: React.FC<{ data: ChartPoint[]; timeframe: TimeFrame }> = ({
           ) : null
         )}
 
-        {/* Axis titles */}
         <text
           x={14}
           y={PAD.top + innerH / 2}
@@ -199,7 +178,6 @@ const RevenueChart: React.FC<{ data: ChartPoint[]; timeframe: TimeFrame }> = ({
           Số vé bán
         </text>
 
-        {/* Revenue line */}
         <path
           d={revenuePath}
           fill="none"
@@ -208,7 +186,6 @@ const RevenueChart: React.FC<{ data: ChartPoint[]; timeframe: TimeFrame }> = ({
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        {/* Tickets line */}
         <path
           d={ticketsPath}
           fill="none"
@@ -218,7 +195,6 @@ const RevenueChart: React.FC<{ data: ChartPoint[]; timeframe: TimeFrame }> = ({
           strokeLinejoin="round"
         />
 
-        {/* Points */}
         {data.map((d, i) => (
           <g key={`p-${i}`}>
             <circle cx={xAt(i)} cy={yRevAt(d.revenue)} r="3" fill="#a78bfa" />
@@ -234,7 +210,6 @@ export default function EventSummaryPage() {
   const { event } = useOutletContext<EventDetailContext>();
   const [timeframe, setTimeframe] = useState<TimeFrame>('24h');
 
-  // ── Mock chart data – khi có API thay bằng useEffect + fetch ──
   const chartData: ChartPoint[] = useMemo(() => {
     if (!event) return [];
     const price = parseFloat(event.price || '0');
@@ -260,162 +235,102 @@ export default function EventSummaryPage() {
   const price = parseFloat(event.price || '0');
   const revenueETH = ticketsSold * price;
 
-  // Stat cards
+  // Stat cards - đã swap sang react-icons
   const stats = [
     {
       label: 'Tổng vé phát hành',
       value: maxSupply.toLocaleString('vi-VN'),
-      icon: (
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-        >
-          <rect x="1" y="1" width="9" height="9" rx="1.5" />
-          <rect x="14" y="1" width="9" height="9" rx="1.5" />
-          <rect x="1" y="14" width="9" height="9" rx="1.5" />
-          <rect x="14" y="14" width="9" height="9" rx="1.5" />
-        </svg>
-      ),
+      icon: <MdGridView size={16} />,
       color: 'text-violet-400',
       bg: 'bg-violet-500/[0.08]',
     },
     {
       label: 'Giá vé',
       value: `Ξ ${event.price}`,
-      icon: (
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-        >
-          <line x1="12" y1="1" x2="12" y2="23" />
-          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-        </svg>
-      ),
+      icon: <MdAttachMoney size={18} />,
       color: 'text-sky-400',
       bg: 'bg-sky-500/[0.08]',
     },
     {
       label: 'Phí bán lại',
       value: `${event.maxResellPercentage}%`,
-      icon: (
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-        >
-          <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-          <polyline points="17 6 23 6 23 12" />
-        </svg>
-      ),
+      icon: <MdTrendingUp size={16} />,
       color: 'text-amber-400',
       bg: 'bg-amber-500/[0.08]',
     },
     {
       label: 'Blockchain',
       value: event.isOnChain ? 'Verified' : 'Pending',
-      icon: (
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-        >
-          <path d="M12 2L2 7l10 5 10-5-10-5z" />
-          <path d="M2 17l10 5 10-5" />
-          <path d="M2 12l10 5 10-5" />
-        </svg>
-      ),
+      icon: <TbCube3dSphere size={16} />,
       color: event.isOnChain ? 'text-emerald-400' : 'text-slate-500',
       bg: event.isOnChain ? 'bg-emerald-500/[0.08]' : 'bg-slate-500/[0.06]',
     },
   ];
 
-  /* ── Bảng "Vé đã bán" ── */
   const ticketRows = [
     {
       type: 'Vé tiêu chuẩn',
       price,
       sold: ticketsSold,
       total: maxSupply,
-      locked: 0, // TODO: API trả về số vé bị khoá / đang treo giao dịch
+      locked: 0,
     },
   ];
 
   return (
     <div className="max-w-[960px] mx-auto animate-[vtx-fade_0.35s_ease]">
-      {/* ══════════════════════════════════════
-          Section 1: Doanh thu (2 donut cards)
-          ══════════════════════════════════════ */}
-      <h2 className="text-lg font-bold text-white mb-4">Doanh thu</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div className="bg-[#0d1117] border border-white/[0.06] rounded-2xl p-5 flex items-center justify-between gap-4 hover:border-white/[0.1] transition-colors">
-          <div>
-            <p className="text-[13px] text-slate-500 mb-1">Doanh thu</p>
-            <p className="text-2xl font-bold text-white font-mono">Ξ {revenueETH.toFixed(4)}</p>
-            <p className="text-[12px] text-slate-600 mt-1">
+      {/* ══════ Section 1: Doanh thu ══════ */}
+      <h2 className="text-base sm:text-lg font-bold text-white mb-4">Doanh thu</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-6">
+        <div className="bg-[#0d1117] border border-white/[0.06] rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-4 hover:border-white/[0.1] transition-colors">
+          <div className="min-w-0">
+            <p className="text-[12px] sm:text-[13px] text-slate-500 mb-1">Doanh thu</p>
+            <p className="text-xl sm:text-2xl font-bold text-white font-mono truncate">
+              Ξ {revenueETH.toFixed(4)}
+            </p>
+            <p className="text-[11.5px] sm:text-[12px] text-slate-600 mt-1 truncate">
               Tổng: Ξ {(maxSupply * price).toFixed(4)}
             </p>
           </div>
-          <DonutRing percent={ticketPercent} color="#eab308" size={90} />
+          <DonutRing percent={ticketPercent} color="#eab308" size={84} />
         </div>
 
-        <div className="bg-[#0d1117] border border-white/[0.06] rounded-2xl p-5 flex items-center justify-between gap-4 hover:border-white/[0.1] transition-colors">
-          <div>
-            <p className="text-[13px] text-slate-500 mb-1">Số vé đã bán</p>
-            <p className="text-2xl font-bold text-white font-mono">
+        <div className="bg-[#0d1117] border border-white/[0.06] rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-4 hover:border-white/[0.1] transition-colors">
+          <div className="min-w-0">
+            <p className="text-[12px] sm:text-[13px] text-slate-500 mb-1">Số vé đã bán</p>
+            <p className="text-xl sm:text-2xl font-bold text-white font-mono">
               {ticketsSold.toLocaleString('vi-VN')}
-              <span className="text-base text-slate-600 font-normal ml-1">vé</span>
+              <span className="text-sm sm:text-base text-slate-600 font-normal ml-1">vé</span>
             </p>
-            <p className="text-[12px] text-slate-600 mt-1">
+            <p className="text-[11.5px] sm:text-[12px] text-slate-600 mt-1">
               Tổng: {maxSupply.toLocaleString('vi-VN')} vé
             </p>
           </div>
-          <DonutRing percent={ticketPercent} color="#f59e0b" size={90} />
+          <DonutRing percent={ticketPercent} color="#f59e0b" size={84} />
         </div>
       </div>
 
-      {/* ══════════════════════════════════════
-          Section 2: Biểu đồ theo thời gian
-          ══════════════════════════════════════ */}
-      <div className="bg-[#0d1117] border border-white/[0.06] rounded-2xl p-5 mb-6">
+      {/* ══════ Section 2: Biểu đồ ══════ */}
+      <div className="bg-[#0d1117] border border-white/[0.06] rounded-2xl p-4 sm:p-5 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-          {/* Legend */}
-          <div className="flex items-center gap-5">
-            <span className="flex items-center gap-2 text-[13px] font-semibold text-slate-200">
+          <div className="flex items-center gap-4 sm:gap-5 flex-wrap">
+            <span className="flex items-center gap-2 text-[12.5px] sm:text-[13px] font-semibold text-slate-200">
               <span className="w-3 h-3 rounded-full bg-violet-400 inline-block" />
               Doanh thu
             </span>
-            <span className="flex items-center gap-2 text-[13px] font-semibold text-slate-200">
+            <span className="flex items-center gap-2 text-[12.5px] sm:text-[13px] font-semibold text-slate-200">
               <span className="w-3 h-3 rounded-full bg-emerald-400 inline-block" />
               Số vé bán
             </span>
           </div>
 
-          {/* Toggle 24h / 30d */}
-          <div className="flex items-center gap-1 p-1 bg-[#080b14] border border-white/[0.06] rounded-full">
+          <div className="flex items-center gap-1 p-1 bg-[#080b14] border border-white/[0.06] rounded-full self-start sm:self-auto">
             {(['24h', '30d'] as const).map((tf) => (
               <button
                 key={tf}
                 onClick={() => setTimeframe(tf)}
                 className={`
-                  px-4 py-1.5 rounded-full text-[12px] font-semibold cursor-pointer transition-all
+                  px-3 sm:px-4 py-1.5 rounded-full text-[11.5px] sm:text-[12px] font-semibold cursor-pointer transition-all
                   ${
                     timeframe === tf
                       ? 'bg-emerald-500 text-white shadow-[0_2px_8px_rgba(16,185,129,0.3)]'
@@ -432,11 +347,11 @@ export default function EventSummaryPage() {
         <RevenueChart data={chartData} timeframe={timeframe} />
       </div>
 
-      {/* ══════════════════════════════════════
-          Section 3: Bảng "Vé đã bán"
-          ══════════════════════════════════════ */}
-      <h3 className="text-[15px] font-bold text-white mb-3">Vé đã bán</h3>
-      <div className="bg-[#0d1117] border border-white/[0.06] rounded-2xl overflow-x-auto mb-6">
+      {/* ══════ Section 3: "Vé đã bán" - RESPONSIVE ══════ */}
+      <h3 className="text-[14px] sm:text-[15px] font-bold text-white mb-3">Vé đã bán</h3>
+
+      {/* Desktop: Table */}
+      <div className="hidden md:block bg-[#0d1117] border border-white/[0.06] rounded-2xl overflow-x-auto mb-6">
         <table className="w-full min-w-[640px]">
           <thead>
             <tr className="border-b border-white/[0.06]">
@@ -486,27 +401,79 @@ export default function EventSummaryPage() {
         </table>
       </div>
 
-      {/* ══════════════════════════════════════
-          Section 4: Chi tiết (4 stat cards) – giữ lại từ bản cũ
-          ══════════════════════════════════════ */}
-      <h2 className="text-lg font-bold text-white mb-4">Chi tiết</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {/* Mobile: Card stack */}
+      <div className="md:hidden flex flex-col gap-2.5 mb-6">
+        {ticketRows.map((row) => {
+          const percent = row.total > 0 ? Math.round((row.sold / row.total) * 100) : 0;
+          return (
+            <div key={row.type} className="bg-[#0d1117] border border-white/[0.06] rounded-xl p-4">
+              {/* Header */}
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="min-w-0">
+                  <p className="text-[13.5px] font-semibold text-slate-200 truncate">{row.type}</p>
+                  <p className="text-[11.5px] text-slate-500 font-mono mt-0.5">
+                    Ξ {row.price.toFixed(4)}
+                  </p>
+                </div>
+                <span className="shrink-0 text-[12px] text-amber-400 font-mono font-semibold">
+                  {percent}%
+                </span>
+              </div>
+
+              {/* Data grid */}
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                <div>
+                  <p className="text-[10.5px] text-slate-600 uppercase tracking-wider mb-0.5">
+                    Đã bán
+                  </p>
+                  <p className="text-[12.5px] text-slate-300 font-mono font-semibold">
+                    {row.sold}/{row.total}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10.5px] text-slate-600 uppercase tracking-wider mb-0.5">
+                    Bị khoá
+                  </p>
+                  <p className="text-[12.5px] text-slate-300 font-mono font-semibold">
+                    {row.locked}
+                  </p>
+                </div>
+              </div>
+
+              {/* Progress bar */}
+              <div className="h-2 rounded-full bg-white/[0.04] overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-amber-500 to-yellow-400 transition-all duration-700"
+                  style={{ width: `${percent}%` }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ══════ Section 4: Chi tiết (stats) ══════ */}
+      <h2 className="text-base sm:text-lg font-bold text-white mb-4">Chi tiết</h2>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-3">
         {stats.map((s) => (
           <div
             key={s.label}
-            className="bg-[#0d1117] border border-white/[0.06] rounded-xl p-4 hover:border-white/[0.1] transition-colors"
+            className="bg-[#0d1117] border border-white/[0.06] rounded-xl p-3 md:p-4 hover:border-white/[0.1] transition-colors"
           >
             <div
-              className={`${s.color} ${s.bg} w-8 h-8 rounded-lg flex items-center justify-center mb-3`}
+              className={`${s.color} ${s.bg} w-8 h-8 rounded-lg flex items-center justify-center mb-2.5 md:mb-3`}
             >
               {s.icon}
             </div>
-            <p className="text-[11px] text-slate-600 uppercase tracking-wider mb-1">{s.label}</p>
-            <p className="text-[15px] font-bold text-white font-mono truncate">{s.value}</p>
+            <p className="text-[10.5px] md:text-[11px] text-slate-600 uppercase tracking-wider mb-1">
+              {s.label}
+            </p>
+            <p className="text-[14px] md:text-[15px] font-bold text-white font-mono truncate">
+              {s.value}
+            </p>
           </div>
         ))}
       </div>
-      {/* ❌ Section "Thông tin sự kiện" đã được loại bỏ theo yêu cầu */}
     </div>
   );
 }

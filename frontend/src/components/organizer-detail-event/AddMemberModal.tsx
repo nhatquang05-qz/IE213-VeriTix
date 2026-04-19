@@ -1,25 +1,18 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { MdClose, MdSearch } from 'react-icons/md';
 
 /* ══════════════════════════════════════════
-   AddMemberModal — Popup thêm thành viên (redesigned)
-
-   Thay đổi so với bản cũ:
-   - ❌ Không còn nhập trực tiếp địa chỉ ví (0x...)
-   - ✅ Search tài khoản hệ thống (username / email / displayName)
-   - ✅ Debounce 350ms – gọi API `${VITE_API_URL}/api/users/search?q=...`
-   - ✅ Dropdown hiển thị kết quả → click để chọn
-   - ✅ Có loading spinner & error toast
-   - ✅ Giữ field Vai trò (admin / staff)
-   - ✅ Responsive (w-full max-w-md – mobile-first)
-
-   Env: import.meta.env.VITE_API_URL (không hardcode)
+   AddMemberModal — Popup thêm thành viên
+   
+   Thay đổi:
+   - ✅ Swap SVG icons → react-icons
+   - ✅ Responsive padding (px-4 sm:px-6)
+   - ✅ Footer buttons stack trên mobile
+   - Logic search / debounce / abort: giữ nguyên
    ══════════════════════════════════════════ */
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
-/* Kiểu User tối giản từ API search.
-   Project thực tế có thể dùng IUser từ types/user.type – khi có backend
-   thì import và thay thế interface này. */
 interface UserSearchResult {
   _id: string;
   username: string;
@@ -46,7 +39,6 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ open, onClose, onAdd })
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  // ── Reset state khi đóng modal ──
   useEffect(() => {
     if (!open) {
       setQuery('');
@@ -58,7 +50,6 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ open, onClose, onAdd })
     }
   }, [open]);
 
-  // ── Mock users để fallback khi API chưa sẵn sàng – giữ UX demo được ──
   const mockUsers: UserSearchResult[] = useMemo(
     () => [
       {
@@ -86,7 +77,6 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ open, onClose, onAdd })
     []
   );
 
-  // ── Debounced search ──
   useEffect(() => {
     if (!open) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -108,7 +98,6 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ open, onClose, onAdd })
 
       try {
         if (!API_URL) {
-          // Fallback mock – filter local
           const filtered = mockUsers.filter(
             (u) =>
               u.username.toLowerCase().includes(q.toLowerCase()) ||
@@ -131,7 +120,6 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ open, onClose, onAdd })
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        // Tuỳ shape backend: { data: [] } hoặc mảng trực tiếp
         const list: UserSearchResult[] = Array.isArray(data) ? data : data?.data || [];
         setResults(list);
       } catch (err: unknown) {
@@ -158,11 +146,9 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ open, onClose, onAdd })
 
   return (
     <>
-      {/* Backdrop */}
       <div className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
-      {/* Modal */}
-      <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[90] flex items-center justify-center p-3 sm:p-4">
         <div
           className="
             bg-[#111827] border border-white/[0.08] rounded-2xl
@@ -173,30 +159,19 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ open, onClose, onAdd })
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
+          <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-white/[0.06] shrink-0">
             <h3 className="text-[15px] font-bold text-white">Thêm thành viên</h3>
             <button
               onClick={onClose}
-              className="text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+              className="text-slate-500 hover:text-slate-300 transition-colors cursor-pointer p-1 -m-1"
+              aria-label="Đóng"
             >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              >
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
+              <MdClose size={20} />
             </button>
           </div>
 
           {/* Body */}
-          <div className="px-6 py-5 flex flex-col gap-4 overflow-y-auto">
-            {/* Search input + dropdown */}
+          <div className="px-5 sm:px-6 py-5 flex flex-col gap-4 overflow-y-auto">
             <div>
               <label className="text-[13px] font-medium text-slate-400 mb-2 block">
                 Tìm người dùng
@@ -205,19 +180,10 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ open, onClose, onAdd })
               {!selected && (
                 <>
                   <div className="relative">
-                    <svg
-                      width="15"
-                      height="15"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
+                    <MdSearch
+                      size={16}
                       className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none"
-                    >
-                      <circle cx="11" cy="11" r="8" />
-                      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                    </svg>
+                    />
                     <input
                       type="text"
                       value={query}
@@ -285,7 +251,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ open, onClose, onAdd })
                 <div
                   className="
                     bg-emerald-500/[0.06] border border-emerald-500/20 rounded-xl
-                    px-4 py-3 flex items-center gap-3
+                    px-3.5 sm:px-4 py-3 flex items-center gap-3
                   "
                 >
                   <div className="w-10 h-10 rounded-full bg-emerald-500/[0.15] border border-emerald-500/30 flex items-center justify-center shrink-0">
@@ -306,21 +272,10 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ open, onClose, onAdd })
                   <button
                     type="button"
                     onClick={() => setSelected(null)}
-                    className="text-slate-500 hover:text-rose-400 transition-colors cursor-pointer p-1"
+                    className="text-slate-500 hover:text-rose-400 transition-colors cursor-pointer p-1 shrink-0"
                     title="Chọn lại"
                   >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    >
-                      <line x1="18" y1="6" x2="6" y2="18" />
-                      <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
+                    <MdClose size={16} />
                   </button>
                 </div>
               )}
@@ -336,7 +291,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ open, onClose, onAdd })
                     type="button"
                     onClick={() => setRole(r)}
                     className={`
-                      flex-1 px-4 py-2.5 rounded-xl text-[13px] font-medium
+                      flex-1 px-3 sm:px-4 py-2.5 rounded-xl text-[12.5px] sm:text-[13px] font-medium
                       border cursor-pointer transition-all
                       ${
                         role === r
@@ -352,8 +307,8 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ open, onClose, onAdd })
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-white/[0.06]">
+          {/* Footer: stack mobile, row desktop */}
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center sm:justify-end gap-2.5 sm:gap-3 px-5 sm:px-6 py-4 border-t border-white/[0.06] shrink-0">
             <button
               onClick={onClose}
               className="
@@ -386,5 +341,4 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ open, onClose, onAdd })
 
 export default AddMemberModal;
 
-/* Re-export kiểu cho EventMembersPage tiện sử dụng */
 export type { UserSearchResult };

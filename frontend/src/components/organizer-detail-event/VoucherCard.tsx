@@ -1,12 +1,10 @@
 import React from 'react';
+import { MdEdit, MdHistory, MdDelete } from 'react-icons/md';
 import type { IVoucher, VoucherStatus } from '../../types/voucher.type';
 
 /* ══════════════════════════════════════════
-   VoucherCard — Row trong bảng voucher
-
-   Thay đổi:
-   - ✅ Thêm prop `onEdit` để nút "Sửa" hoạt động
-     (trước đây nút Sửa không có handler → user click không gì xảy ra)
+   VoucherCard — Row desktop
+   VoucherMobileCard — Card mobile (named export)
    ══════════════════════════════════════════ */
 
 const STATUS_CFG: Record<VoucherStatus, { label: string; cls: string }> = {
@@ -25,6 +23,8 @@ type VoucherCardProps = {
   onDelete: (voucher: IVoucher) => void;
 };
 
+const fmtDate = (iso: string) => (iso ? new Date(iso).toLocaleDateString('vi-VN') : '—');
+
 const VoucherCard: React.FC<VoucherCardProps> = ({
   voucher: v,
   onEdit,
@@ -32,7 +32,6 @@ const VoucherCard: React.FC<VoucherCardProps> = ({
   onDelete,
 }) => {
   const sCfg = STATUS_CFG[v.status];
-  const fmtDate = (iso: string) => (iso ? new Date(iso).toLocaleDateString('vi-VN') : '—');
 
   return (
     <tr className="border-b border-white/[0.04] last:border-b-0 hover:bg-white/[0.02] transition-colors">
@@ -59,68 +58,95 @@ const VoucherCard: React.FC<VoucherCardProps> = ({
       </td>
       <td className="px-5 py-4">
         <div className="flex items-center gap-1">
-          {/* Edit – GIỜ CÓ HANDLER */}
           <button
             onClick={() => onEdit(v)}
-            className="p-2 rounded-lg text-slate-600 hover:text-sky-400 hover:bg-sky-400/[0.06] transition-all cursor-pointer"
             title="Sửa"
+            className="p-2 rounded-lg text-slate-600 hover:text-sky-400 hover:bg-sky-400/[0.06] transition-all cursor-pointer"
           >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            >
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-            </svg>
+            <MdEdit size={15} />
           </button>
-
-          {/* History */}
           <button
             onClick={() => onShowHistory(v._id)}
-            className="p-2 rounded-lg text-slate-600 hover:text-amber-400 hover:bg-amber-400/[0.06] transition-all cursor-pointer"
             title="Lịch sử"
+            className="p-2 rounded-lg text-slate-600 hover:text-amber-400 hover:bg-amber-400/[0.06] transition-all cursor-pointer"
           >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
-            </svg>
+            <MdHistory size={15} />
           </button>
-
-          {/* Delete */}
           <button
             onClick={() => onDelete(v)}
-            className="p-2 rounded-lg text-slate-600 hover:text-rose-400 hover:bg-rose-400/[0.06] transition-all cursor-pointer"
             title="Xoá"
+            className="p-2 rounded-lg text-slate-600 hover:text-rose-400 hover:bg-rose-400/[0.06] transition-all cursor-pointer"
           >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            >
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            </svg>
+            <MdDelete size={15} />
           </button>
         </div>
       </td>
     </tr>
+  );
+};
+
+/* ── Mobile card: dùng dưới md breakpoint ── */
+export const VoucherMobileCard: React.FC<VoucherCardProps> = ({
+  voucher: v,
+  onEdit,
+  onShowHistory,
+  onDelete,
+}) => {
+  const sCfg = STATUS_CFG[v.status];
+  return (
+    <div className="bg-[#0d1117] border border-white/[0.06] rounded-xl p-4">
+      {/* Header: code + status */}
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <span className="text-[14px] font-mono font-bold text-slate-100 break-all">{v.code}</span>
+        <span
+          className={`shrink-0 inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold border ${sCfg.cls}`}
+        >
+          {sCfg.label}
+        </span>
+      </div>
+
+      {/* Data grid */}
+      <div className="grid grid-cols-2 gap-3 mb-3">
+        <div>
+          <p className="text-[10.5px] text-slate-600 uppercase tracking-wider mb-0.5">Mức giảm</p>
+          <p className="text-[12.5px] text-slate-300 font-mono font-semibold">
+            {v.discountType === 'PERCENTAGE' ? `${v.discountValue}%` : `Ξ ${v.discountValue}`}
+          </p>
+        </div>
+        <div>
+          <p className="text-[10.5px] text-slate-600 uppercase tracking-wider mb-0.5">Đã dùng</p>
+          <p className="text-[12.5px] text-slate-300 font-mono font-semibold">
+            {v.usedCount}/{v.maxUsage}
+          </p>
+        </div>
+      </div>
+
+      <p className="text-[11.5px] text-slate-500 mb-3">
+        {fmtDate(v.startDate)} → {fmtDate(v.endDate)}
+      </p>
+
+      {/* Actions */}
+      <div className="flex items-center gap-2 pt-3 border-t border-white/[0.04]">
+        <button
+          onClick={() => onEdit(v)}
+          className="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-[12px] font-medium text-sky-400 hover:bg-sky-400/[0.06] transition-colors cursor-pointer"
+        >
+          <MdEdit size={14} /> Sửa
+        </button>
+        <button
+          onClick={() => onShowHistory(v._id)}
+          className="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-[12px] font-medium text-amber-400 hover:bg-amber-400/[0.06] transition-colors cursor-pointer"
+        >
+          <MdHistory size={14} /> Lịch sử
+        </button>
+        <button
+          onClick={() => onDelete(v)}
+          className="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-[12px] font-medium text-rose-400 hover:bg-rose-400/[0.06] transition-colors cursor-pointer"
+        >
+          <MdDelete size={14} /> Xoá
+        </button>
+      </div>
+    </div>
   );
 };
 

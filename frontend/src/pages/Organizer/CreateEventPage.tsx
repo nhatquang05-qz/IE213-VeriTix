@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-import OrganizerSidebar, { MobileSidebar } from '../../components/organizer/OrganizerSidebar';
 import { StepIndicator, STEPS } from '../../components/organizer/CreateEventSteps';
 import type { EventFormData } from '../../components/organizer/CreateEventSteps';
 import Step1EventInfo from '../../components/organizer/Step1EventInfo';
@@ -44,27 +43,9 @@ const CREATE_ABI = [
   },
 ] as const;
 
-const MenuIcon = () => (
-  <svg
-    width="22"
-    height="22"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="3" y1="6" x2="21" y2="6" />
-    <line x1="3" y1="12" x2="21" y2="12" />
-    <line x1="3" y1="18" x2="21" y2="18" />
-  </svg>
-);
-
 export default function CreateEventPage() {
   const navigate = useNavigate();
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -319,35 +300,12 @@ export default function CreateEventPage() {
       />
 
       <div className="flex min-h-screen bg-[#070a11] text-slate-100 font-['Inter',sans-serif] relative z-[1]">
-        {/* ── Sidebar ── */}
-        {!isMobile && (
-          <OrganizerSidebar
-            expanded={sidebarExpanded}
-            onToggle={() => setSidebarExpanded((p) => !p)}
-          />
-        )}
-        {isMobile && (
-          <MobileSidebar open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
-        )}
-
         {/* ── Main ── */}
         <main
           className="flex-1 overflow-auto transition-[margin-left] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] min-w-0"
           style={{ marginLeft: sidebarW }}
         >
           <div className="max-w-[880px] mx-auto px-3.5 md:px-8 py-5 md:py-11 pb-16 md:pb-20">
-            {/* Mobile hamburger */}
-            {isMobile && (
-              <div className="mb-4">
-                <button
-                  onClick={() => setMobileMenuOpen(true)}
-                  className="bg-[#0d1117] border border-white/[0.06] rounded-lg p-[7px] text-slate-400 cursor-pointer flex items-center justify-center hover:bg-white/[0.04] transition-colors"
-                >
-                  <MenuIcon />
-                </button>
-              </div>
-            )}
-
             {/* ── Stepper ── */}
             <StepIndicator
               currentStep={step}

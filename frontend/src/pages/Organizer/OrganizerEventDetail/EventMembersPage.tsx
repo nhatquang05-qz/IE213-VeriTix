@@ -1,22 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { MdAdd, MdSearch, MdFilterAlt } from 'react-icons/md';
 import type { EventDetailContext, IOrganizerMember } from '../../../types/organizer.type';
 import MemberList from '../../../components/organizer-detail-event/MemberList';
 import AddMemberModal from '../../../components/organizer-detail-event/AddMemberModal';
 import type { UserSearchResult } from '../../../components/organizer-detail-event/AddMemberModal';
 import ConfirmDialog from '../../../components/common/ConfirmDialog';
 import { MOCK_MEMBERS_BY_EVENT } from '../../../mocks/members.mock';
-
-/* ══════════════════════════════════════════
-   EventMembersPage — Trang "Thành viên" (Fixed)
-
-   Thay đổi:
-   - ✅ Filter theo vai trò hoạt động (All / Owner / Admin / Staff)
-   - ✅ Filter kết hợp với search (both cùng áp dụng)
-   - ✅ AddMemberModal nhận UserSearchResult thay cho wallet string
-   - ✅ Toast khi trùng thành viên (wallet đã tồn tại)
-   ══════════════════════════════════════════ */
 
 type RoleFilter = 'all' | 'owner' | 'admin' | 'staff';
 
@@ -39,14 +30,12 @@ export default function EventMembersPage() {
     member: IOrganizerMember | null;
   }>({ open: false, member: null });
 
-  // ── Load mock members theo eventId ──
   useEffect(() => {
     if (!event) return;
     const eventMembers = MOCK_MEMBERS_BY_EVENT[event._id] || [];
     setMembers(eventMembers.map((m) => ({ ...m })));
   }, [event]);
 
-  // ── Filtered list: kết hợp search + roleFilter ──
   const filtered = useMemo(() => {
     return members.filter((m) => {
       const q = search.toLowerCase().trim();
@@ -57,7 +46,6 @@ export default function EventMembersPage() {
     });
   }, [members, search, roleFilter]);
 
-  // ── Count per role cho badge ──
   const roleCounts = useMemo(() => {
     return {
       all: members.length,
@@ -69,10 +57,8 @@ export default function EventMembersPage() {
 
   if (!event) return null;
 
-  // ── Handler thêm thành viên từ search result ──
   const handleAddMember = (user: UserSearchResult, role: 'admin' | 'staff') => {
     try {
-      // Check trùng wallet (nếu có) hoặc trùng name
       if (user.walletAddress) {
         const dup = members.find(
           (m) => m.walletAddress.toLowerCase() === user.walletAddress?.toLowerCase()
@@ -82,10 +68,6 @@ export default function EventMembersPage() {
           return;
         }
       }
-
-      // TODO: call API khi backend sẵn sàng:
-      //   POST ${VITE_API_URL}/api/events/${event._id}/members
-      //   body: { userId: user._id, role }
       const newMember: IOrganizerMember = {
         _id: Date.now().toString(),
         userId: user._id,
@@ -105,7 +87,6 @@ export default function EventMembersPage() {
   const handleConfirmDelete = () => {
     if (!deleteModal.member) return;
     try {
-      // TODO: call API DELETE ${VITE_API_URL}/api/events/${event._id}/members/${memberId}
       setMembers((prev) => prev.filter((m) => m._id !== deleteModal.member!._id));
       toast.success('Đã xoá thành viên');
       setDeleteModal({ open: false, member: null });
@@ -117,9 +98,9 @@ export default function EventMembersPage() {
 
   return (
     <div className="max-w-[960px] mx-auto animate-[vtx-fade_0.35s_ease]">
-      {/* ── Header ── */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
-        <h2 className="text-lg font-bold text-white">Thành viên</h2>
+        <h2 className="text-base sm:text-lg font-bold text-white">Thành viên</h2>
         <button
           onClick={() => setAddModalOpen(true)}
           className="
@@ -130,39 +111,18 @@ export default function EventMembersPage() {
             justify-center sm:justify-start
           "
         >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-          >
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
+          <MdAdd size={16} />
           Thêm thành viên
         </button>
       </div>
 
-      {/* ── Search + Role Filter Tabs ── */}
+      {/* Search + Role filter */}
       <div className="flex flex-col gap-3 mb-5">
-        {/* Search */}
         <div className="relative">
-          <svg
-            width="15"
-            height="15"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
+          <MdSearch
+            size={16}
             className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
+          />
           <input
             type="text"
             value={search}
@@ -178,8 +138,7 @@ export default function EventMembersPage() {
           />
         </div>
 
-        {/* Role filter tabs – responsive pill */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
           {ROLE_TABS.map((tab) => {
             const active = roleFilter === tab.key;
             return (
@@ -214,22 +173,11 @@ export default function EventMembersPage() {
       {/* Result counter */}
       <div className="flex justify-end mb-3">
         <span className="text-[12px] text-slate-500 flex items-center gap-1.5">
-          <svg
-            width="13"
-            height="13"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-          >
-            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-          </svg>
+          <MdFilterAlt size={13} />
           Hiển thị {filtered.length} / {members.length}
         </span>
       </div>
 
-      {/* MemberList */}
       <MemberList
         members={filtered}
         onDelete={(memberId) => {
@@ -238,14 +186,12 @@ export default function EventMembersPage() {
         }}
       />
 
-      {/* AddMemberModal – search by username/email/name */}
       <AddMemberModal
         open={addModalOpen}
         onClose={() => setAddModalOpen(false)}
         onAdd={handleAddMember}
       />
 
-      {/* ConfirmDialog xoá */}
       <ConfirmDialog
         open={deleteModal.open}
         variant="danger"

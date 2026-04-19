@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { MdAdd, MdCardGiftcard } from 'react-icons/md';
 import type { EventDetailContext } from '../../../types/organizer.type';
 import type { IVoucher, IVoucherHistory } from '../../../types/voucher.type';
-import VoucherCard from '../../../components/organizer-detail-event/VoucherCard';
+import VoucherCard, {
+  VoucherMobileCard,
+} from '../../../components/organizer-detail-event/VoucherCard';
 import VoucherForm from '../../../components/organizer-detail-event/VoucherForm';
 import type { VoucherFormDataExtended } from '../../../components/organizer-detail-event/VoucherForm';
 import VoucherHistoryModal from '../../../components/organizer-detail-event/VoucherHistoryModal';
@@ -14,17 +17,6 @@ import {
   MOCK_VOUCHER_HISTORY_BY_VOUCHER,
 } from '../../../mocks/vouchers.mock';
 
-/* ══════════════════════════════════════════
-   EventVouchersPage — Trang "Voucher" (Redesigned)
-
-   Thay đổi:
-   - ✅ Form tạo voucher giờ là POPUP MODAL (không còn inline collapsible)
-   - ✅ Edit voucher hoạt động: click nút Sửa → mở lại form ở chế độ edit
-   - ✅ Bulk mode: tạo nhiều mã random theo prefix
-   - ✅ Toast thành công/lỗi với react-toastify
-   ══════════════════════════════════════════ */
-
-/* Helper: random string N ký tự A-Z0-9 */
 const randomSuffix = (len = 6): string => {
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let out = '';
@@ -38,7 +30,6 @@ export default function EventVouchersPage() {
   const { event } = useOutletContext<EventDetailContext>();
   const [vouchers, setVouchers] = useState<IVoucher[]>([]);
 
-  /* Form modal state: open + voucher đang edit (null = tạo mới) */
   const [formModal, setFormModal] = useState<{ open: boolean; editing: IVoucher | null }>({
     open: false,
     editing: null,
@@ -53,7 +44,6 @@ export default function EventVouchersPage() {
     voucher: null,
   });
 
-  // ── Load mock vouchers ──
   useEffect(() => {
     if (!event) return;
     const eventVouchers = MOCK_VOUCHERS_BY_EVENT[event._id] || [];
@@ -62,10 +52,8 @@ export default function EventVouchersPage() {
 
   if (!event) return null;
 
-  /* ── Submit form: phân nhánh create/edit + single/bulk ── */
   const handleSubmitForm = (form: VoucherFormDataExtended) => {
     try {
-      // ── EDIT MODE ──
       if (formModal.editing) {
         const updated: IVoucher = {
           ...formModal.editing,
@@ -82,8 +70,6 @@ export default function EventVouchersPage() {
         return;
       }
 
-      // ── CREATE MODE ──
-      // Bulk: tạo nhiều mã
       if (form.mode === 'bulk') {
         const qty = Math.min(5000, Math.max(1, Number(form.quantity) || 0));
         const prefix = (form.prefix || '').toUpperCase();
@@ -108,7 +94,6 @@ export default function EventVouchersPage() {
         setVouchers((prev) => [...prev, ...batch]);
         toast.success(`Đã tạo ${qty} voucher`);
       } else {
-        // Single
         const newVoucher: IVoucher = {
           _id: Date.now().toString(),
           eventId: event._id,
@@ -153,10 +138,10 @@ export default function EventVouchersPage() {
 
   return (
     <div className="max-w-[960px] mx-auto animate-[vtx-fade_0.35s_ease]">
-      {/* ── Header ── */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <div className="flex items-center gap-3">
-          <h2 className="text-lg font-bold text-white">Voucher</h2>
+          <h2 className="text-base sm:text-lg font-bold text-white">Voucher</h2>
           <span className="px-2.5 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-[11px] font-mono text-slate-500">
             {vouchers.length} / 5000
           </span>
@@ -171,77 +156,65 @@ export default function EventVouchersPage() {
             justify-center sm:justify-start
           "
         >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-          >
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
+          <MdAdd size={16} />
           Tạo voucher
         </button>
       </div>
 
-      {/* ── Table / Empty ── */}
       {vouchers.length === 0 ? (
         <EmptyState
-          icon={
-            <svg
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-            >
-              <path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6" />
-              <path d="M2 8h20v4H2z" />
-              <path d="M12 2v6" />
-              <circle cx="12" cy="14" r="2" />
-            </svg>
-          }
+          icon={<MdCardGiftcard size={28} />}
           title="Chưa có voucher nào"
           description='Nhấn "Tạo voucher" để bắt đầu'
         />
       ) : (
-        <div className="bg-[#0d1117] border border-white/[0.06] rounded-2xl overflow-x-auto">
-          <table className="w-full min-w-[700px]">
-            <thead>
-              <tr className="border-b border-white/[0.06]">
-                {['Mã voucher', 'Mức giảm', 'Đã dùng', 'Thời gian áp dụng', 'Trạng thái', ''].map(
-                  (h) => (
-                    <th
-                      key={h}
-                      className="text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider px-5 py-3.5"
-                    >
-                      {h}
-                    </th>
-                  )
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {vouchers.map((v) => (
-                <VoucherCard
-                  key={v._id}
-                  voucher={v}
-                  onEdit={(voucher) => setFormModal({ open: true, editing: voucher })}
-                  onShowHistory={handleShowHistory}
-                  onDelete={(voucher) => setDeleteModal({ open: true, voucher })}
-                />
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <>
+          {/* ══ Desktop: Table ══ */}
+          <div className="hidden md:block bg-[#0d1117] border border-white/[0.06] rounded-2xl overflow-x-auto">
+            <table className="w-full min-w-[700px]">
+              <thead>
+                <tr className="border-b border-white/[0.06]">
+                  {['Mã voucher', 'Mức giảm', 'Đã dùng', 'Thời gian áp dụng', 'Trạng thái', ''].map(
+                    (h) => (
+                      <th
+                        key={h}
+                        className="text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider px-5 py-3.5"
+                      >
+                        {h}
+                      </th>
+                    )
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {vouchers.map((v) => (
+                  <VoucherCard
+                    key={v._id}
+                    voucher={v}
+                    onEdit={(voucher) => setFormModal({ open: true, editing: voucher })}
+                    onShowHistory={handleShowHistory}
+                    onDelete={(voucher) => setDeleteModal({ open: true, voucher })}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* ══ Mobile: Card stack ══ */}
+          <div className="md:hidden flex flex-col gap-2.5">
+            {vouchers.map((v) => (
+              <VoucherMobileCard
+                key={v._id}
+                voucher={v}
+                onEdit={(voucher) => setFormModal({ open: true, editing: voucher })}
+                onShowHistory={handleShowHistory}
+                onDelete={(voucher) => setDeleteModal({ open: true, voucher })}
+              />
+            ))}
+          </div>
+        </>
       )}
 
-      {/* ── Form Modal (tạo + sửa) ── */}
       <VoucherForm
         open={formModal.open}
         onClose={() => setFormModal({ open: false, editing: null })}
@@ -249,14 +222,12 @@ export default function EventVouchersPage() {
         initial={formModal.editing}
       />
 
-      {/* ── History Modal ── */}
       <VoucherHistoryModal
         open={historyModal.open}
         onClose={() => setHistoryModal({ open: false, data: [] })}
         history={historyModal.data}
       />
 
-      {/* ── ConfirmDialog xoá ── */}
       <ConfirmDialog
         open={deleteModal.open}
         variant="danger"
