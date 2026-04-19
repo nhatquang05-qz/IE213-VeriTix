@@ -1,8 +1,10 @@
 const HomepageHero = () => {
   return (
-    <section className="hero">
+    <section className="hero relative">
       <canvas className="blockchain-bg" id="blockchainCanvas"></canvas>
-      <div className="container">
+      
+      {/* Thêm class relative và z-10 để nội dung nổi lên, pt-32 để cách xa Navbar ra */}
+      <div className="container relative z-10 pt-32 pb-20"> 
         <div className="hero-content">
           <h1 className="hero-title">
             Bán Vé Bảo Mật<br />Trên Blockchain

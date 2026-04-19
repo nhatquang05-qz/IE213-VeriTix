@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from './config/contract';
-
+import MyTickets from './pages/User/MyTickets';
 // Layouts
 import MainLayout from './layouts/MainLayout';
 import OrganizerLayout from './layouts/OrganizerLayout';
@@ -31,7 +31,7 @@ import EventVouchersPage from './pages/Organizer/OrganizerEventDetail/EventVouch
 import { AuthProvider } from './contexts/AuthContext';
 import { Web3Provider } from './contexts/Web3Context';
 
-// Giữ lại hàm Test Connection của bro
+// Giữ lại hàm Test Connection của 
 function TestConnection() {
   const [status, setStatus] = useState("");
   const [address, setAddress] = useState("");
@@ -109,6 +109,11 @@ function App() {
               <Route path="edit" element={<EventEditPage />} />
               <Route path="vouchers" element={<EventVouchersPage />} />
               <Route path="vouchers/create" element={<EventVouchersPage />} />
+            </Route>
+            {/* ═══ USER — MainLayout + Auth Guard ═══ */}
+            <Route element={<MainLayout />}>
+              {/* <Route path="/user/profile" element={<ProfilePage />} /> */}
+              <Route path="/user/my-tickets" element={<MyTickets />} /> {/* Mở khóa dòng này */}
             </Route>
 
             {/* Fallback */}
