@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import EventCard from "./EventCard";
 import type { IEvent } from "../types/event.type";
 import { getEvents } from "../services/api";
-import "../assets/styles/event.css";
 
 const EventGrid = () => {
   const [events, setEvents] = useState<IEvent[]>([]);
@@ -13,12 +12,12 @@ const EventGrid = () => {
   }, []);
 
   return (
-    <div className="event-section">
+    <div className="px-10 py-[60px] text-[#f2f9ff] leading-[1.65]">
       <h2>Sự kiện nổi bật</h2>
 
-      <div className="event-grid">
+      <div className="grid grid-cols-3 gap-[25px]">
         {events.map((event) => (
-          <Link key={event._id} to={`/events/${event._id}`} className="event-card-link">
+          <Link key={event._id} to={`/events/${event._id}`} className="group text-inherit no-underline">
             <EventCard event={event} />
           </Link>
         ))}

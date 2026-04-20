@@ -1,4 +1,3 @@
-import "../assets/styles/Hero.css";
 const HeroSection = () => {
   return (
     <div className="hero">

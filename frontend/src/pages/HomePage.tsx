@@ -1,5 +1,5 @@
-import React from 'react';
-import '../assets/styles/Homepage.css';
+﻿import React from 'react';
+import '../assets/styles/styles.css';
 import useBlockchainAnimation from '../hooks/useBlockchainAnimation';
 import HomepageHero from '../components/HomepageHero';
 import FeaturesSection from '../components/FeaturesSection';
