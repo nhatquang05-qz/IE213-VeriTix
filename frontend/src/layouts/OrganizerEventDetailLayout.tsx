@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { MdErrorOutline } from 'react-icons/md';
 import EventDetailSidebar, {
@@ -46,6 +46,11 @@ export default function OrganizerEventDetailLayout() {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const handleOpenDrawer = useCallback(() => setMobileDrawerOpen(true), []);
   const handleCloseDrawer = useCallback(() => setMobileDrawerOpen(false), []);
+
+  useEffect(() => {
+    document.body.classList.add('organizer-no-navbar-offset');
+    return () => document.body.classList.remove('organizer-no-navbar-offset');
+  }, []);
 
   if (loading) return <LoadingSpinner text="Đang tải sự kiện..." />;
   if (error || !event)

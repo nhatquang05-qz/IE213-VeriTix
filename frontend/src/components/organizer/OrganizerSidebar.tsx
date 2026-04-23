@@ -121,6 +121,7 @@ const OrganizerSidebar: React.FC<OrganizerSidebarProps> = ({ expanded, onToggle 
       <SidebarContext.Provider value={{ expanded }}>
         <nav
           className={`
+            !static !inset-auto !z-auto !bg-transparent !backdrop-blur-none !shadow-none !p-0
             flex-1 flex flex-col gap-1 pt-4
             ${expanded ? 'px-3' : 'px-2.5'}
           `}
@@ -210,7 +211,7 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({ open, onClose }) =
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 pt-4 flex flex-col gap-1">
+        <nav className="!static !inset-auto !z-auto !bg-transparent !backdrop-blur-none !shadow-none !p-0 flex-1 px-3 pt-4 flex flex-col gap-1">
           {ORGANIZER_NAV_ITEMS.map((item) => (
             <NavLink
               key={item.key}
@@ -228,7 +229,9 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({ open, onClose }) =
                 }
               `}
             >
-              <span className="text-[16px] opacity-80">{item.icon}</span>
+              <span className="text-[16px] opacity-80">
+                <item.icon size={16} />
+              </span>
               {item.label}
             </NavLink>
           ))}

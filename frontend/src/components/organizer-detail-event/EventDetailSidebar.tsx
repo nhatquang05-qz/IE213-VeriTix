@@ -186,7 +186,7 @@ const EventDetailSidebar: React.FC<EventDetailSidebarProps> = ({
 
       <SidebarContext.Provider value={{ expanded }}>
         <nav
-          className={`flex-1 flex flex-col gap-1 pt-4 overflow-y-auto overflow-x-hidden ${
+          className={`!static !inset-auto !z-auto !bg-transparent !backdrop-blur-none !shadow-none !p-0 flex-1 flex flex-col gap-1 pt-4 overflow-y-auto overflow-x-hidden ${
             expanded ? 'px-3' : 'px-2.5'
           }`}
         >
@@ -294,7 +294,7 @@ export const MobileEventDetailSidebar: React.FC<MobileEventDetailSidebarProps> =
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 pt-4 flex flex-col gap-1 overflow-y-auto">
+        <nav className="!static !inset-auto !z-auto !bg-transparent !backdrop-blur-none !shadow-none !p-0 flex-1 px-3 pt-4 flex flex-col gap-1 overflow-y-auto">
           {/* Back button */}
           <button
             onClick={() => {

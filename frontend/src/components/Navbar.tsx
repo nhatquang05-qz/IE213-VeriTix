@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { MdChevronLeft, MdChevronRight, MdConfirmationNumber } from 'react-icons/md';
+import { MdConfirmationNumber } from 'react-icons/md';
 
 const Navbar = ({ children }: { children: React.ReactNode }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

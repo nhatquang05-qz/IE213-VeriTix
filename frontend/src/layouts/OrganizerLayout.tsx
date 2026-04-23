@@ -37,6 +37,11 @@ export default function OrganizerLayout() {
     return () => window.removeEventListener('resize', checkMobile);
   }, [checkMobile]);
 
+  useEffect(() => {
+    document.body.classList.add('organizer-no-navbar-offset');
+    return () => document.body.classList.remove('organizer-no-navbar-offset');
+  }, []);
+
   // ── Handlers ──
   const handleToggleSidebar = useCallback(() => {
     if (isMobile) {

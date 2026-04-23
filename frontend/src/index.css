@@ -1,1 +1,5 @@
 @import "tailwindcss";
+
+body.organizer-no-navbar-offset {
+	padding-top: 0 !important;
+}

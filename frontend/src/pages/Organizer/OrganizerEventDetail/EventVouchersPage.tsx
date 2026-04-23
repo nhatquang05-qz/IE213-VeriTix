@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
-// import { toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import { MdAdd, MdCardGiftcard } from 'react-icons/md';
 import type { EventDetailContext } from '../../../types/organizer.type';
 import type { IVoucher, IVoucherHistory } from '../../../types/voucher.type';

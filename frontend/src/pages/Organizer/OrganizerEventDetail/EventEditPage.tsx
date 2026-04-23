@@ -64,11 +64,11 @@ export default function EventEditPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [form, setForm] = useState<EventFormData>(EMPTY_FORM);
 
-  const [posterFile, setPosterFile] = useState<File | null>(null);
+  const [, setPosterFile] = useState<File | null>(null);
   const [posterPreview, setPosterPreview] = useState('');
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState('');
-  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState('');
 
   useEffect(() => {
