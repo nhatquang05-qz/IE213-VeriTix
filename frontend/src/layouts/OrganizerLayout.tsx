@@ -53,8 +53,25 @@ export default function OrganizerLayout() {
   const sidebarWidth = isMobile ? 0 : sidebarExpanded ? SIDEBAR_EXPANDED_W : SIDEBAR_COLLAPSED_W;
 
   return (
-    <div className="flex min-h-screen bg-[#070a11]">
-      {/* ── Desktop Sidebar ── */}
+    /*
+     * ROOT CAUSE FIX — White space bên phải:
+     *
+     * Sidebar dùng `position: fixed` → thoát khỏi flex flow, không chiếm
+     * không gian trong flex container.
+     *
+     * `flex-1` trên <main> → browser tính width = 100% viewport.
+     * `marginLeft: sidebarWidth` → đẩy main sang phải thêm sidebarWidth px.
+     *
+     * Kết quả: main tràn ra ngoài viewport đúng sidebarWidth px
+     * → white space bên phải.
+     *
+     * Fix:
+     *   1. overflow-x-hidden trên root container.
+     *   2. Bỏ flex-1, dùng width: calc(100% - sidebarWidth) trên main.
+     *   3. min-w-0: cho phép flex child shrink dưới content size.
+     */
+    <div className="flex min-h-screen bg-[#070a11] overflow-x-hidden">
+      {/* ── Desktop Sidebar (position: fixed — out of flex flow) ── */}
       {!isMobile && <OrganizerSidebar expanded={sidebarExpanded} onToggle={handleToggleSidebar} />}
 
       {/* ── Mobile Sidebar Drawer ── */}
@@ -62,15 +79,20 @@ export default function OrganizerLayout() {
 
       {/* ── Main Content Area ── */}
       <main
-        className="flex-1 flex flex-col min-h-screen transition-[margin-left] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
-        style={{ marginLeft: sidebarWidth }}
+        className="flex flex-col min-h-screen min-w-0 transition-[margin-left,width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
+        style={{
+          marginLeft: sidebarWidth,
+          width: `calc(100% - ${sidebarWidth}px)`,
+        }}
       >
         {/* Header: sticky, hiện nút hamburger trên mobile */}
         <OrganizerHeader onMenuClick={handleToggleSidebar} showMenuBtn={isMobile} />
 
         {/* Page content */}
-        <div className="flex-1 w-full max-w-[1200px] mx-auto px-4 md:px-6 py-6">
-          <Outlet />
+        <div className="flex-1 w-full py-6">
+          <div className="w-full max-w-[1200px] mx-auto px-4 md:px-6">
+            <Outlet />
+          </div>
         </div>
       </main>
     </div>

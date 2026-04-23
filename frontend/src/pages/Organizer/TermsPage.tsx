@@ -74,10 +74,12 @@ const TERM_SECTIONS: TermSection[] = [
 
 export default function TermsPage() {
   return (
-    <div className="max-w-[900px] mx-auto animate-[fadeSlideUp_0.4s_ease]">
+    <div className="max-w-[1100px] mx-auto animate-[fadeSlideUp_0.4s_ease]">
       {/* ── Title ── */}
       <div className="mb-6">
-        <h1 className="text-2xl font-extrabold text-white tracking-tight">Điều hành ban tổ chức</h1>
+        <h1 className="text-2xl md:text-[28px] font-extrabold text-white tracking-tight">
+          Điều hành ban tổ chức
+        </h1>
         <p className="text-[13px] text-slate-600 mt-1.5">
           Quy định và điều khoản áp dụng cho tất cả ban tổ chức trên VeriTix
         </p>

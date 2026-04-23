@@ -1,0 +1,37 @@
+# 1. Loại bỏ các thư mục lớn không liên quan đến Frontend
+backend/
+blockchain/
+
+# 2. Loại bỏ các tệp tin cấu hình hệ thống và Docker
+.vscode/
+.git/
+.dockerignore
+docker-compose.yml
+node_modules/
+dist/
+build/
+.vite/
+
+# 3. Loại bỏ tệp khóa thư viện (Rất tốn token vì nội dung dài)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# 4. Loại bỏ tài nguyên hình ảnh và assets (Claude không cần đọc code của ảnh)
+frontend/src/assets/images/
+frontend/public/
+**/*.svg
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.webp
+**/*.ico
+
+# 5. Loại bỏ các tệp cấu hình lặt vặt trong frontend (Nếu bạn không định sửa cấu hình)
+frontend/eslint.config.js
+frontend/.prettierrc
+frontend/.prettierignore
+frontend/tsconfig.json
+frontend/tsconfig.app.json
+frontend/tsconfig.node.json
+frontend/vite.config.ts

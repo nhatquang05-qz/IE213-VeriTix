@@ -232,3 +232,130 @@ const EventDetailSidebar: React.FC<EventDetailSidebarProps> = ({
 };
 
 export default EventDetailSidebar;
+
+/* ══════════════════════════════════════════
+   MobileEventDetailSidebar — Drawer overlay cho mobile
+   ══════════════════════════════════════════ */
+type MobileEventDetailSidebarProps = {
+  open: boolean;
+  onClose: () => void;
+  eventId: string;
+  eventName?: string;
+};
+
+export const MobileEventDetailSidebar: React.FC<MobileEventDetailSidebarProps> = ({
+  open,
+  onClose,
+  eventId,
+  eventName,
+}) => {
+  const navigate = useNavigate();
+  const { eventId: paramId } = useParams();
+  const basePath = `/organizer/events/${eventId || paramId}`;
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={onClose}
+        className={`
+          fixed inset-0 z-[90] bg-black/60 backdrop-blur-sm
+          transition-opacity duration-300
+          ${open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}
+        `}
+      />
+
+      {/* Drawer */}
+      <aside
+        className={`
+          fixed top-0 left-0 bottom-0 z-[100] w-[270px]
+          bg-[#111827] border-r border-sky-400/[0.12]
+          flex flex-col py-6
+          transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
+          ${open ? 'translate-x-0 shadow-[8px_0_40px_rgba(0,0,0,0.5)]' : '-translate-x-full shadow-none'}
+        `}
+      >
+        {/* Header */}
+        <div className="px-5 pb-5 border-b border-sky-400/[0.12] flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-[11px] text-slate-500 tracking-[0.06em] uppercase font-medium mb-0.5">
+              Sự kiện
+            </p>
+            <p className="text-[14px] font-bold text-sky-400 leading-snug line-clamp-2">
+              {eventName ?? '—'}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="shrink-0 bg-sky-400/[0.08] border border-sky-400/[0.15] rounded-lg p-1.5 text-slate-400 cursor-pointer flex items-center justify-center hover:text-slate-200 hover:bg-sky-400/[0.14] transition-colors"
+          >
+            <MdChevronLeft size={20} />
+          </button>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 px-3 pt-4 flex flex-col gap-1 overflow-y-auto">
+          {/* Back button */}
+          <button
+            onClick={() => {
+              navigate('/organizer/events');
+              onClose();
+            }}
+            className="flex items-center gap-2.5 px-3.5 py-3 rounded-lg text-[13px] font-medium text-slate-400 hover:text-slate-100 hover:bg-[#1a2235] transition-colors w-full"
+          >
+            <MdArrowBack size={15} />
+            Quản trị sự kiện
+          </button>
+
+          <div className="mx-0 my-2 border-t border-sky-400/[0.08]" />
+
+          {EVENT_DETAIL_NAV.map((group, groupIdx) => (
+            <div
+              key={group.group}
+              className={`flex flex-col gap-0.5 ${groupIdx > 0 ? 'mt-1' : ''}`}
+            >
+              <div className="flex items-center gap-1.5 pt-3 pb-1 px-3">
+                <span className="text-slate-600">{GROUP_ICONS[group.group]}</span>
+                <span className="text-[10px] font-bold tracking-[0.12em] uppercase text-slate-600 whitespace-nowrap">
+                  {group.group}
+                </span>
+              </div>
+              {group.items.map((item) => (
+                <NavLink
+                  key={item.key}
+                  to={`${basePath}/${item.path}`}
+                  onClick={onClose}
+                  className={({ isActive }) => `
+                    flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg
+                    text-[13.5px] font-medium no-underline
+                    transition-colors duration-150
+                    ${
+                      isActive
+                        ? 'text-sky-400 bg-sky-400/10'
+                        : 'text-slate-400 hover:text-slate-100 hover:bg-[#1a2235]'
+                    }
+                  `}
+                >
+                  <span className="shrink-0 w-5 flex items-center justify-center opacity-80">
+                    {NAV_ICONS[item.key] ?? (
+                      <span className="w-[15px] h-[15px] block rounded bg-slate-700/50" />
+                    )}
+                  </span>
+                  {item.label}
+                </NavLink>
+              ))}
+            </div>
+          ))}
+        </nav>
+
+        {/* Footer */}
+        <div className="px-5 pt-4 border-t border-sky-400/[0.12] flex items-center gap-2">
+          <TbCube3dSphere className="text-slate-600 shrink-0" size={13} />
+          <span className="text-[10px] tracking-[0.08em] uppercase text-slate-600">
+            On-chain verified
+          </span>
+        </div>
+      </aside>
+    </>
+  );
+};

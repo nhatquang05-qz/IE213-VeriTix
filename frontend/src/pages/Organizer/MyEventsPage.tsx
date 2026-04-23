@@ -7,6 +7,11 @@ import EmptyState from '../../components/common/EmptyState';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { FILTER_TABS, type FilterTab } from '../../constants/event';
 import { getOrganizerEvents } from '../../services/organizer-event.service';
+import { MdGridView } from 'react-icons/md';
+import { FaChartLine } from 'react-icons/fa6';
+import { HiOutlineTicket } from 'react-icons/hi';
+import { LuCalendar } from 'react-icons/lu';
+import { FiAlertCircle, FiCalendar, FiPlus, FiSearch } from 'react-icons/fi';
 
 /* ══════════════════════════════════════════════════════════════
    MyEventsPage — "Sự kiện của tôi"
@@ -20,82 +25,28 @@ const STAT_CARDS = [
     label: 'Tổng sự kiện',
     glow: 'from-sky-400/20 to-blue-500/20',
     iconColor: 'text-sky-400',
-    icon: (
-      <svg
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-      >
-        <rect x="3" y="4" width="18" height="18" rx="2" />
-        <line x1="16" y1="2" x2="16" y2="6" />
-        <line x1="8" y1="2" x2="8" y2="6" />
-        <line x1="3" y1="10" x2="21" y2="10" />
-      </svg>
-    ),
+    icon: <LuCalendar size={20} />,
   },
   {
     key: 'active',
     label: 'Đang hoạt động',
     glow: 'from-emerald-400/20 to-green-500/20',
     iconColor: 'text-emerald-400',
-    icon: (
-      <svg
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-      >
-        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-      </svg>
-    ),
+    icon: <FaChartLine size={18} />,
   },
   {
     key: 'sold',
     label: 'Vé đã bán',
     glow: 'from-amber-400/20 to-orange-500/20',
     iconColor: 'text-amber-400',
-    icon: (
-      <svg
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-      >
-        <path d="M2 9a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3 3 3 0 0 1-3 3 3 3 0 0 1 3 3 3 3 0 0 1-3 3H5a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1-3-3z" />
-      </svg>
-    ),
+    icon: <HiOutlineTicket size={22} />,
   },
   {
     key: 'supply',
     label: 'Tổng cung vé',
     glow: 'from-violet-400/20 to-purple-500/20',
     iconColor: 'text-violet-400',
-    icon: (
-      <svg
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-      >
-        <rect x="1" y="1" width="9" height="9" rx="1.5" />
-        <rect x="14" y="1" width="9" height="9" rx="1.5" />
-        <rect x="1" y="14" width="9" height="9" rx="1.5" />
-        <rect x="14" y="14" width="9" height="9" rx="1.5" />
-      </svg>
-    ),
+    icon: <MdGridView size={22} />,
   },
 ];
 
@@ -187,21 +138,20 @@ export default function MyEventsPage() {
 
       {/* ── Overview Stats ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        {STAT_CARDS.map((card, i) => (
+        {STAT_CARDS.map((card) => (
           <div
             key={card.key}
-            className="relative overflow-hidden bg-[#0d1117] border border-white/[0.06] rounded-xl p-4 transition-all duration-200 hover:border-white/[0.1]"
-            style={{ animation: `fadeSlideUp 0.4s ease ${i * 60}ms both` }}
+            className="relative overflow-hidden bg-[#0d1117] border border-white/[0.06] rounded-xl p-4 h-[130px] hover:border-white/[0.1]"
           >
             <div
               className={`absolute -top-6 -right-6 w-20 h-20 rounded-full bg-gradient-to-br ${card.glow} blur-2xl opacity-40`}
             />
-            <div className="relative">
+            <div className="relative flex flex-col justify-between h-full">
               <div className={`mb-2.5 ${card.iconColor} opacity-70`}>{card.icon}</div>
               <p className="text-xl md:text-2xl font-bold text-white font-mono">
                 {(stats[card.key as keyof typeof stats] ?? 0).toLocaleString('vi-VN')}
               </p>
-              <p className="text-[11px] text-slate-500 font-medium mt-1">{card.label}</p>
+              <p className="text-[13px] text-slate-500 font-medium">{card.label}</p>
             </div>
           </div>
         ))}
@@ -211,19 +161,10 @@ export default function MyEventsPage() {
       <div className="bg-[#0d1117] border border-white/[0.06] rounded-2xl p-3 md:p-4 mb-5 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         {/* Search */}
         <div className="relative flex-1 min-w-0">
-          <svg
-            width="15"
-            height="15"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
+          <FiSearch
+            size={15}
             className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
+          />
           <input
             type="text"
             placeholder="Tìm kiếm sự kiện..."
@@ -263,20 +204,7 @@ export default function MyEventsPage() {
           className="bg-amber-500/[0.08] border border-amber-500/20 rounded-xl px-4 py-3 mb-5 flex items-start gap-3"
           style={{ animation: 'fadeSlideUp 0.4s ease 0.1s both' }}
         >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            className="text-amber-400 shrink-0 mt-0.5"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
-          </svg>
+          <FiAlertCircle size={18} className="text-amber-400 shrink-0 mt-0.5" />
           <p className="text-[13px] text-amber-300/80 leading-relaxed">
             <span className="font-semibold text-amber-300">Lưu ý:</span> Bạn có sự kiện đang ở trạng
             thái nháp. Để đảm bảo tính bảo mật, quyền truy cập vào trang chỉ dành cho chủ sở hữu và
@@ -294,20 +222,7 @@ export default function MyEventsPage() {
         </div>
       ) : (
         <EmptyState
-          icon={
-            <svg
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-            >
-              <rect x="3" y="4" width="18" height="18" rx="2" />
-              <line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
-          }
+          icon={<FiCalendar size={28} className="stroke-[1.5]" />}
           title="Không tìm thấy sự kiện"
           description={
             search
@@ -320,18 +235,7 @@ export default function MyEventsPage() {
                 onClick={() => navigate('/organizer/events/create')}
                 className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-semibold rounded-xl transition-all shadow-[0_2px_12px_rgba(16,185,129,0.25)]"
               >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                >
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
+                <FiPlus size={14} className="stroke-[2.5]" />
                 Tạo sự kiện mới
               </button>
             ) : undefined

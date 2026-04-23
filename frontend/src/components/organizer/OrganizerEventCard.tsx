@@ -2,6 +2,15 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { EVENT_STATUS_CONFIG, CATEGORY_EMOJI, CARD_GRADIENTS } from '../../constants/event';
 import type { OrganizerEvent } from '../../types/organizer.type';
+import {
+  LuCalendarDays,
+  LuChevronRight,
+  LuClock3,
+  LuMapPin,
+  LuSquarePen,
+  LuTicket,
+  LuUserRound,
+} from 'react-icons/lu';
 
 export type { OrganizerEvent } from '../../types/organizer.type';
 
@@ -139,38 +148,17 @@ const OrganizerEventCard: React.FC<Props> = ({ event, index }) => {
             </div>
             <div className="flex flex-col gap-1.5 text-[13px]">
               <div className="flex items-center gap-2 text-slate-400">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  className="text-sky-400/60 shrink-0"
-                >
-                  <rect x="3" y="4" width="18" height="18" rx="2" />
-                  <line x1="16" y1="2" x2="16" y2="6" />
-                  <line x1="8" y1="2" x2="8" y2="6" />
-                  <line x1="3" y1="10" x2="21" y2="10" />
-                </svg>
-                {fmtTime(event.startTime)}, {fmtDate(event.startTime)}
+                <LuCalendarDays size={14} className="text-sky-400/60 shrink-0" />
+                <span className="min-w-0">
+                  {fmtTime(event.startTime)}, {fmtDate(event.startTime)}
+                </span>
               </div>
-              <div className="flex items-center gap-2 text-slate-500">
-                <svg
-                  width="13"
-                  height="13"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  className="text-emerald-400/50 shrink-0"
-                >
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                  <circle cx="12" cy="10" r="3" />
-                </svg>
-                <span className="truncate">{event.location || 'Chưa cập nhật địa điểm'}</span>
+
+              <div className="flex items-start gap-2 text-slate-500">
+                <LuMapPin size={13} className="text-emerald-400/50 shrink-0 mt-[2px]" />
+                <span className="min-w-0 sm:truncate whitespace-normal sm:whitespace-nowrap break-words sm:break-normal">
+                  {event.location || 'Chưa cập nhật địa điểm'}
+                </span>
               </div>
             </div>
           </div>
@@ -205,95 +193,20 @@ const OrganizerEventCard: React.FC<Props> = ({ event, index }) => {
       {/* Quick Actions */}
       <div className="border-t border-white/[0.04] px-2 py-1 flex items-center justify-between">
         <div className="flex items-center gap-0.5 overflow-x-auto">
-          <QAction
-            onClick={goDetail}
-            label="Tổng quan"
-            icon={
-              <svg
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <path d="M12 6v6l4 2" />
-              </svg>
-            }
-          />
-          <QAction
-            onClick={goMembers}
-            label="Thành viên"
-            icon={
-              <svg
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              >
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-              </svg>
-            }
-          />
-          <QAction
-            onClick={goVouchers}
-            label="Voucher"
-            icon={
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.7"
-                strokeLinecap="round"
-              >
-                <path d="M2 9a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3 3 3 0 0 1-3 3 3 3 0 0 1 3 3 3 3 0 0 1-3 3H5a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1-3-3z" />
-              </svg>
-            }
-          />
-          <QAction
-            onClick={goEdit}
-            label="Chỉnh sửa"
-            icon={
-              <svg
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              >
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-              </svg>
-            }
-          />
+          <QAction onClick={goDetail} label="Tổng quan" icon={<LuClock3 size={15} />} />
+
+          <QAction onClick={goMembers} label="Thành viên" icon={<LuUserRound size={15} />} />
+
+          <QAction onClick={goVouchers} label="Voucher" icon={<LuTicket size={18} />} />
+
+          <QAction onClick={goEdit} label="Chỉnh sửa" icon={<LuSquarePen size={15} />} />
         </div>
         <button
           onClick={goDetail}
           className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold text-sky-400 hover:text-sky-300 hover:bg-sky-400/[0.08] transition-all shrink-0"
         >
           Xem chi tiết
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
+          <LuChevronRight size={14} />
         </button>
       </div>
     </div>
