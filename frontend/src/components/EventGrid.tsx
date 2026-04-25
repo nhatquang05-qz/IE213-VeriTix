@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import EventCard from "./EventCard";
 import type { IEvent } from "../types/event.type";
 import { getEvents } from "../services/api";
-import "../assets/styles/event.css";
+import "../assets/styles/style.css";
 
 const EventGrid = () => {
   const [events, setEvents] = useState<IEvent[]>([]);

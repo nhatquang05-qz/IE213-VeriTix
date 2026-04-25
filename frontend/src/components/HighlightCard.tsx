@@ -1,4 +1,4 @@
-import "../assets/styles/highlight.css";
+import "../assets/styles/styles.css";
 
 const HighlightCard = () => {
   return (

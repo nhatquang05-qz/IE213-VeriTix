@@ -1,5 +1,5 @@
 import type { IEvent } from "../types/event.type";
-import "../assets/styles/event.css";
+import "../assets/styles/styles.css";
 
 const EventCard = ({ event }: { event: IEvent }) => {
   return (
