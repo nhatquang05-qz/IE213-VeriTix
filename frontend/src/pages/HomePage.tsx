@@ -1,22 +1,13 @@
 import React from 'react';
 import '../assets/styles/styles.css';
-import useBlockchainAnimation from '../hooks/useBlockchainAnimation';
-import HomepageHero from '../components/HomepageHero';
-import FeaturesSection from '../components/FeaturesSection';
+import EventCarousel from '../components/EventCarousel';
 import TicketListing from '../components/TicketListing';
-import BlockchainTrust from '../components/BlockchainTrust';
-import Footer from '../components/Footer';
 
 const HomePage: React.FC = () => {
-  useBlockchainAnimation();
-
   return (
     <div className="homepage">
-      <HomepageHero />
-      <FeaturesSection />
+      <EventCarousel />
       <TicketListing />
-      <BlockchainTrust />
-      <Footer />
     </div>
   );
 };
