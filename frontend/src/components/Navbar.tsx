@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'; 
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -142,7 +142,7 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
         )}
       </nav>
       
-      <main>
+      <main className="pt-[86px] max-[1024px]:pt-[72px]">
         {children}
       </main>
     </div>

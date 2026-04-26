@@ -14,19 +14,44 @@ const getMyTickets = async (req, res, next) => {
   }
 };
 
+const createTicket = async (req, res, next) => {
+  try {
+    const { eventId, transactionHash, price, blockchainTicketId } = req.body;
+    const ownerWallet = req.user.walletAddress.toLowerCase();
+
+    const newTicket = new Ticket({
+      blockchainTicketId,
+      eventId,
+      ownerWallet,
+      purchasePrice: price,
+      status: 'SOLD'
+    });
+
+    await newTicket.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Lưu thông tin vé thành công',
+      data: newTicket
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const checkInTicket = async (req, res, next) => {
   try {
     const { blockchainTicketId, timestamp, signature } = req.body;
     
     const currentTime = Math.floor(Date.now() / 1000);
     if (currentTime - timestamp > 300) {
-      return res.status(400).json({ message: "Mã QR đã hết hạn, vui lòng yêu cầu khách tạo lại mã mới!" });    }
-
+      return res.status(400).json({ message: "Mã QR đã hết hạn, vui lòng yêu cầu khách tạo lại mã mới!" });    
+    }
     
     const ticket = await Ticket.findOne({ blockchainTicketId }).populate('eventId');
     if (!ticket) {
-      return res.status(404).json({ message: "Vé không tồn tại trên hệ thống!" });    }
-
+      return res.status(404).json({ message: "Vé không tồn tại trên hệ thống!" });    
+    }
     
     if (ticket.eventId.organizerWallet.toLowerCase() !== req.user.walletAddress.toLowerCase()) {
       return res.status(403).json({ message: "Cảnh báo: Bạn không có quyền soát vé cho sự kiện này!" });
@@ -60,4 +85,4 @@ const checkInTicket = async (req, res, next) => {
   }
 };
 
-module.exports = { getMyTickets, checkInTicket };
+module.exports = { getMyTickets, createTicket, checkInTicket };

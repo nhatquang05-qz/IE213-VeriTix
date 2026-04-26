@@ -5,6 +5,7 @@ import { getEventById } from "../services/api";
 import { buyTicket } from "../services/contract.service";
 import { getEthToVndRate } from "../services/currency.service";
 import { useWeb3 } from "../hooks/useWeb3";
+import api from "../services/api"; // Added API instance
 import type { IEvent } from "../types/event.type";
 
 const EventDetail = () => {
@@ -25,7 +26,6 @@ const EventDetail = () => {
 
     if (!event) return;
 
-    // KIỂM TRA CHẶN LỖI ID = 0 HOẶC UNDEFINED
     if (!event.blockchainId || event.blockchainId === 0) {
       alert('Sự kiện này chưa được đồng bộ lên Blockchain. Vui lòng liên hệ ban tổ chức!');
       return;
@@ -50,11 +50,25 @@ const EventDetail = () => {
       setTransactionHash(tx.hash);
 
       const provider = new ethers.BrowserProvider(window.ethereum);
-      await provider.waitForTransaction(tx.hash, 1);
+      const receipt = await provider.waitForTransaction(tx.hash, 1);
+      
       setConfirmations(1);
       setTransactionStatus('confirmed');
 
-      alert('Mua vé thành công! Transaction hash: ' + tx.hash);
+      if (receipt && receipt.status === 1) {
+        try {
+          await api.post('/tickets', {
+            eventId: event._id,
+            transactionHash: tx.hash,
+            price: event.price,
+            blockchainTicketId: Math.floor(Math.random() * 1000000) 
+          });
+          alert('Mua vé thành công và đã đồng bộ hệ thống!');
+        } catch (apiError) {
+          console.error("Lỗi đồng bộ server:", apiError);
+          alert('Giao dịch thành công nhưng lỗi đồng bộ server.');
+        }
+      }
     } catch (error) {
       console.error('Error buying ticket:', error);
       setTransactionStatus('failed');
@@ -257,4 +271,4 @@ const EventDetail = () => {
   );
 };
 
-export default EventDetail;
+export default EventDetail; 
