@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { ethers } from "ethers";
 import { getEventById } from "../services/api";
 import { buyTicket } from "../services/contract.service";
+import { getEthToVndRate } from "../services/currency.service";
 import { useWeb3 } from "../hooks/useWeb3";
 import type { IEvent } from "../types/event.type";
 
@@ -13,6 +14,7 @@ const EventDetail = () => {
   const [transactionHash, setTransactionHash] = useState<string | null>(null);
   const [confirmations, setConfirmations] = useState<number>(0);
   const [transactionStatus, setTransactionStatus] = useState<'pending' | 'confirmed' | 'failed' | null>(null);
+  const [ethRate, setEthRate] = useState<number>(80000000);
   const { account, connectWallet } = useWeb3();
 
   const handleBuyTicket = async () => {
@@ -35,8 +37,8 @@ const EventDetail = () => {
 
     try {
       const eventId = event.blockchainId;
-      const tokenURI = `https://example.com/ticket/${eventId}`;
-      const priceInEth = (parseInt(event.price) / 1000000).toString();
+      const tokenURI = `https://veritix.com/ticket/${eventId}`;
+      const priceInEth = (parseInt(event.price) / ethRate).toFixed(6).toString();
 
       const tx = await buyTicket(eventId, tokenURI, priceInEth);
       setTransactionHash(tx.hash);
@@ -59,6 +61,7 @@ const EventDetail = () => {
   useEffect(() => {
     if (!id) return;
     getEventById(id).then(setEvent);
+    getEthToVndRate().then(setEthRate);
   }, [id]);
 
   if (!event) {
@@ -80,6 +83,7 @@ const EventDetail = () => {
     year: "numeric",
   });
   const eventDateShort = new Date(event.startTime).toLocaleDateString("vi-VN");
+  const estimatedEthPrice = (parseInt(event.price) / ethRate).toFixed(6);
 
   const txStatusLabel =
     transactionStatus === "pending"
@@ -138,7 +142,9 @@ const EventDetail = () => {
             <p className="m-0 text-[clamp(0.92rem,2vw,1.05rem)] text-ed-text-subtle">{event.location} • {eventDateLong}</p>
             <div className="mt-[18px] inline-flex w-fit items-center gap-[10px] rounded-2xl border border-sky-400/28 bg-[rgba(6,12,26,0.78)] px-[14px] py-[10px] font-semibold text-[#9adff7] max-[480px]:flex max-[480px]:w-full max-[480px]:justify-between">
               <span>Giá từ</span>
-              <strong className="text-[1.36rem] tracking-[-0.02em] text-white">{parseInt(event.price).toLocaleString()}đ</strong>
+              <strong className="text-[1.36rem] tracking-[-0.02em] text-white">
+                {parseInt(event.price).toLocaleString()}đ <span className="text-[1rem] text-[#bcefff] font-normal">(~{estimatedEthPrice} ETH)</span>
+              </strong>
             </div>
           </div>
         </div>
@@ -224,7 +230,7 @@ const EventDetail = () => {
             </div>
             <div className="flex items-center justify-between gap-[10px] rounded-[14px] border border-slate-400/18 bg-white/3 p-[13px] text-[0.92rem] text-ed-text-soft md:flex-col md:items-start">
               <span>Giá vé</span>
-              <strong className="text-right font-semibold text-[#eff8ff] md:text-left">{event.price.toLocaleString()}đ</strong>
+              <strong className="text-right font-semibold text-[#eff8ff] md:text-left">{parseInt(event.price).toLocaleString()}đ</strong>
             </div>
             <div className="flex items-center justify-between gap-[10px] rounded-[14px] border border-slate-400/18 bg-white/3 p-[13px] text-[0.92rem] text-ed-text-soft md:flex-col md:items-start">
               <span>Số lượng</span>

@@ -14,6 +14,9 @@ export const getContract = async () => {
 
 export const buyTicket = async (eventId: number, tokenURI: string, price: string) => {
   const contract = await getContract();
-  const tx = await contract.buyTicket(eventId, tokenURI, { value: ethers.parseEther(price) });
+  
+  const priceInWei = ethers.parseEther(price.toString()); 
+  
+  const tx = await contract.buyTicket(eventId, tokenURI, { value: priceInWei });
   return tx;
 };
