@@ -25,6 +25,12 @@ const EventDetail = () => {
 
     if (!event) return;
 
+    // KIỂM TRA CHẶN LỖI ID = 0 HOẶC UNDEFINED
+    if (!event.blockchainId || event.blockchainId === 0) {
+      alert('Sự kiện này chưa được đồng bộ lên Blockchain. Vui lòng liên hệ ban tổ chức!');
+      return;
+    }
+
     if (remainingTickets <= 0) {
       alert('Vé đã hết!');
       return;
@@ -181,9 +187,9 @@ const EventDetail = () => {
             <button
               className="min-w-[186px] cursor-pointer rounded-2xl border-0 bg-[linear-gradient(120deg,#0ea5e9_0%,#2563eb_62%,#1d4ed8_100%)] px-[22px] py-[13px] text-base font-bold text-white shadow-ed-btn transition duration-200 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-ed-btn-hover disabled:cursor-not-allowed disabled:opacity-55 md:w-full"
               onClick={handleBuyTicket}
-              disabled={loading || remainingTickets <= 0}
+              disabled={loading || remainingTickets <= 0 || !event.blockchainId}
             >
-              {remainingTickets <= 0 ? 'Hết vé' : loading ? 'Đang xử lý...' : 'Mua vé ngay'}
+              {!event.blockchainId ? 'Sự kiện chưa mở' : remainingTickets <= 0 ? 'Hết vé' : loading ? 'Đang xử lý...' : 'Mua vé ngay'}
             </button>
           </div>
 
@@ -201,7 +207,7 @@ const EventDetail = () => {
                   <p>
                     <strong className="text-[#8cceea]">Transaction Hash:</strong>{' '}
                     <a
-                      href={`https://etherscan.io/tx/${transactionHash}`}
+                      href={`https://sepolia.etherscan.io/tx/${transactionHash}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="border-b border-dashed border-b-[rgba(137,219,255,0.6)] text-[#89dbff] no-underline hover:border-b-[rgba(216,245,255,0.88)] hover:text-[#d8f5ff]"
