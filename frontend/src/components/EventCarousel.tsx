@@ -1,67 +1,68 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { mockEvents } from '../data/mockEvents';
 
 type FeaturedEvent = {
   id: string;
-  title: string;
-  location: string;
-  date: string;
-  price: string;
   badge?: string;
   gradient: string;
 };
 
-const featuredEvents: FeaturedEvent[] = [
+const featuredConfigs: FeaturedEvent[] = [
   {
     id: '1',
-    title: 'GAI HOME CONCERT',
-    location: 'TP. Hồ Chí Minh',
-    date: '16/05/2026',
-    price: '1.000.000đ',
     badge: 'CONCERT',
     gradient: 'from-purple-600 to-pink-500',
   },
   {
     id: '2',
-    title: 'Mr Siro - Fan Concert',
-    location: 'TP. Hồ Chí Minh',
-    date: '30/04/2026',
-    price: '800.000đ',
     badge: 'MUSIC',
     gradient: 'from-blue-600 to-cyan-400',
   },
   {
     id: '3',
-    title: 'BÙI CÔNG NAM "THE STORY" LIVETOUR',
-    location: 'TP. Hồ Chí Minh',
-    date: '20/06/2026',
-    price: '900.000đ',
     badge: 'LIVETOUR',
     gradient: 'from-red-600 to-orange-500',
   },
   {
     id: '4',
-    title: 'VCT Pacific Stage 1 Finals',
-    location: 'TP. Hồ Chí Minh',
-    date: '26/04/2026',
-    price: '200.000đ',
     badge: 'ESPORTS',
     gradient: 'from-emerald-600 to-teal-500',
   },
   {
     id: '5',
-    title: 'SÂN KHẤU THIÊN ĐĂNG',
-    location: 'Hà Nội',
-    date: '27/04/2026',
-    price: '330.000đ',
-    badge: 'THEATRE',
+    badge: 'SPORT',
     gradient: 'from-amber-600 to-yellow-500',
   },
 ];
 
+const featuredEvents = featuredConfigs
+  .map((config) => {
+    const event = mockEvents.find((item) => item._id === config.id);
+    if (!event) return null;
+
+    return {
+      ...config,
+      title: event.title,
+      location: event.location,
+      date: new Date(event.startDate).toLocaleDateString('vi-VN'),
+      price: `${event.price.toLocaleString('vi-VN')}đ`,
+    };
+  })
+  .filter((event): event is FeaturedEvent & {
+    title: string;
+    location: string;
+    date: string;
+    price: string;
+  } => event !== null);
+
 const EventCarousel: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
+
+  if (featuredEvents.length === 0) {
+    return null;
+  }
 
   useEffect(() => {
     if (!isAutoPlay) return;
