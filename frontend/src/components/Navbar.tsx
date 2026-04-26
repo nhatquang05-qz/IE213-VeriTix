@@ -21,74 +21,85 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div>
-      <nav className="py-4 fixed top-0 left-0 right-0 bg-slate-900/95 backdrop-blur-[10px] shadow-2xl z-[100] transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-6">
+      <nav className="fixed top-0 left-0 right-0 z-[100] transition-all duration-300 navbar-container">
+        <div className="navbar-background"></div>
+        <div className="navbar-gradient"></div>
+        <div className="max-w-7xl mx-auto px-6 py-4 relative z-10">
           <div className="flex justify-between items-center gap-4">
             
-            {/* Logo - Giữ cố định bên trái */}
-            <div className="flex items-center gap-3 whitespace-nowrap flex-shrink-0">
+            {/* Logo */}
+            <div className="flex items-center gap-3 whitespace-nowrap flex-shrink-0 group">
               <Link to="/" className="flex items-center gap-3 no-underline">
-                <img
-                  src="/src/assets/images/Logo VeriTix.png"
-                  alt="VeriTix Logo"
-                  className="w-8 h-8 object-contain"
-                />
-                <div className="text-2xl font-bold bg-gradient-to-br from-cyan-400 to-blue-500 bg-clip-text text-transparent letter-[-0.025em] whitespace-nowrap">
+                <div className="navbar-logo-wrapper">
+                  <img
+                    src="/src/assets/images/Logo VeriTix.png"
+                    alt="VeriTix Logo"
+                    className="navbar-logo-img"
+                  />
+                </div>
+                <div className="navbar-brand-text">
                   VeriTix
                 </div>
               </Link>
             </div>
 
-            {/* Menu Links & Actions - Dàn hàng ngang */}
-            <div className={`flex items-center gap-6 ${mobileMenuOpen ? 'flex-col absolute top-full left-0 right-0 bg-slate-900/95 p-6' : 'flex-row'}`}>
+            {/* Menu Links & Actions */}
+            <div className={`flex items-center gap-8 ${mobileMenuOpen ? 'navbar-mobile-menu active' : 'navbar-desktop-menu'}`}>
               
-              {/* Search Bar - Thu gọn lại một chút để lấy chỗ cho nút */}
-              <div className="hidden xl:block w-[250px]">
+              {/* Search Bar */}
+              <div className="hidden xl:block navbar-search">
                 <input
                   type="text"
-                  className="w-full py-2 px-4 rounded-full border-none bg-slate-800 text-sm text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400"
+                  className="navbar-search-input"
                   placeholder="Tìm sự kiện..."
                 />
+                <svg className="navbar-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <path d="m21 21-4.35-4.35"></path>
+                </svg>
               </div>
               
-              {/* Navigation Links - Không cho xuống dòng (whitespace-nowrap) */}
-              <div className="flex items-center gap-5 whitespace-nowrap">
-                <Link to="/" className="text-white no-underline text-sm font-medium hover:text-cyan-400 transition-colors">
+              {/* Navigation Links */}
+              <div className="navbar-nav-links">
+                <Link to="/" className="navbar-nav-link">
                   Trang Chủ
                 </Link>
+
+                <Link to="/about-us" className="navbar-nav-link">
+                  About Us
+                </Link>
                 
-                {/* Chỉ hiện Vé Của Tôi khi đã có ví */}
                 {walletAddress && (
-                  <Link to="/user/my-tickets" className="flex items-center gap-1.5 text-white no-underline text-sm font-medium hover:text-cyan-400 transition-colors">
+                  <Link to="/user/my-tickets" className="navbar-nav-link navbar-nav-link-ticket">
                     <MdConfirmationNumber className="text-cyan-400" />
                     Vé Của Tôi
                   </Link>
                 )}
 
-                <Link to="/organizer" className="text-white no-underline text-sm font-medium hover:text-cyan-400 transition-colors">
+                <Link to="/organizer" className="navbar-nav-link">
                   Dashboard
                 </Link>
               </div>
 
-              {/* Wallet & CTA Area - Group lại để cùng nằm trên một dòng */}
+              {/* Wallet & CTA Area */}
               <div className="flex items-center gap-3 flex-shrink-0">
                 {!walletAddress ? (
                   <button 
                     onClick={connectWallet} 
-                    className="text-white text-sm font-bold bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-xl border-none cursor-pointer transition-all"
+                    className="navbar-btn-wallet"
                   >
                     Kết Nối Ví
                   </button>
                 ) : (
-                  <div className="flex items-center bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-xl">
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse mr-2"></div>
-                    <span className="text-emerald-400 text-xs font-mono font-bold">
+                  <div className="navbar-wallet-badge">
+                    <div className="navbar-wallet-dot"></div>
+                    <span className="navbar-wallet-address">
                       {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
                     </span>
                   </div>
                 )}
 
-                <Link to="/organizer/events/create" className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-sm font-bold py-2 px-5 rounded-full hover:shadow-[0_0_15px_rgba(6,182,212,0.4)] transition-all no-underline whitespace-nowrap">
+                <Link to="/organizer/events/create" className="navbar-btn-primary">
                   Bắt Đầu
                 </Link>
               </div>
@@ -97,12 +108,12 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
             {/* Mobile Toggle */}
             {isMobile && (
               <button 
-                className="lg:hidden flex flex-col gap-1 p-2 bg-transparent border-none cursor-pointer"
+                className="navbar-mobile-toggle"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
-                <span className="w-6 h-0.5 bg-white"></span>
-                <span className="w-6 h-0.5 bg-white"></span>
-                <span className="w-6 h-0.5 bg-white"></span>
+                <span className="navbar-hamburger"></span>
+                <span className="navbar-hamburger"></span>
+                <span className="navbar-hamburger"></span>
               </button>
             )}
           </div>

@@ -10,6 +10,7 @@ import OrganizerEventDetailLayout from './layouts/OrganizerEventDetailLayout';
 
 // Public pages
 import HomePage from './pages/HomePage';
+import AboutUsPage from './pages/AboutUsPage';
 import EventDetail from './pages/EventDetail'; // Giữ lại của bro
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -85,6 +86,7 @@ function App() {
             {/* ═══ PUBLIC — MainLayout (Navbar + Footer) ═══ */}
             <Route element={<MainLayout />}>
               <Route path="/" element={<HomePage />} />
+              <Route path="/about-us" element={<AboutUsPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/events/:id" element={<EventDetail />} /> {/* Khôi phục link Detail của bro */}
