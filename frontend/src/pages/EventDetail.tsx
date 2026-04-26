@@ -34,12 +34,12 @@ const EventDetail = () => {
     setConfirmations(0);
 
     try {
-      // Sử dụng onChainId của event
-      const eventId = event.onChainId;
+      // Sử dụng blockchainId của event
+      const eventId = event.blockchainId;
       // tokenURI có thể là một string mặc định hoặc từ event
       const tokenURI = `https://example.com/ticket/${eventId}`;
       // Giá vé tính bằng ETH, giả sử 0.01 ETH cho mỗi vé
-      const priceInEth = (event.price / 1000000).toString(); // Giả sử chuyển đổi từ VND sang ETH
+      const priceInEth = (parseInt(event.price) / 1000000).toString(); // Giả sử chuyển đổi từ VND sang ETH
 
       const tx = await buyTicket(eventId, tokenURI, priceInEth);
       setTransactionHash(tx.hash);
@@ -75,15 +75,15 @@ const EventDetail = () => {
     );
   }
 
-  const remainingTickets = event.maxSupply - event.soldCount;
-  const soldPercent = event.maxSupply > 0 ? Math.min((event.soldCount / event.maxSupply) * 100, 100) : 0;
-  const eventDateLong = new Date(event.startDate).toLocaleDateString("vi-VN", {
+  const remainingTickets = event.maxSupply - event.currentMinted;
+  const soldPercent = event.maxSupply > 0 ? Math.min((event.currentMinted / event.maxSupply) * 100, 100) : 0;
+  const eventDateLong = new Date(event.startTime).toLocaleDateString("vi-VN", {
     weekday: "long",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
   });
-  const eventDateShort = new Date(event.startDate).toLocaleDateString("vi-VN");
+  const eventDateShort = new Date(event.startTime).toLocaleDateString("vi-VN");
 
   const txStatusLabel =
     transactionStatus === "pending"
@@ -118,7 +118,7 @@ const EventDetail = () => {
 
       <header
         className="relative min-h-[500px] overflow-hidden border-b border-sky-300/20 bg-cover bg-center"
-        style={{ backgroundImage: `url(${event.imageUrl})` }}
+        style={{ backgroundImage: `url(${event.bannerUrl})` }}
       >
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,8,23,0.68)_0%,rgba(2,8,23,0.32)_55%,rgba(2,8,23,0.64)_100%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,9,19,0.2)_0%,rgba(4,9,19,0.72)_70%,rgba(4,9,19,0.94)_100%)]" />
@@ -137,12 +137,12 @@ const EventDetail = () => {
               Sự kiện nổi bật
             </span>
             <h1 className="mt-3 mb-2 text-[clamp(2rem,5vw,3.8rem)] leading-[1.06] tracking-[-0.02em] max-[480px]:text-[1.8rem]">
-              {event.title}
+              {event.name}
             </h1>
             <p className="m-0 text-[clamp(0.92rem,2vw,1.05rem)] text-ed-text-subtle">{event.location} • {eventDateLong}</p>
             <div className="mt-[18px] inline-flex w-fit items-center gap-[10px] rounded-2xl border border-sky-400/28 bg-[rgba(6,12,26,0.78)] px-[14px] py-[10px] font-semibold text-[#9adff7] max-[480px]:flex max-[480px]:w-full max-[480px]:justify-between">
               <span>Giá từ</span>
-              <strong className="text-[1.36rem] tracking-[-0.02em] text-white">{event.price.toLocaleString()}đ</strong>
+              <strong className="text-[1.36rem] tracking-[-0.02em] text-white">{parseInt(event.price).toLocaleString()}đ</strong>
             </div>
           </div>
         </div>
@@ -236,7 +236,7 @@ const EventDetail = () => {
             </div>
             <div className="flex items-center justify-between gap-[10px] rounded-[14px] border border-slate-400/18 bg-white/3 p-[13px] text-[0.92rem] text-ed-text-soft md:flex-col md:items-start">
               <span>Đã bán</span>
-              <strong className="text-right font-semibold text-[#eff8ff] md:text-left">{event.soldCount.toLocaleString()}</strong>
+              <strong className="text-right font-semibold text-[#eff8ff] md:text-left">{event.currentMinted.toLocaleString()}</strong>
             </div>
             <div className="rounded-[14px] border border-slate-400/18 bg-white/3 p-[13px]">
               <div className="mb-2 text-[0.9rem] text-ed-text-soft">Ví nhà tổ chức</div>
