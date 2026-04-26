@@ -99,53 +99,53 @@ const EventCarousel: React.FC = () => {
   const currentEvent = featuredEvents[currentIndex];
 
   return (
-    <section className="event-carousel-section">
-      <div className="carousel-container">
+    <section className="relative bg-[linear-gradient(135deg,rgba(0,102,255,0.05)_0%,transparent_100%)] px-0 pt-20 pb-[100px]">
+      <div className="mx-auto max-w-[1400px] px-6">
         {/* Main Carousel */}
-        <div className="carousel-main">
+        <div className="relative mb-10 h-[500px] overflow-hidden rounded-3xl shadow-[0_20px_60px_rgba(0,102,255,0.3)] max-[1024px]:h-[400px] max-[768px]:h-[320px] max-[480px]:h-[240px]">
           <Link
             to={`/events/${currentEvent.id}`}
-            className="carousel-slide"
+            className="block h-full w-full no-underline text-inherit"
           >
             <div
-              className="slide-background"
+              className="relative flex h-full w-full items-center justify-center overflow-hidden"
               style={{
                 backgroundImage: `linear-gradient(135deg, rgba(17, 24, 39, 0.32) 0%, rgba(3, 7, 18, 0.58) 100%), url(${currentEvent.imageUrl})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
               }}
             >
-              <div className="slide-overlay"></div>
-              <div className="slide-content">
-                <div className="slide-badge">{currentEvent.badge}</div>
-                <h2 className="slide-title">{currentEvent.title}</h2>
-                <div className="slide-info">
-                  <p className="slide-location">
-                    <span className="location-icon"></span> {currentEvent.location}
+              <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(10,22,40,0.6)_0%,rgba(0,0,0,0.3)_100%)]" />
+              <div className="relative z-[2] max-w-[600px] px-10 text-center max-[768px]:px-6 max-[480px]:px-4">
+                <div className="mb-5 inline-block rounded-[20px] border border-cyan-400/30 bg-white/20 px-4 py-2 text-xs font-bold tracking-[2px] text-cyan-300 backdrop-blur">{currentEvent.badge}</div>
+                <h2 className="mb-6 text-5xl leading-[1.2] font-extrabold text-white [text-shadow:0_4px_20px_rgba(0,0,0,0.5)] max-[1024px]:text-4xl max-[768px]:text-[28px] max-[480px]:text-xl">{currentEvent.title}</h2>
+                <div className="mb-7 flex flex-col gap-3 text-white/90 max-[768px]:mb-5 max-[768px]:gap-2">
+                  <p className="flex items-center justify-center gap-2 text-base max-[768px]:text-sm max-[480px]:text-xs">
+                    {currentEvent.location}
                   </p>
-                  <p className="slide-date">
-                    <span className="date-icon"></span> {currentEvent.date}
+                  <p className="flex items-center justify-center gap-2 text-base max-[768px]:text-sm max-[480px]:text-xs">
+                    {currentEvent.date}
                   </p>
                 </div>
-                <div className="slide-price">
-                  <span className="price-label">Giá từ</span>
-                  <span className="price-value">{currentEvent.price}</span>
+                <div className="mb-7 flex flex-col items-center gap-2 max-[768px]:mb-5">
+                  <span className="text-sm text-white/80">Giá từ</span>
+                  <span className="bg-[linear-gradient(135deg,#00d4ff,#0066ff)] bg-clip-text text-[32px] font-extrabold text-transparent max-[768px]:text-2xl max-[480px]:text-xl">{currentEvent.price}</span>
                 </div>
-                <div className="slide-cta">Khám Phá Ngay →</div>
+                <div className="inline-block rounded-xl bg-[linear-gradient(135deg,#0066ff,#00d4ff)] px-8 py-3.5 text-base font-bold text-white shadow-[0_8px_24px_rgba(0,102,255,0.4)] max-[768px]:px-6 max-[768px]:py-3 max-[768px]:text-sm max-[480px]:px-5 max-[480px]:py-2.5 max-[480px]:text-[13px]">Khám Phá Ngay →</div>
               </div>
             </div>
           </Link>
 
           {/* Navigation Arrows */}
           <button
-            className="carousel-nav carousel-nav-prev"
+            className="absolute top-1/2 left-5 z-10 flex h-[50px] w-[50px] -translate-y-1/2 items-center justify-center rounded-full border border-cyan-400/30 bg-white/10 text-2xl text-cyan-300 backdrop-blur transition hover:bg-cyan-400/20 max-[1024px]:left-3 max-[1024px]:h-10 max-[1024px]:w-10 max-[1024px]:text-lg max-[768px]:h-9 max-[768px]:w-9 max-[768px]:text-base max-[480px]:h-8 max-[480px]:w-8 max-[480px]:text-sm"
             onClick={goToPrevious}
             aria-label="Previous slide"
           >
             ←
           </button>
           <button
-            className="carousel-nav carousel-nav-next"
+            className="absolute top-1/2 right-5 z-10 flex h-[50px] w-[50px] -translate-y-1/2 items-center justify-center rounded-full border border-cyan-400/30 bg-white/10 text-2xl text-cyan-300 backdrop-blur transition hover:bg-cyan-400/20 max-[1024px]:right-3 max-[1024px]:h-10 max-[1024px]:w-10 max-[1024px]:text-lg max-[768px]:h-9 max-[768px]:w-9 max-[768px]:text-base max-[480px]:h-8 max-[480px]:w-8 max-[480px]:text-sm"
             onClick={goToNext}
             aria-label="Next slide"
           >
@@ -154,11 +154,15 @@ const EventCarousel: React.FC = () => {
         </div>
 
         {/* Indicators */}
-        <div className="carousel-indicators">
+        <div className="mb-8 flex justify-center gap-3">
           {featuredEvents.map((_, index) => (
             <button
               key={index}
-              className={`indicator ${index === currentIndex ? 'active' : ''}`}
+              className={`h-3 cursor-pointer rounded-full border-2 border-cyan-400/30 transition ${
+                index === currentIndex
+                  ? 'w-8 bg-cyan-400 shadow-[0_0_12px_rgba(0,212,255,0.6)]'
+                  : 'w-3 bg-cyan-400/20'
+              }`}
               onClick={() => goToSlide(index)}
               aria-label={`Go to slide ${index + 1}`}
             />
@@ -166,25 +170,29 @@ const EventCarousel: React.FC = () => {
         </div>
 
         {/* Thumbnails */}
-        <div className="carousel-thumbnails">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 max-[768px]:grid-cols-2 max-[480px]:grid-cols-1">
           {featuredEvents.map((event, index) => (
             <button
               key={event.id}
-              className={`thumbnail ${index === currentIndex ? 'active' : ''}`}
+              className={`relative flex h-[120px] cursor-pointer overflow-hidden rounded-xl border-2 bg-transparent p-0 text-left transition ${
+                index === currentIndex
+                  ? 'border-cyan-400 shadow-[0_0_24px_rgba(0,212,255,0.5)]'
+                  : 'border-cyan-400/20 hover:-translate-y-1 hover:border-cyan-400 hover:shadow-[0_8px_24px_rgba(0,212,255,0.3)]'
+              }`}
               onClick={() => goToSlide(index)}
               title={event.title}
             >
               <div
-                className="thumbnail-bg"
+                className="absolute z-[1] h-full w-full"
                 style={{
                   backgroundImage: `linear-gradient(135deg, rgba(17, 24, 39, 0.28) 0%, rgba(3, 7, 18, 0.52) 100%), url(${event.imageUrl})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                 }}
-              ></div>
-              <div className="thumbnail-info">
-                <p className="thumbnail-title">{event.title}</p>
-                <p className="thumbnail-price">{event.price}</p>
+              />
+              <div className="relative z-[2] flex h-full w-full flex-col justify-between bg-[linear-gradient(135deg,rgba(10,22,40,0.7)_0%,rgba(0,0,0,0.5)_100%)] p-3">
+                <p className="line-clamp-2 text-[13px] leading-[1.2] font-semibold text-white">{event.title}</p>
+                <p className="text-xs font-bold text-cyan-300">{event.price}</p>
               </div>
             </button>
           ))}

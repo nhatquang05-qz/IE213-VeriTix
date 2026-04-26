@@ -1,5 +1,4 @@
 import React from 'react';
-import '../assets/styles/styles.css';
 import EventCarousel from '../components/EventCarousel';
 import TicketListing from '../components/TicketListing';
 

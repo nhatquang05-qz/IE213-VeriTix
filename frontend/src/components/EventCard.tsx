@@ -1,5 +1,4 @@
 import type { IEvent } from "../types/event.type";
-import "../assets/styles/styles.css";
 
 const EventCard = ({ event }: { event: IEvent }) => {
   const formattedTime = new Date(event.startDate).toLocaleDateString('vi-VN', {
