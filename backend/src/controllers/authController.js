@@ -3,38 +3,37 @@ const jwt = require('jsonwebtoken');
 const { ethers } = require('ethers');
 const crypto = require('crypto');
 
-
 const generateNonce = () => {
   return crypto.randomBytes(16).toString('hex');
 };
-
 
 const getNonce = async (req, res, next) => {
   try {
     const { walletAddress } = req.params;
     if (!walletAddress) return res.status(400).json({ message: "Thiếu địa chỉ ví" });
 
-    
-    let user = await User.findOne({ walletAddress: walletAddress.toLowerCase() });
+    const normalizedAddress = walletAddress.toLowerCase();
+    let user = await User.findOne({ walletAddress: normalizedAddress });
     
     if (!user) {
-      
       user = await User.create({
-        walletAddress: walletAddress.toLowerCase(),
+        walletAddress: normalizedAddress,
         nonce: generateNonce()
       });
     } else {
-      
-      user.nonce = generateNonce();
-      await user.save();
+      user = await User.findOneAndUpdate(
+        { walletAddress: normalizedAddress },
+        { nonce: generateNonce() },
+        { new: true }
+      );
     }
 
     res.status(200).json({ nonce: user.nonce });
   } catch (error) {
+    console.error("Lỗi trong getNonce:", error);
     next(error); 
   }
 };
-
 
 const verifySignature = async (req, res, next) => {
   try {
@@ -43,21 +42,18 @@ const verifySignature = async (req, res, next) => {
       return res.status(400).json({ message: "Thiếu ví hoặc chữ ký" });
     }
 
-    const user = await User.findOne({ walletAddress: walletAddress.toLowerCase() });
+    const normalizedAddress = walletAddress.toLowerCase();
+    const user = await User.findOne({ walletAddress: normalizedAddress });
     if (!user) return res.status(404).json({ message: "Không tìm thấy người dùng" });
 
-    
     const message = `Chào mừng đến với VeriTix!\n\nKý tin nhắn này để xác nhận bạn là chủ sở hữu ví.\n\nMã bảo mật (Nonce): ${user.nonce}`;
 
-    
     const recoveredAddress = ethers.verifyMessage(message, signature);
 
-    
-    if (recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()) {
+    if (recoveredAddress.toLowerCase() !== normalizedAddress) {
       return res.status(401).json({ message: "Chữ ký không hợp lệ, phát hiện giả mạo!" });
     }
 
-    
     const token = jwt.sign(
       { 
         id: user._id, 
@@ -69,9 +65,10 @@ const verifySignature = async (req, res, next) => {
       { expiresIn: '7d' } 
     );
 
-    
-    user.nonce = generateNonce();
-    await user.save();
+    await User.updateOne(
+      { _id: user._id },
+      { nonce: generateNonce() }
+    );
 
     res.status(200).json({
       message: "Đăng nhập thành công!",
@@ -85,6 +82,7 @@ const verifySignature = async (req, res, next) => {
     });
 
   } catch (error) {
+    console.error("Lỗi trong verifySignature:", error);
     next(error);
   }
 };
