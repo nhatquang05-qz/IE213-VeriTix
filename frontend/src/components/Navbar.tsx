@@ -1,12 +1,10 @@
-import React, { useState } from 'react'; 
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = ({ children }: { children: React.ReactNode }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  // Sửa lại: Dùng login (thực chất là hàm connect ví có sẵn trong AuthContext) và user
-  const { login, user } = useAuth();
+  const { login, logout, user } = useAuth();
 
   return (
     <div>
@@ -67,9 +65,18 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
                 Kết Nối Ví
               </button>
             ) : (
+              <div className="flex items-center gap-2">
                 <div className="flex items-center gap-2 rounded-[12px] border border-emerald-500/35 bg-emerald-500/10 px-4 py-2.5 font-mono text-sm text-emerald-300">
-                <div className="h-2 w-2 rounded-full bg-emerald-400" />
-                <span>{user.walletAddress.slice(0, 6)}...{user.walletAddress.slice(-4)}</span>
+                  <div className="h-2 w-2 rounded-full bg-emerald-400" />
+                  <span>{user.walletAddress.slice(0, 6)}...{user.walletAddress.slice(-4)}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="relative z-20 cursor-pointer rounded-[12px] border border-red-500/35 bg-red-500/10 px-4 py-2.5 text-[13px] font-bold whitespace-nowrap text-red-400 transition hover:bg-red-500/20 hover:text-red-300"
+                >
+                  Đăng xuất
+                </button>
               </div>
             )}
 
@@ -111,9 +118,18 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
                   Kết Nối Ví
                 </button>
               ) : (
-                <div className="flex-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-center font-mono text-xs text-emerald-400">
-                  {user.walletAddress.slice(0, 6)}...{user.walletAddress.slice(-4)}
-                </div>
+                <>
+                  <div className="flex-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-center font-mono text-xs text-emerald-400">
+                    {user.walletAddress.slice(0, 6)}...{user.walletAddress.slice(-4)}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={logout}
+                    className="cursor-pointer rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-400 hover:bg-red-500/20"
+                  >
+                    Đăng xuất
+                  </button>
+                </>
               )}
               <Link
                 to="/organizer/events/create"
