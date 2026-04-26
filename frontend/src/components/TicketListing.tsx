@@ -7,6 +7,7 @@ type TicketItem = {
   info: string;
   time: string;
   price: string;
+  imageUrl: string;
   href?: string;
   external?: boolean;
 };
@@ -20,13 +21,9 @@ const toTicketItem = (event: (typeof mockEvents)[number]): TicketItem => ({
   id: event._id,
   title: event.title,
   info: `${event.location} • ${new Date(event.startDate).toLocaleDateString('vi-VN')}`,
-  time: `Thời gian: ${new Date(event.startDate).toLocaleDateString('vi-VN', {
-    weekday: 'long',
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  })}`,
+  time: `Thời gian: ${event.startTime}`,
   price: `${event.price.toLocaleString('vi-VN')}đ`,
+  imageUrl: event.imageUrl,
 });
 
 const categories: TicketCategory[] = [
@@ -71,14 +68,21 @@ const TicketListing = () => {
                     className="ticket-card-link"
                   >
                     <div className="ticket-card">
-                      <div className="ticket-card-image"></div>
+                      <div
+                        className="ticket-card-image"
+                        style={{
+                          backgroundImage: `linear-gradient(135deg, rgba(17, 24, 39, 0.25) 0%, rgba(3, 7, 18, 0.4) 100%), url(${item.imageUrl})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                        }}
+                      ></div>
                       <div className="ticket-card-body">
                         <h3 className="ticket-card-title">{item.title}</h3>
                         <p className="ticket-card-info">
-                          <span className="info-icon">📍</span> {item.info}
+                          <span className="info-icon"></span> {item.info}
                         </p>
                         <p className="ticket-card-info">
-                          <span className="info-icon">🕒</span> {item.time}
+                          <span className="info-icon"></span> {item.time}
                         </p>
                         <div className="ticket-card-price">
                           <span className="price-label">Từ</span>
@@ -90,14 +94,21 @@ const TicketListing = () => {
                 ) : (
                   <Link key={item.id} to={`/events/${item.id}`} className="ticket-card-link">
                     <div className="ticket-card">
-                      <div className="ticket-card-image"></div>
+                      <div
+                        className="ticket-card-image"
+                        style={{
+                          backgroundImage: `linear-gradient(135deg, rgba(17, 24, 39, 0.25) 0%, rgba(3, 7, 18, 0.4) 100%), url(${item.imageUrl})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                        }}
+                      ></div>
                       <div className="ticket-card-body">
                         <h3 className="ticket-card-title">{item.title}</h3>
                         <p className="ticket-card-info">
-                          <span className="info-icon">📍</span> {item.info}
+                          <span className="info-icon"></span> {item.info}
                         </p>
                         <p className="ticket-card-info">
-                          <span className="info-icon">🕒</span> {item.time}
+                          <span className="info-icon"></span> {item.time}
                         </p>
                         <div className="ticket-card-price">
                           <span className="price-label">Từ</span>

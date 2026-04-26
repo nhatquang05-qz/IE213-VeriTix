@@ -16,8 +16,7 @@ const EventCard = ({ event }: { event: IEvent }) => {
       <div className="event-info">
         <h3>{event.title}</h3>
         <p>{event.location}</p>
-        <p>{formattedTime}</p>
-
+        <p>{event.startTime}</p>
         <div className="event-footer">
           <span className="event-price">{event.price.toLocaleString()}đ</span>
           <div className="detail-button">Xem chi tiết</div>

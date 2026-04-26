@@ -47,6 +47,7 @@ const featuredEvents = featuredConfigs
       location: event.location,
       date: new Date(event.startDate).toLocaleDateString('vi-VN'),
       price: `${event.price.toLocaleString('vi-VN')}đ`,
+      imageUrl: event.imageUrl,
     };
   })
   .filter((event): event is FeaturedEvent & {
@@ -54,6 +55,7 @@ const featuredEvents = featuredConfigs
     location: string;
     date: string;
     price: string;
+    imageUrl: string;
   } => event !== null);
 
 const EventCarousel: React.FC = () => {
@@ -105,17 +107,24 @@ const EventCarousel: React.FC = () => {
             to={`/events/${currentEvent.id}`}
             className="carousel-slide"
           >
-            <div className={`slide-background bg-gradient-to-r ${currentEvent.gradient}`}>
+            <div
+              className="slide-background"
+              style={{
+                backgroundImage: `linear-gradient(135deg, rgba(17, 24, 39, 0.32) 0%, rgba(3, 7, 18, 0.58) 100%), url(${currentEvent.imageUrl})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}
+            >
               <div className="slide-overlay"></div>
               <div className="slide-content">
                 <div className="slide-badge">{currentEvent.badge}</div>
                 <h2 className="slide-title">{currentEvent.title}</h2>
                 <div className="slide-info">
                   <p className="slide-location">
-                    <span className="location-icon">📍</span> {currentEvent.location}
+                    <span className="location-icon"></span> {currentEvent.location}
                   </p>
                   <p className="slide-date">
-                    <span className="date-icon">📅</span> {currentEvent.date}
+                    <span className="date-icon"></span> {currentEvent.date}
                   </p>
                 </div>
                 <div className="slide-price">
@@ -165,7 +174,14 @@ const EventCarousel: React.FC = () => {
               onClick={() => goToSlide(index)}
               title={event.title}
             >
-              <div className={`thumbnail-bg bg-gradient-to-r ${event.gradient}`}></div>
+              <div
+                className="thumbnail-bg"
+                style={{
+                  backgroundImage: `linear-gradient(135deg, rgba(17, 24, 39, 0.28) 0%, rgba(3, 7, 18, 0.52) 100%), url(${event.imageUrl})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                }}
+              ></div>
               <div className="thumbnail-info">
                 <p className="thumbnail-title">{event.title}</p>
                 <p className="thumbnail-price">{event.price}</p>

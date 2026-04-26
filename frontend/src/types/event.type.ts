@@ -6,6 +6,7 @@ export interface IEvent {
   imageUrl: string;
   location: string;
   startDate: string;
+  startTime: string;
   price: number;
   maxSupply: number;
   soldCount: number;
