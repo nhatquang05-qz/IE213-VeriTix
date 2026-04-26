@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import EventCarousel from '../components/EventCarousel';
+import TicketListing from '../components/TicketListing';
 import { eventService } from '../services/event.service';
-import type { Event } from '../types/event.type';
-import EventCard from '../components/EventCard';
-import LoadingSpinner from '../components/common/LoadingSpinner';
+import { type Event } from '../types/event.type';
 
 const HomePage: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -14,7 +14,7 @@ const HomePage: React.FC = () => {
         const data = await eventService.getAllEvents();
         setEvents(data);
       } catch (error) {
-        console.error("Failed to fetch events:", error);
+        console.error("Lỗi khi tải danh sách sự kiện:", error);
       } finally {
         setLoading(false);
       }
@@ -23,20 +23,14 @@ const HomePage: React.FC = () => {
     fetchEvents();
   }, []);
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) {
+    return <div className="text-center py-10">Đang tải sự kiện...</div>; 
+  }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Sự kiện nổi bật</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {events.length > 0 ? (
-          events.map((event) => (
-            <EventCard key={event._id} event={event} />
-          ))
-        ) : (
-          <p>Hiện tại chưa có sự kiện nào được tạo.</p>
-        )}
-      </div>
+    <div className="homepage">
+      <EventCarousel events={events} />
+      <TicketListing events={events} />
     </div>
   );
 };
