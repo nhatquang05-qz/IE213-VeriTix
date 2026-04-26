@@ -15,14 +15,21 @@ const getEvents = async (req, res, next) => {
 const getEventById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    
-    const event = await Event.findOne({ blockchainId: id });
-    
-    if (!event) return res.status(404).json({ message: "Không tìm thấy sự kiện này!" });
-    
+
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: 'Định dạng ID sự kiện không hợp lệ' });
+    }
+
+    const event = await Event.findById(id);
+
+    if (!event) {
+      return res.status(404).json({ message: 'Không tìm thấy sự kiện' });
+    }
+
     res.status(200).json(event);
   } catch (error) {
-    next(error);
+    console.error("Chi tiết lỗi getEventById:", error);
+    res.status(500).json({ message: 'Lỗi server khi tải chi tiết sự kiện', error: error.message });
   }
 };
 

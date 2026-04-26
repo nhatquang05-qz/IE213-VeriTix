@@ -34,19 +34,15 @@ const EventDetail = () => {
     setConfirmations(0);
 
     try {
-      // Sử dụng blockchainId của event
       const eventId = event.blockchainId;
-      // tokenURI có thể là một string mặc định hoặc từ event
       const tokenURI = `https://example.com/ticket/${eventId}`;
-      // Giá vé tính bằng ETH, giả sử 0.01 ETH cho mỗi vé
-      const priceInEth = (parseInt(event.price) / 1000000).toString(); // Giả sử chuyển đổi từ VND sang ETH
+      const priceInEth = (parseInt(event.price) / 1000000).toString();
 
       const tx = await buyTicket(eventId, tokenURI, priceInEth);
       setTransactionHash(tx.hash);
 
-      // Theo dõi confirmations
       const provider = new ethers.BrowserProvider(window.ethereum);
-      await provider.waitForTransaction(tx.hash, 1); // Chờ 1 confirmation
+      await provider.waitForTransaction(tx.hash, 1);
       setConfirmations(1);
       setTransactionStatus('confirmed');
 
