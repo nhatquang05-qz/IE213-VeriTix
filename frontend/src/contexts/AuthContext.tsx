@@ -1,141 +1,95 @@
-// import React, { createContext, useContext, useState, useEffect } from 'react';
-
-// interface AuthContextType {
-//     walletAddress: string | null;
-//     connectWallet: () => Promise<void>;
-// }
-
-// const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
-//     const [walletAddress, setWalletAddress] = useState<string | null>(null);
-
-//     const connectWallet = async () => {
-//         if (typeof window.ethereum !== 'undefined') {
-//             try {
-//                 // Ép MetaMask bật lên xin quyền
-//                 const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-//                 setWalletAddress(accounts[0]);
-//                 console.log("Đã kết nối:", accounts[0]);
-//             } catch (error) {
-//                 console.error("Người dùng hủy kết nối", error);
-//             }
-//         } else {
-//             alert("Bro chưa cài MetaMask kìa!");
-//         }
-//     };
-
-//     //update bro bấm đổi ví khác trong MetaMask
-//     useEffect(() => {
-//         if (typeof window.ethereum !== 'undefined') {
-//             window.ethereum.on('accountsChanged', (accounts: string[]) => {
-//                 if (accounts.length > 0) {
-//                     setWalletAddress(accounts[0]);
-//                 } else {
-//                     setWalletAddress(null); // Bị ngắt kết nối
-//                 }
-//             });
-//         }
-//     }, []);
-
-//     return (
-//         <AuthContext.Provider value={{ walletAddress, connectWallet }}>
-//             {children}
-//         </AuthContext.Provider>
-//     );
-// };
-
-// export const useAuth = () => {
-//     const context = useContext(AuthContext);
-//     if (!context) throw new Error("useAuth phải được bọc trong AuthProvider");
-//     return context;
-// };
-
-
-import React, { createContext, useContext, useState } from 'react';
-import { BrowserProvider } from 'ethers';
-import axios from 'axios';
-
-// Đảm bảo Backend của Thảo đang chạy ở port này nhé
-const BACKEND_URL = 'http://localhost:5000/api/auth';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { ethers } from 'ethers';
+import { authService } from '../services/auth.service';
+import type { User } from '../types/user.type';
 
 interface AuthContextType {
-    walletAddress: string | null;
-    connectWallet: () => Promise<void>;
-    logout: () => void;
+  user: User | null;
+  token: string | null;
+  loading: boolean;
+  login: () => Promise<void>;
+  logout: () => void;
+  isAuthenticated: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
-    const [walletAddress, setWalletAddress] = useState<string | null>(null);
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [loading, setLoading] = useState(false);
 
-    // Tự động giữ đăng nhập khi F5 lại trang
-    // useEffect(() => {
-    //     const savedToken = localStorage.getItem('token');
-    //     const savedWallet = localStorage.getItem('walletAddress');
-    //     if (savedToken && savedWallet) {
-    //         setWalletAddress(savedWallet);
-    //     }
-    // }, []);
+  // Kiểm tra token cũ khi load trang
+  useEffect(() => {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser && token) {
+      setUser(JSON.parse(savedUser));
+    }
+  }, [token]);
 
-    const connectWallet = async () => {
-        if (typeof window.ethereum !== 'undefined') {
-            try {
-                const provider = new BrowserProvider(window.ethereum);
-                const signer = await provider.getSigner();
-                const address = await signer.getAddress();
-                
-                console.log("1. Đã lấy được ví từ MetaMask:", address);
+  const login = async () => {
+    try {
+      setLoading(true);
+      if (!window.ethereum) {
+        alert("Vui lòng cài đặt MetaMask!");
+        return;
+      }
 
-                const nonceRes = await axios.get(`${BACKEND_URL}/nonce/${address}`);
-                const nonce = nonceRes.data.nonce;
-                
-                console.log("2. Backend đã nhả Nonce:", nonce);
+      // 1. Kết nối ví
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const accounts = await provider.send("eth_requestAccounts", []);
+      const walletAddress = accounts[0];
 
-                const messageToSign = `Chào mừng đến với VeriTix!\n\nKý tin nhắn này để xác nhận bạn là chủ sở hữu ví.\n\nMã bảo mật (Nonce): ${nonce}`;
+      // 2. Lấy Nonce từ Backend
+      const nonce = await authService.getNonce(walletAddress);
 
-                const signature = await signer.signMessage(messageToSign);
-                
-                console.log("3. Đã ký xong!");
+      // 3. Yêu cầu người dùng ký thông điệp
+      const signer = await provider.getSigner();
+      const message = `Chào mừng đến với VeriTix!\n\nKý tin nhắn này để xác nhận bạn là chủ sở hữu ví.\n\nMã bảo mật (Nonce): ${nonce}`;
+      const signature = await signer.signMessage(message);
 
-                const verifyRes = await axios.post(`${BACKEND_URL}/verify`, {
-                    walletAddress: address,
-                    signature: signature
-                });
+      // 4. Xác thực chữ ký với Backend
+      const data = await authService.verifySignature(walletAddress, signature);
 
-                const token = verifyRes.data.token;
-                
-                localStorage.setItem('token', token);
-                localStorage.setItem('walletAddress', address);
-                setWalletAddress(address);
+      // 5. Lưu thông tin
+      setToken(data.token);
+      setUser(data.user);
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
 
-                alert("Đăng nhập thành công, chốt đơn Phase 1!");
+      alert("Đăng nhập thành công!");
+    } catch (error) {
+      console.error("Login Error:", error);
+      alert("Đăng nhập thất bại!");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            } catch (error) {
-                console.error("Lỗi cmnr bro ơi:", error);
-                alert("Lỗi kết nối! Bật F12 xem tab Console hoặc Network nhé.");
-            }
-        } else {
-            alert("Trình duyệt chưa cài MetaMask!");
-        }
-    };
+  const logout = () => {
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.reload();
+  };
 
-    const logout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('walletAddress');
-        setWalletAddress(null);
-    };
-
-    return (
-        <AuthContext.Provider value={{ walletAddress, connectWallet, logout }}>
-            {children}
-        </AuthContext.Provider>
-    );
+  return (
+    <AuthContext.Provider value={{ 
+      user, 
+      token, 
+      loading, 
+      login, 
+      logout, 
+      isAuthenticated: !!token 
+    }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) throw new Error("useAuth phải bọc trong AuthProvider");
-    return context;
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuth must be used within an AuthProvider");
+  return context;
 };

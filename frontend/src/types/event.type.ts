@@ -1,4 +1,4 @@
-export interface IEvent {
+export interface Event {
   _id: string;
   onChainId: number;
   title: string;
