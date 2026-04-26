@@ -1,5 +1,3 @@
-import "../assets/styles/styles.css";
-
 const HighlightCard = () => {
   return (
     <div className="highlight-card">

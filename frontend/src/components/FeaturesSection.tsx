@@ -45,19 +45,22 @@ const features = [
 
 const FeaturesSection = () => {
   return (
-    <section className="features">
-      <div className="container">
-        <h2 className="section-title">Tại Sao Chọn VeriTix</h2>
-        <div className="features-grid">
+    <section className="bg-white/2 py-[100px]">
+      <div className="mx-auto max-w-[1400px] px-6">
+        <h2 className="mb-[60px] text-center text-[42px] font-bold text-slate-400">Tại Sao Chọn VeriTix</h2>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-8">
           {features.map((feature) => (
-            <div key={feature.title} className="feature-card">
-              <div className="feature-icon">
-                <svg className="icon-svg" viewBox="0 0 24 24">
+            <div
+              key={feature.title}
+              className="relative overflow-hidden rounded-[20px] border border-cyan-400/20 bg-[linear-gradient(135deg,rgba(30,58,138,0.3)_0%,rgba(0,102,255,0.1)_100%)] px-8 py-10 transition hover:-translate-y-2 hover:border-cyan-400/50 hover:shadow-[0_20px_40px_rgba(0,102,255,0.3)]"
+            >
+              <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#0066ff_0%,#00d4ff_100%)] shadow-[0_8px_24px_rgba(0,102,255,0.3)]">
+                <svg className="h-8 w-8 fill-white" viewBox="0 0 24 24">
                   <path d={feature.iconPath} />
                 </svg>
               </div>
-              <h3>{feature.title}</h3>
-              <p className="feature-desc">{feature.description}</p>
+              <h3 className="mb-3 text-xl text-white">{feature.title}</h3>
+              <p className="text-[15px] leading-[1.6] text-slate-400">{feature.description}</p>
             </div>
           ))}
         </div>
