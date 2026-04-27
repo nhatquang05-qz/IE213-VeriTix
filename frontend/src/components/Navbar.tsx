@@ -1,6 +1,7 @@
 import React, { useState } from 'react'; 
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import logoImage from '../assets/images/Logo_VeriTix.png';
 
 const Navbar = ({ children }: { children: React.ReactNode }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -14,8 +15,9 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
         <div className="relative z-10 mx-auto flex h-[86px] w-full max-w-[1640px] items-center justify-between gap-6 px-10 max-[1024px]:h-[72px] max-[1024px]:px-6">
           <Link to="/" className="flex items-center gap-3 no-underline">
             <div className="relative flex h-[42px] w-[42px] items-center justify-center rounded-[14px] border border-cyan-400/30 bg-[linear-gradient(135deg,rgba(0,102,255,0.2),rgba(0,212,255,0.1))] p-[7px]">
+              {/* 2. SỬ DỤNG BIẾN ẢNH VÀO THUỘC TÍNH SRC */}
               <img
-                src="/src/assets/images/Logo VeriTix.png"
+                src={logoImage}
                 alt="VeriTix Logo"
                 className="h-7 w-7 object-contain"
               />
