@@ -1,6 +1,7 @@
 const Ticket = require('../models/Ticket');
 const Event = require('../models/Event');
 const User = require('../models/User');
+const Transaction = require('../models/Transaction');
 const { ethers } = require('ethers');
 
 const getMyTickets = async (req, res, next) => {
@@ -31,11 +32,22 @@ const createTicket = async (req, res, next) => {
 
     const newTickets = await Ticket.insertMany(ticketData);
 
-    await Event.findByIdAndUpdate(
+    const updatedEvent = await Event.findByIdAndUpdate(
       eventId, 
       { $inc: { currentMinted: blockchainTicketIds.length } },
       { new: true }
     );
+
+    if (transactionHash) {
+      const totalAmount = (Number(price) * blockchainTicketIds.length).toString();
+      await Transaction.create({
+        txHash: transactionHash,
+        type: 'MINT',
+        fromWallet: ownerWallet,
+        toWallet: updatedEvent.organizerWallet,
+        amount: totalAmount
+      });
+    }
 
     res.status(201).json({
       success: true,
