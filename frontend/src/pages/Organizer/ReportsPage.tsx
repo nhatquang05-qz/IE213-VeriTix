@@ -188,7 +188,7 @@ export default function ReportsPage() {
         <table className="w-full min-w-[560px]">
           <thead>
             <tr className="border-b border-white/[0.06]">
-              {['Sự kiện', 'Trạng thái', 'Vé bán / Tổng', 'Doanh thu (ETH)', ''].map((h) => (
+              {['Sự kiện', 'Trạng thái', 'Vé bán / Tổng', 'Doanh thu (VNĐ)', ''].map((h) => (
                 <th
                   key={h}
                   className="text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider px-4 sm:px-5 py-3.5"
