@@ -13,8 +13,9 @@ const uploadRoutes = require('./src/routes/uploadRoutes');
 const app = express();
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://veritix-sepia.vercel.app', 'https://ie213-veritix.vercel.app'],
-  credentials: true
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 }));
 
 app.use(express.json({ limit: '50mb' }));
@@ -35,9 +36,12 @@ app.get('/', (req, res) => {
 app.use(notFound);
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server đang chạy tại cổng ${PORT}`);
-});
+
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Server đang chạy tại cổng ${PORT}`);
+  });
+}
 
 module.exports = app;
