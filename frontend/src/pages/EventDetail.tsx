@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ethers } from "ethers";
 import { getEventById } from "../services/api";
-import { buyTicketsBatch } from "../services/contract.service";
+import { buyTicketsBatch} from "../services/contract.service";
 import { getEthToVndRate } from "../services/currency.service";
 import { useWeb3 } from "../hooks/useWeb3";
 import api from "../services/api";
 import type { IEvent } from "../types/event.type";
+import { CONTRACT_ADDRESS, CONTRACT_ABI } from "../config/contract";
 
 const EventDetail = () => {
   const { id } = useParams();
@@ -44,8 +45,19 @@ const EventDetail = () => {
 
     try {
       const eventId = event.blockchainId;
-      const singlePriceEth = (parseInt(event.price) / ethRate);
-      const totalPriceEth = (singlePriceEth * quantity).toFixed(6).toString();
+      
+      let totalPriceEth = "0";
+      try {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const readContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+        const eventOnChain = await readContract.events(eventId);
+        const exactTicketPriceWei = eventOnChain.ticketPrice;
+        const totalPriceWei = exactTicketPriceWei * BigInt(quantity);
+        totalPriceEth = ethers.formatEther(totalPriceWei);
+      } catch (err) {
+        const singlePriceEth = parseInt(event.price) / ethRate;
+        totalPriceEth = (singlePriceEth * quantity * 1.05).toFixed(18).toString();
+      }
       
       const tokenURIs = Array.from({ length: quantity }).map((_, i) => 
         `https://veritix.com/ticket/${eventId}/${Date.now()}-${i}`
@@ -72,7 +84,6 @@ const EventDetail = () => {
         alert(`Mua thành công ${quantity} vé và đã đồng bộ hệ thống!`);
       }
     } catch (error) {
-      console.error('Error buying tickets:', error);
       setTransactionStatus('failed');
       alert('Lỗi khi mua vé: ' + (error as Error).message);
     } finally {
@@ -234,7 +245,8 @@ const EventDetail = () => {
                 </div>
 
                 <div className="flex flex-col gap-3 w-full md:w-auto">
-                  
+                
+
                   <button
                     className="min-w-[220px] cursor-pointer rounded-2xl border-0 bg-[linear-gradient(120deg,#0ea5e9_0%,#2563eb_62%,#1d4ed8_100%)] px-[22px] py-[13px] text-base font-bold text-white shadow-ed-btn transition duration-200 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-ed-btn-hover disabled:cursor-not-allowed disabled:opacity-55 md:w-full"
                     onClick={handleBuyTicket}
@@ -311,4 +323,4 @@ const EventDetail = () => {
   );
 };
 
-export default EventDetail;   
+export default EventDetail;
