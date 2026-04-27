@@ -1,4 +1,4 @@
-export const CONTRACT_ADDRESS = "0x0161eC9C96b7446744CD32793dCdEBaE1812F2b7"; 
+export const CONTRACT_ADDRESS = "0x5f6AF6eF1129b355575a74Aad50cC43F3d1a30Bb";
 
 export const CONTRACT_ABI = [
     {
@@ -458,6 +458,29 @@ export const CONTRACT_ABI = [
           "type": "uint256"
         }
       ],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "eventId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "quantity",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string[]",
+          "name": "_tokenURIs",
+          "type": "string[]"
+        }
+      ],
+      "name": "buyTickets",
+      "outputs": [],
       "stateMutability": "payable",
       "type": "function"
     },

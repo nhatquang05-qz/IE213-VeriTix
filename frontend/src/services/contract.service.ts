@@ -12,11 +12,18 @@ export const getContract = async () => {
   return contract;
 };
 
-export const buyTicket = async (eventId: number, tokenURI: string, price: string) => {
+export const buyTicket = async (eventId: number, tokenURI: string, priceInEth: string) => {
   const contract = await getContract();
-  
-  const priceInWei = ethers.parseEther(price.toString()); 
-  
-  const tx = await contract.buyTicket(eventId, tokenURI, { value: priceInWei });
+  const tx = await contract.buyTicket(eventId, tokenURI, { 
+    value: ethers.parseEther(priceInEth) 
+  });
+  return tx;
+};
+
+export const buyTicketsBatch = async (eventId: number, quantity: number, tokenURIs: string[], totalPriceEth: string) => {
+  const contract = await getContract();
+  const tx = await contract.buyTickets(eventId, quantity, tokenURIs, { 
+    value: ethers.parseEther(totalPriceEth) 
+  });
   return tx;
 };

@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ethers } from "ethers";
 import { getEventById } from "../services/api";
-import { buyTicket } from "../services/contract.service";
+import { buyTicketsBatch } from "../services/contract.service";
 import { getEthToVndRate } from "../services/currency.service";
 import { useWeb3 } from "../hooks/useWeb3";
-import api from "../services/api"; // Added API instance
+import api from "../services/api";
 import type { IEvent } from "../types/event.type";
 
 const EventDetail = () => {
@@ -16,6 +16,7 @@ const EventDetail = () => {
   const [confirmations, setConfirmations] = useState<number>(0);
   const [transactionStatus, setTransactionStatus] = useState<'pending' | 'confirmed' | 'failed' | null>(null);
   const [ethRate, setEthRate] = useState<number>(80000000);
+  const [quantity, setQuantity] = useState<number>(1);
   const { account, connectWallet } = useWeb3();
 
   const handleBuyTicket = async () => {
@@ -31,8 +32,8 @@ const EventDetail = () => {
       return;
     }
 
-    if (remainingTickets <= 0) {
-      alert('Vé đã hết!');
+    if (remainingTickets < quantity) {
+      alert('Không đủ vé!');
       return;
     }
 
@@ -43,34 +44,35 @@ const EventDetail = () => {
 
     try {
       const eventId = event.blockchainId;
-      const tokenURI = `https://veritix.com/ticket/${eventId}`;
-      const priceInEth = (parseInt(event.price) / ethRate).toFixed(6).toString();
+      const singlePriceEth = (parseInt(event.price) / ethRate);
+      const totalPriceEth = (singlePriceEth * quantity).toFixed(6).toString();
+      
+      const tokenURIs = Array.from({ length: quantity }).map((_, i) => 
+        `https://veritix.com/ticket/${eventId}/${Date.now()}-${i}`
+      );
 
-      const tx = await buyTicket(eventId, tokenURI, priceInEth);
+      const tx = await buyTicketsBatch(eventId, quantity, tokenURIs, totalPriceEth);
       setTransactionHash(tx.hash);
 
       const provider = new ethers.BrowserProvider(window.ethereum);
       const receipt = await provider.waitForTransaction(tx.hash, 1);
       
-      setConfirmations(1);
-      setTransactionStatus('confirmed');
-
       if (receipt && receipt.status === 1) {
-        try {
-          await api.post('/tickets', {
-            eventId: event._id,
-            transactionHash: tx.hash,
-            price: event.price,
-            blockchainTicketId: Math.floor(Math.random() * 1000000) 
-          });
-          alert('Mua vé thành công và đã đồng bộ hệ thống!');
-        } catch (apiError) {
-          console.error("Lỗi đồng bộ server:", apiError);
-          alert('Giao dịch thành công nhưng lỗi đồng bộ server.');
-        }
+        const ticketsToSync = Array.from({ length: quantity }).map(() => Math.floor(Math.random() * 1000000));
+
+        await api.post('/tickets', {
+          eventId: event._id,
+          transactionHash: tx.hash,
+          price: event.price,
+          blockchainTicketIds: ticketsToSync 
+        });
+
+        setConfirmations(1);
+        setTransactionStatus('confirmed');
+        alert(`Mua thành công ${quantity} vé và đã đồng bộ hệ thống!`);
       }
     } catch (error) {
-      console.error('Error buying ticket:', error);
+      console.error('Error buying tickets:', error);
       setTransactionStatus('failed');
       alert('Lỗi khi mua vé: ' + (error as Error).message);
     } finally {
@@ -96,13 +98,24 @@ const EventDetail = () => {
 
   const remainingTickets = event.maxSupply - event.currentMinted;
   const soldPercent = event.maxSupply > 0 ? Math.min((event.currentMinted / event.maxSupply) * 100, 100) : 0;
-  const eventDateLong = new Date(event.startTime).toLocaleDateString("vi-VN", {
+  
+  const eventDateLong = new Date(event.startTime).toLocaleString("vi-VN", {
     weekday: "long",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
   });
-  const eventDateShort = new Date(event.startTime).toLocaleDateString("vi-VN");
+
+  const eventDateShort = new Date(event.startTime).toLocaleString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
   const estimatedEthPrice = (parseInt(event.price) / ethRate).toFixed(6);
 
   const txStatusLabel =
@@ -188,23 +201,45 @@ const EventDetail = () => {
             </div>
           </div>
 
-          <div className="mt-6 flex items-center justify-between gap-[18px] md:flex-col md:items-stretch">
-            <div className="grid gap-2 text-[0.96rem] text-ed-text-subtle">
-              <div>
-                <span className="font-semibold text-[#8cceea]">Địa điểm:</span> {event.location}
+          <div className="mt-8 flex flex-col gap-6">
+            <div className="flex items-center gap-4">
+              <span className="text-[1rem] font-bold text-[#eff8ff]">Số lượng vé:</span>
+              <div className="flex items-center gap-1 rounded-xl bg-white/5 border border-white/10 p-1">
+                {[1, 2, 3].map((num) => (
+                  <button
+                    key={num}
+                    onClick={() => setQuantity(num)}
+                    className={`h-10 w-12 rounded-lg text-sm font-bold transition-all ${
+                      quantity === num
+                        ? "bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]"
+                        : "text-slate-400 hover:bg-white/10"
+                    }`}
+                  >
+                    {num}
+                  </button>
+                ))}
               </div>
-              <div>
-                <span className="font-semibold text-[#8cceea]">Số vé còn:</span> {remainingTickets}
-              </div>
+              <span className="text-sm text-slate-400">(Tối đa 3 vé/lần)</span>
             </div>
 
-            <button
-              className="min-w-[186px] cursor-pointer rounded-2xl border-0 bg-[linear-gradient(120deg,#0ea5e9_0%,#2563eb_62%,#1d4ed8_100%)] px-[22px] py-[13px] text-base font-bold text-white shadow-ed-btn transition duration-200 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-ed-btn-hover disabled:cursor-not-allowed disabled:opacity-55 md:w-full"
-              onClick={handleBuyTicket}
-              disabled={loading || remainingTickets <= 0 || !event.blockchainId}
-            >
-              {!event.blockchainId ? 'Sự kiện chưa mở' : remainingTickets <= 0 ? 'Hết vé' : loading ? 'Đang xử lý...' : 'Mua vé ngay'}
-            </button>
+            <div className="flex items-center justify-between gap-[18px] md:flex-col md:items-stretch">
+              <div className="grid gap-2 text-[0.96rem] text-ed-text-subtle">
+                <div>
+                  <span className="font-semibold text-[#8cceea]">Địa điểm:</span> {event.location}
+                </div>
+                <div>
+                  <span className="font-semibold text-[#8cceea]">Số vé còn:</span> {remainingTickets}
+                </div>
+              </div>
+
+              <button
+                className="min-w-[220px] cursor-pointer rounded-2xl border-0 bg-[linear-gradient(120deg,#0ea5e9_0%,#2563eb_62%,#1d4ed8_100%)] px-[22px] py-[13px] text-base font-bold text-white shadow-ed-btn transition duration-200 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-ed-btn-hover disabled:cursor-not-allowed disabled:opacity-55 md:w-full"
+                onClick={handleBuyTicket}
+                disabled={loading || remainingTickets < quantity || !event.blockchainId}
+              >
+                {!event.blockchainId ? 'Sự kiện chưa mở' : remainingTickets < quantity ? 'Hết vé' : loading ? 'Đang xử lý...' : `Mua ${quantity} vé ngay`}
+              </button>
+            </div>
           </div>
 
           {transactionStatus && (
@@ -271,4 +306,4 @@ const EventDetail = () => {
   );
 };
 
-export default EventDetail; 
+export default EventDetail;

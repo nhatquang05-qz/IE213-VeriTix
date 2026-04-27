@@ -1,4 +1,6 @@
 const Ticket = require('../models/Ticket');
+const Event = require('../models/Event');
+const User = require('../models/User');
 const { ethers } = require('ethers');
 
 const getMyTickets = async (req, res, next) => {
@@ -16,23 +18,29 @@ const getMyTickets = async (req, res, next) => {
 
 const createTicket = async (req, res, next) => {
   try {
-    const { eventId, transactionHash, price, blockchainTicketId } = req.body;
+    const { eventId, transactionHash, price, blockchainTicketIds } = req.body;
     const ownerWallet = req.user.walletAddress.toLowerCase();
 
-    const newTicket = new Ticket({
-      blockchainTicketId,
+    const ticketData = blockchainTicketIds.map(tid => ({
+      blockchainTicketId: tid,
       eventId,
       ownerWallet,
       purchasePrice: price,
       status: 'SOLD'
-    });
+    }));
 
-    await newTicket.save();
+    const newTickets = await Ticket.insertMany(ticketData);
+
+    await Event.findByIdAndUpdate(
+      eventId, 
+      { $inc: { currentMinted: blockchainTicketIds.length } },
+      { new: true }
+    );
 
     res.status(201).json({
       success: true,
-      message: 'Lưu thông tin vé thành công',
-      data: newTicket
+      message: `Đã lưu thành công ${blockchainTicketIds.length} vé`,
+      data: newTickets
     });
   } catch (error) {
     next(error);
@@ -60,24 +68,31 @@ const checkInTicket = async (req, res, next) => {
     if (ticket.status === 'USED') {
       return res.status(400).json({ message: "VÉ NÀY ĐÃ ĐƯỢC SỬ DỤNG TRƯỚC ĐÓ!" });
     }
-    if (ticket.status !== 'SOLD') {
-      return res.status(400).json({ message: `Vé không hợp lệ (Trạng thái hiện tại: ${ticket.status})` });
-    }    
     
     const message = `Check-in VeriTix\nTicket ID: ${blockchainTicketId}\nTimestamp: ${timestamp}`;    
-    
     const recoveredAddress = ethers.verifyMessage(message, signature);
     
     if (recoveredAddress.toLowerCase() !== ticket.ownerWallet.toLowerCase()) {
       return res.status(401).json({ message: "MÃ QR GIẢ MẠO! Chữ ký không khớp với chủ sở hữu vé." });
     }
     
+    const ticketOwner = await User.findOne({ walletAddress: ticket.ownerWallet });
+    
     ticket.status = 'USED';
     await ticket.save();
 
     res.status(200).json({ 
       message: "CHECK-IN THÀNH CÔNG!", 
-      ticketId: blockchainTicketId 
+      ticketId: blockchainTicketId,
+      eventInfo: {
+        name: ticket.eventId.name,
+        time: ticket.eventId.startTime,
+        location: ticket.eventId.location
+      },
+      userInfo: {
+        fullName: ticketOwner ? ticketOwner.fullName : "Người dùng ẩn danh",
+        wallet: ticket.ownerWallet
+      }
     });
 
   } catch (error) {

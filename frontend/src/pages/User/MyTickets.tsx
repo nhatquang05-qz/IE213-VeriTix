@@ -134,8 +134,25 @@ export default function MyTickets() {
                     <span className="font-mono text-blue-400">#{ticket.blockchainTicketId}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Thời gian:</span>
-                    <span>{ticket.eventId?.startTime ? new Date(ticket.eventId.startTime).toLocaleDateString('vi-VN') : 'TBD'}</span>
+                    <span>Thời gian diễn ra:</span>
+                    <span>{ticket.eventId?.startTime ? new Date(ticket.eventId.startTime).toLocaleString('vi-VN', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    }) : 'TBD'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Thời gian mua:</span>
+                    <span className="text-[#8cceea]">{new Date(ticket.createdAt).toLocaleString('vi-VN', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit'
+                    })}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Giá thanh toán:</span>
@@ -147,7 +164,7 @@ export default function MyTickets() {
                   <button 
                     onClick={() => handleGenerateQR(ticket._id, ticket.blockchainTicketId)}
                     disabled={isSigning === ticket._id}
-                    className="mt-5 w-full bg-[linear-gradient(135deg,rgba(0,102,255,0.2),rgba(0,212,255,0.1))] hover:bg-blue-500/20 border border-blue-500/30 text-blue-300 py-2.5 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="mt-5 w-full cursor-pointer bg-[linear-gradient(135deg,rgba(0,102,255,0.2),rgba(0,212,255,0.1))] hover:bg-blue-500/20 border border-blue-500/30 text-blue-300 py-2.5 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSigning === ticket._id ? 'Đang chờ ký xác nhận...' : 'Xem mã QR Check-in'}
                   </button>
