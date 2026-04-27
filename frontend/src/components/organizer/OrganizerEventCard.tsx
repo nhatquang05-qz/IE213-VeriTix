@@ -183,7 +183,7 @@ const OrganizerEventCard: React.FC<Props> = ({ event, index }) => {
               <p className="text-[10px] text-slate-600 mb-0.5">Giá vé</p>
               <p className="text-sm font-bold text-white font-mono">
                 {event.price || '0'}{' '}
-                <span className="text-[11px] text-slate-400 font-medium">ETH</span>
+                <span className="text-[11px] text-slate-400 font-medium">VNĐ</span>
               </p>
             </div>
           </div>

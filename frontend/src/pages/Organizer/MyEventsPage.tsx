@@ -68,8 +68,8 @@ export default function MyEventsPage() {
     getOrganizerEvents()
       .then((data) => {
         if (!isMounted) return;
-        // Đảm bảo data luôn là mảng, phòng trường hợp API trả về null/undefined
-        setEvents(Array.isArray(data) ? data : []);
+        // Cast to any then to OrganizerEvent[] to handle potential type mismatch from service
+        setEvents((Array.isArray(data) ? data : []) as any as OrganizerEvent[]);
       })
       .catch((err) => {
         if (!isMounted) return;
