@@ -1,9 +1,9 @@
 import React from 'react'; 
 import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useWeb3 } from '../../hooks/useWeb3';
 
 const Navbar = ({ children }: { children: React.ReactNode }) => {
-  const { connectWallet, walletAddress } = useAuth();
+  const { connectWallet, account } = useWeb3();
 
   return (
     <div>
@@ -32,7 +32,7 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
               {/* Actions */}
               <div className="flex items-center gap-2">
 
-                {!walletAddress ? (
+                {!account ? (
                   <button 
                     onClick={connectWallet} 
                     className="navbar-btn-wallet text-xs px-2 py-1 whitespace-nowrap"
@@ -41,7 +41,7 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
                   </button>
                 ) : (
                   <div className="navbar-wallet-badge text-xs whitespace-nowrap">
-                    {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+                    {account.slice(0, 6)}...{account.slice(-4)}
                   </div>
                 )}
 
@@ -94,7 +94,7 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
                 <Link to="/" className="navbar-nav-link">Trang Chủ</Link>
                 <Link to="/about-us" className="navbar-nav-link">About Us</Link>
 
-                {walletAddress && (
+                {account && (
                   <Link to="/user/my-tickets" className="navbar-nav-link">
                     Vé Của Tôi
                   </Link>
@@ -110,7 +110,7 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
             {/* Right */}
             <div className="flex items-center gap-3">
 
-              {!walletAddress ? (
+              {!account ? (
                 <button 
                   onClick={connectWallet} 
                   className="navbar-btn-wallet whitespace-nowrap"
@@ -119,7 +119,7 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
                 </button>
               ) : (
                 <div className="navbar-wallet-badge whitespace-nowrap">
-                  {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+                  {account.slice(0, 6)}...{account.slice(-4)}
                 </div>
               )}
 
@@ -137,7 +137,6 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
         </div>
       </nav>
 
-      {/* Padding fix cho navbar cao hơn trên mobile */}
       <main className="pt-28 lg:pt-24">
         {children}
       </main>
