@@ -1,38 +1,37 @@
-import { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from './config/contract';
-import MyTickets from './pages/User/MyTickets';
-// Layouts
+import LoadingSpinner from './components/common/LoadingSpinner';
+
+import { AuthProvider } from './contexts/AuthContext';
+import { Web3Provider } from './contexts/Web3Context';
+
 import MainLayout from './layouts/MainLayout';
 import OrganizerLayout from './layouts/OrganizerLayout';
 import OrganizerEventDetailLayout from './layouts/OrganizerEventDetailLayout';
 
-// Public pages
-import HomePage from './pages/HomePage';
-import AboutUsPage from './pages/AboutUsPage';
-import EventDetail from './pages/EventDetail'; // Giữ lại của bro
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
+const HomePage = lazy(() => import('./pages/HomePage'));
+const AboutUsPage = lazy(() => import('./pages/AboutUsPage'));
+const EventDetail = lazy(() => import('./pages/EventDetail'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/RegisterPage'));
 
 // Organizer pages
-import MyEventsPage from './pages/Organizer/MyEventsPage';
-import CreateEventPage from './pages/Organizer/CreateEventPage';
-import ReportsPage from './pages/Organizer/ReportsPage';
-import TermsPage from './pages/Organizer/TermsPage';
+const MyEventsPage = lazy(() => import('./pages/Organizer/MyEventsPage'));
+const CreateEventPage = lazy(() => import('./pages/Organizer/CreateEventPage'));
+const ReportsPage = lazy(() => import('./pages/Organizer/ReportsPage'));
+const TermsPage = lazy(() => import('./pages/Organizer/TermsPage'));
 
 // Organizer Event Detail pages
-import EventSummaryPage from './pages/Organizer/OrganizerEventDetail/EventSummaryPage';
-import EventCheckInPage from './pages/Organizer/OrganizerEventDetail/EventCheckInPage';
-import EventMembersPage from './pages/Organizer/OrganizerEventDetail/EventMembersPage';
-import EventEditPage from './pages/Organizer/OrganizerEventDetail/EventEditPage';
-import EventVouchersPage from './pages/Organizer/OrganizerEventDetail/EventVouchersPage';
+const EventSummaryPage = lazy(() => import('./pages/Organizer/OrganizerEventDetail/EventSummaryPage'));
+const EventCheckInPage = lazy(() => import('./pages/Organizer/OrganizerEventDetail/EventCheckInPage'));
+const EventMembersPage = lazy(() => import('./pages/Organizer/OrganizerEventDetail/EventMembersPage'));
+const EventEditPage = lazy(() => import('./pages/Organizer/OrganizerEventDetail/EventEditPage'));
+const EventVouchersPage = lazy(() => import('./pages/Organizer/OrganizerEventDetail/EventVouchersPage'));
 
-// Contexts
-import { AuthProvider } from './contexts/AuthContext';
-import { Web3Provider } from './contexts/Web3Context';
+const MyTickets = lazy(() => import('./pages/User/MyTickets'));
 
-// Giữ lại hàm Test Connection của 
 function TestConnection() {
   const [status, setStatus] = useState("");
   const [address, setAddress] = useState("");
@@ -82,45 +81,46 @@ function App() {
     <AuthProvider>
       <Web3Provider>
         <BrowserRouter>
-          <Routes>
-            {/* ═══ PUBLIC — MainLayout (Navbar + Footer) ═══ */}
-            <Route element={<MainLayout />}>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/about-us" element={<AboutUsPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/events/:id" element={<EventDetail />} /> {/* Khôi phục link Detail của bro */}
-              <Route path="/test" element={<TestConnection />} /> {/* Khôi phục link Test của bro */}
-            </Route>
+          <Suspense fallback={<LoadingSpinner />}>
+            <Routes>
+              <Route element={<MainLayout />}>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/about-us" element={<AboutUsPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/events/:id" element={<EventDetail />} /> 
+                <Route path="/test" element={<TestConnection />} /> 
+              </Route>
 
-            {/* ═══ ORGANIZER CẤP 1 — OrganizerLayout (sidebar chính) ═══ */}
-            <Route path="/organizer" element={<OrganizerLayout />}>
-              <Route index element={<Navigate to="events" replace />} />
-              <Route path="events" element={<MyEventsPage />} />
-              <Route path="events/create" element={<CreateEventPage />} />
-              <Route path="reports" element={<ReportsPage />} />
-              <Route path="terms" element={<TermsPage />} />
-            </Route>
+              {/* ═══ ORGANIZER CẤP 1 — OrganizerLayout (sidebar chính) ═══ */}
+              <Route path="/organizer" element={<OrganizerLayout />}>
+                <Route index element={<Navigate to="events" replace />} />
+                <Route path="events" element={<MyEventsPage />} />
+                <Route path="events/create" element={<CreateEventPage />} />
+                <Route path="reports" element={<ReportsPage />} />
+                <Route path="terms" element={<TermsPage />} />
+              </Route>
 
-            {/* ═══ ORGANIZER CẤP 2 — OrganizerEventDetailLayout (sidebar RIÊNG) ═══ */}
-            <Route path="/organizer/events/:eventId" element={<OrganizerEventDetailLayout />}>
-              <Route index element={<Navigate to="summary" replace />} />
-              <Route path="summary" element={<EventSummaryPage />} />
-              <Route path="checkin" element={<EventCheckInPage />} />
-              <Route path="members" element={<EventMembersPage />} />
-              <Route path="edit" element={<EventEditPage />} />
-              <Route path="vouchers" element={<EventVouchersPage />} />
-              <Route path="vouchers/create" element={<EventVouchersPage />} />
-            </Route>
-            {/* ═══ USER — MainLayout + Auth Guard ═══ */}
-            <Route element={<MainLayout />}>
-              {/* <Route path="/user/profile" element={<ProfilePage />} /> */}
-              <Route path="/user/my-tickets" element={<MyTickets />} /> {/* Mở khóa dòng này */}
-            </Route>
+              {/* ═══ ORGANIZER CẤP 2 — OrganizerEventDetailLayout (sidebar RIÊNG) ═══ */}
+              <Route path="/organizer/events/:eventId" element={<OrganizerEventDetailLayout />}>
+                <Route index element={<Navigate to="summary" replace />} />
+                <Route path="summary" element={<EventSummaryPage />} />
+                <Route path="checkin" element={<EventCheckInPage />} />
+                <Route path="members" element={<EventMembersPage />} />
+                <Route path="edit" element={<EventEditPage />} />
+                <Route path="vouchers" element={<EventVouchersPage />} />
+                <Route path="vouchers/create" element={<EventVouchersPage />} />
+              </Route>
 
-            {/* Fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+              {/* ═══ USER — MainLayout + Auth Guard ═══ */}
+              <Route element={<MainLayout />}>
+                <Route path="/user/my-tickets" element={<MyTickets />} /> 
+              </Route>
+
+              {/* Fallback */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
         </BrowserRouter>
       </Web3Provider>
     </AuthProvider>
