@@ -1,4 +1,4 @@
-import React, { useState, Suspense, lazy } from 'react';
+import { useState, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from './config/contract';
