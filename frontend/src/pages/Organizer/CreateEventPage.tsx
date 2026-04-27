@@ -47,12 +47,7 @@ export default function CreateEventPage() {
     earlyBirdPrice: '',
     earlyBirdQty: '',
     vipPrice: '',
-    vipQty: '',
-    bankName: '',
-    bankAccount: '',
-    bankOwner: '',
-    bankBranch: '',
-    paymentNote: '',
+    vipQty: ''
   });
 
   const [posterFile, setPosterFile] = useState<File | null>(null);
@@ -61,6 +56,9 @@ export default function CreateEventPage() {
   const [bannerPreview, setBannerPreview] = useState('');
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState('');
+
+  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+  const [uploadedBannerUrl, setUploadedBannerUrl] = useState('');
 
   const set = useCallback(
     (k: keyof EventFormData, v: string | number) => {
@@ -82,6 +80,36 @@ export default function CreateEventPage() {
       r.onloadend = () => setP(r.result as string);
       r.readAsDataURL(f);
     } else setP('');
+  };
+
+  const handleUploadBanner = async () => {
+    if (!bannerFile) {
+      toast.warning('Vui lòng chọn file ảnh Banner trước!');
+      return;
+    }
+    try {
+      setIsUploadingBanner(true);
+      const formData = new FormData();
+      formData.append('image', bannerFile);
+
+      const tk = localStorage.getItem('token');
+      // SỬA Ở ĐÂY: Xóa /api để tránh lặp /api/api
+      const res = await fetch(`${API_URL}/upload/image`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${tk}` },
+        body: formData
+      });
+
+      if (!res.ok) throw new Error('Lỗi khi tải ảnh lên Cloudinary');
+      
+      const data = await res.json();
+      setUploadedBannerUrl(data.imageUrl); 
+      toast.success('Tải ảnh lên Cloudinary thành công!');
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setIsUploadingBanner(false);
+    }
   };
 
   useEffect(() => {
@@ -155,6 +183,7 @@ export default function CreateEventPage() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
+  
   const prev = () => {
     setStep((s) => Math.max(s - 1, 1));
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -169,8 +198,8 @@ export default function CreateEventPage() {
       toast.error('Chưa cấu hình địa chỉ Contract!');
       return;
     }
-    if (!form.bankName || !form.bankAccount || !form.bankOwner) {
-      toast.error('Vui lòng nhập đầy đủ thông tin thanh toán');
+    if (!uploadedBannerUrl) {
+      toast.error('Vui lòng Tải ảnh Banner lên Cloudinary ở Bước 1 trước khi phát hành!');
       return;
     }
 
@@ -205,7 +234,7 @@ export default function CreateEventPage() {
       toast.success(`On-chain thành công! Event #${eventId || 'N/A'}`);
 
       if (eventId) {
-        setStatusMsg('Đang upload dữ liệu lên server...');
+        setStatusMsg('Đang lưu thông tin sự kiện vào Database...');
         const bodyData = {
           name: form.name,
           description: form.description,
@@ -216,12 +245,7 @@ export default function CreateEventPage() {
           maxResellPercentage: form.resaleRoyalty,
           startTime: `${form.eventStartDate}T${form.eventStartTime}:00.000Z`,
           endTime: `${form.eventEndDate}T${form.eventEndTime}:00.000Z`,
-          bankName: form.bankName,
-          bankAccount: form.bankAccount,
-          bankOwner: form.bankOwner,
-          bankBranch: form.bankBranch,
-          paymentNote: form.paymentNote,
-          bannerUrl: bannerPreview
+          bannerUrl: uploadedBannerUrl
         };
 
         const tk = localStorage.getItem('token');
@@ -230,6 +254,7 @@ export default function CreateEventPage() {
         };
         if (tk) h['Authorization'] = `Bearer ${tk}`;
         
+        // SỬA Ở ĐÂY: Xóa /api để tránh lặp /api/api
         const res = await fetch(`${API_URL}/events/${eventId}`, { 
           method: 'PUT', 
           headers: h, 
@@ -242,7 +267,7 @@ export default function CreateEventPage() {
         }
       }
       toast.success('Tạo sự kiện và đồng bộ database thành công!');
-      setTimeout(() => navigate('/organizer-dashboard'), 1200);
+      setTimeout(() => navigate('/organizer/events'), 1500);
     } catch (err: any) {
       toast.error(err?.reason || err?.message || 'Lỗi giao dịch');
       setStatusMsg('');
@@ -304,6 +329,30 @@ export default function CreateEventPage() {
                 {step === 3 && 'Nhập thông tin thanh toán, kiểm tra và phát hành lên blockchain'}
               </p>
             </div>
+
+            {step === 1 && (
+              <div className="mb-8 p-5 border border-dashed border-blue-500/40 bg-blue-900/10 rounded-2xl">
+                <h3 className="text-[15px] text-blue-400 font-bold mb-3">Tải ảnh Banner lên Hệ thống (Bắt buộc)</h3>
+                <div className="flex items-center gap-4 flex-wrap">
+                  <div className="flex-1">
+                    <p className="text-xs text-slate-400 mb-2">Hãy chọn ảnh ở form bên dưới, sau đó bấm nút tải lên.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleUploadBanner}
+                    disabled={isUploadingBanner || !bannerFile}
+                    className="px-5 py-2.5 bg-[linear-gradient(135deg,#3b82f6_0%,#2563eb_100%)] rounded-xl text-white text-sm font-bold disabled:opacity-50 transition-all hover:shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer"
+                  >
+                    {isUploadingBanner ? 'Đang tải...' : 'Tải ảnh lên Cloudinary'}
+                  </button>
+                </div>
+                {uploadedBannerUrl && (
+                  <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+                    <span className="text-emerald-400 text-sm font-semibold">✓ Ảnh đã được lưu thành công trên hệ thống.</span>
+                  </div>
+                )}
+              </div>
+            )}
 
             {step === 1 && (
               <Step1EventInfo

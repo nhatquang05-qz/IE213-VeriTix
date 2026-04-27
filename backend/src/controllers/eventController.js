@@ -1,5 +1,4 @@
 const Event = require('../models/Event');
-const cloudinary = require('../config/cloudinary');
 
 const getEvents = async (req, res, next) => {
   try {
@@ -17,9 +16,7 @@ const getEventById = async (req, res, next) => {
       return res.status(400).json({ message: 'Định dạng ID sự kiện không hợp lệ' });
     }
     const event = await Event.findById(id);
-    if (!event) {
-      return res.status(404).json({ message: 'Không tìm thấy sự kiện' });
-    }
+    if (!event) return res.status(404).json({ message: 'Không tìm thấy sự kiện' });
     res.status(200).json(event);
   } catch (error) {
     res.status(500).json({ message: 'Lỗi server khi tải chi tiết sự kiện', error: error.message });
@@ -55,7 +52,6 @@ const updateEventMetadata = async (req, res, next) => {
 const getOrganizerDashboard = async (req, res, next) => {
   try {
     const walletAddress = req.user.walletAddress.toLowerCase();
-    
     const events = await Event.find({ organizerWallet: walletAddress }).sort({ createdAt: -1 });
     
     let totalTicketsSold = 0;
@@ -75,21 +71,16 @@ const getOrganizerDashboard = async (req, res, next) => {
         name: event.name,
         status: event.status,
         maxSupply: event.maxSupply,
-        sold: sold,
+        sold,
         revenueETH: revenue.toFixed(4), 
         bannerUrl: event.bannerUrl
       };
     });
     
     res.status(200).json({
-      summary: {
-        totalEvents: events.length,
-        totalTicketsSold,
-        totalRevenueETH: totalRevenueETH.toFixed(4)
-      },
+      summary: { totalEvents: events.length, totalTicketsSold, totalRevenueETH: totalRevenueETH.toFixed(4) },
       events: eventStats
     });
-
   } catch (error) {
     next(error);
   }
@@ -113,7 +104,7 @@ const createOrUpdateEventFromBlockchain = async (req, res, next) => {
        return res.status(403).json({ message: "Bạn không có quyền sửa sự kiện này!" });
     }
 
-    const fields = ['name', 'description', 'category', 'location', 'price', 'maxSupply', 'maxResellPercentage', 'bankName', 'bankAccount', 'bankOwner', 'bankBranch', 'paymentNote'];
+    const fields = ['name', 'description', 'category', 'location', 'price', 'maxSupply', 'maxResellPercentage'];
     
     fields.forEach(field => {
        if (req.body[field] !== undefined) {
@@ -123,20 +114,10 @@ const createOrUpdateEventFromBlockchain = async (req, res, next) => {
 
     if (req.body.startTime) event.startTime = new Date(req.body.startTime);
     if (req.body.endTime) event.endTime = new Date(req.body.endTime);
+    if (req.body.bannerUrl) event.bannerUrl = req.body.bannerUrl;
 
-    if (req.body.bannerUrl && req.body.bannerUrl.startsWith('data:image')) {
-      const uploadResponse = await cloudinary.uploader.upload(req.body.bannerUrl, {
-        folder: 'veritix/events',
-      });
-      event.bannerUrl = uploadResponse.secure_url;
-    } else if (req.body.bannerUrl) {
-      event.bannerUrl = req.body.bannerUrl;
-    }
-    
     await event.save();
-    
     res.status(200).json({ message: "Lưu sự kiện thành công!", event });
-
   } catch (error) {
     next(error);
   }
