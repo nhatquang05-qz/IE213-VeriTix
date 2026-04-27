@@ -16,14 +16,13 @@ const AboutUsPage = lazy(() => import('./pages/AboutUsPage'));
 const EventDetail = lazy(() => import('./pages/EventDetail'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const ScanLoginPage = lazy(() => import('./pages/ScanLoginPage'));
 
-// Organizer pages
 const MyEventsPage = lazy(() => import('./pages/Organizer/MyEventsPage'));
 const CreateEventPage = lazy(() => import('./pages/Organizer/CreateEventPage'));
 const ReportsPage = lazy(() => import('./pages/Organizer/ReportsPage'));
 const TermsPage = lazy(() => import('./pages/Organizer/TermsPage'));
 
-// Organizer Event Detail pages
 const EventSummaryPage = lazy(() => import('./pages/Organizer/OrganizerEventDetail/EventSummaryPage'));
 const EventCheckInPage = lazy(() => import('./pages/Organizer/OrganizerEventDetail/EventCheckInPage'));
 const EventMembersPage = lazy(() => import('./pages/Organizer/OrganizerEventDetail/EventMembersPage'));
@@ -83,6 +82,8 @@ function App() {
         <BrowserRouter>
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
+              <Route path="/scan" element={<ScanLoginPage />} />
+
               <Route element={<MainLayout />}>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/about-us" element={<AboutUsPage />} />
@@ -92,7 +93,6 @@ function App() {
                 <Route path="/test" element={<TestConnection />} /> 
               </Route>
 
-              {/* ═══ ORGANIZER CẤP 1 — OrganizerLayout (sidebar chính) ═══ */}
               <Route path="/organizer" element={<OrganizerLayout />}>
                 <Route index element={<Navigate to="events" replace />} />
                 <Route path="events" element={<MyEventsPage />} />
@@ -101,7 +101,6 @@ function App() {
                 <Route path="terms" element={<TermsPage />} />
               </Route>
 
-              {/* ═══ ORGANIZER CẤP 2 — OrganizerEventDetailLayout (sidebar RIÊNG) ═══ */}
               <Route path="/organizer/events/:eventId" element={<OrganizerEventDetailLayout />}>
                 <Route index element={<Navigate to="summary" replace />} />
                 <Route path="summary" element={<EventSummaryPage />} />
@@ -112,12 +111,10 @@ function App() {
                 <Route path="vouchers/create" element={<EventVouchersPage />} />
               </Route>
 
-              {/* ═══ USER — MainLayout + Auth Guard ═══ */}
               <Route element={<MainLayout />}>
                 <Route path="/user/my-tickets" element={<MyTickets />} /> 
               </Route>
 
-              {/* Fallback */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>

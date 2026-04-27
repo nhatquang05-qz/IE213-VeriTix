@@ -2,6 +2,7 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const { ethers } = require('ethers');
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs'); 
 
 const generateNonce = () => {
   return crypto.randomBytes(16).toString('hex');
@@ -87,4 +88,43 @@ const verifySignature = async (req, res, next) => {
   }
 };
 
-module.exports = { getNonce, verifySignature };
+
+const loginWithPassword = async (req, res, next) => {
+  try {
+    const { username, password } = req.body;
+    
+    const user = await User.findOne({ username });
+
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ message: 'Tài khoản hoặc mật khẩu không chính xác' });
+    }
+
+    const token = jwt.sign(
+      { 
+        id: user._id, 
+        username: user.username, 
+        isOrganizer: user.isOrganizer,
+        isStaff: user.isStaff 
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+
+    res.status(200).json({
+      message: "Đăng nhập nhân viên thành công!",
+      token,
+      user: {
+        id: user._id,
+        username: user.username,
+        fullName: user.fullName,
+        isStaff: user.isStaff,
+        isOrganizer: user.isOrganizer
+      }
+    });
+  } catch (error) {
+    console.error("Lỗi trong loginWithPassword:", error);
+    next(error);
+  }
+};
+
+module.exports = { getNonce, verifySignature, loginWithPassword };

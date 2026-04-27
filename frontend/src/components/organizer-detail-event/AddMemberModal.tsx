@@ -113,7 +113,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ open, onClose, onAdd })
         const headers: Record<string, string> = { 'Content-Type': 'application/json' };
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
-        const res = await fetch(`${API_URL}/api/users/search?q=${encodeURIComponent(q)}&limit=8`, {
+        const res = await fetch(`${API_URL}/users/search?q=${encodeURIComponent(q)}&limit=8`, {
           headers,
           signal: ctrl.signal,
         });
