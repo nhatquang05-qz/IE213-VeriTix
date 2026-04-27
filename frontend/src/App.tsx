@@ -20,6 +20,7 @@ import MyEventsPage from './pages/Organizer/MyEventsPage';
 import CreateEventPage from './pages/Organizer/CreateEventPage';
 import ReportsPage from './pages/Organizer/ReportsPage';
 import TermsPage from './pages/Organizer/TermsPage';
+import ResellMarketplacePage from './pages/User/ResellMarketplacePage'; // Mở khóa dòng này
 
 // Organizer Event Detail pages
 import EventSummaryPage from './pages/Organizer/OrganizerEventDetail/EventSummaryPage';
@@ -120,6 +121,7 @@ function App() {
 
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="/resell" element={<ResellMarketplacePage />} />
           </Routes>
         </BrowserRouter>
       </Web3Provider>

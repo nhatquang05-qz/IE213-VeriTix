@@ -1,10 +1,12 @@
 import React, { useState } from 'react'; 
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { MdStorefront } from 'react-icons/md';
 
 const Navbar = ({ children }: { children: React.ReactNode }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { login, logout, user } = useAuth();
+  const location = useLocation(); 
 
   return (
     <div>
@@ -41,6 +43,20 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
               <Link to="/about-us" className="rounded-lg px-4 py-2 text-sm font-semibold text-white/80 transition hover:text-cyan-300">
                 About Us
               </Link>
+              
+              {/* NÚT CHỢ RESELL (DESKTOP) */}
+              <Link 
+                to="/resell" 
+                className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                  location.pathname.includes('/resell') 
+                    ? 'text-purple-400 bg-purple-500/10' 
+                    : 'text-white/80 hover:text-purple-400'
+                }`}
+              >
+                <MdStorefront size={18} />
+                Chợ Resell
+              </Link>
+
               {user && (
                 <Link
                   to="/user/my-tickets"
@@ -92,7 +108,6 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
             type="button"
             className="relative z-20 ml-auto flex cursor-pointer flex-col gap-1.5 rounded-md p-2 xl:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Open mobile menu"
           >
             <span className="h-0.5 w-5 rounded bg-cyan-300" />
             <span className="h-0.5 w-5 rounded bg-cyan-300" />
@@ -104,6 +119,20 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
           <div className="relative z-20 mx-4 mb-4 flex flex-col gap-3 rounded-xl border border-cyan-400/20 bg-[rgba(7,20,38,0.98)] p-4 xl:hidden">
             <Link to="/" className="rounded-lg px-3 py-2 text-sm text-white/85 hover:bg-cyan-400/10">Trang Chủ</Link>
             <Link to="/about-us" className="rounded-lg px-3 py-2 text-sm text-white/85 hover:bg-cyan-400/10">About Us</Link>
+            
+            {/* NÚT CHỢ RESELL (MOBILE) */}
+            <Link 
+              to="/resell" 
+              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold ${
+                location.pathname.includes('/resell') 
+                  ? 'text-purple-400 bg-purple-500/10' 
+                  : 'text-white/85 hover:bg-purple-500/10 hover:text-purple-400'
+              }`}
+            >
+              <MdStorefront size={18} />
+              Chợ Resell
+            </Link>
+
             {user && (
               <Link to="/user/my-tickets" className="rounded-lg px-3 py-2 text-sm text-cyan-300 hover:bg-cyan-400/10">Vé Của Tôi</Link>
             )}
