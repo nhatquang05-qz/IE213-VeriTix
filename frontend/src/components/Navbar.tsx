@@ -1,11 +1,19 @@
 import React, { useState } from 'react'; 
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = ({ children }: { children: React.ReactNode }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
 
   const { connectWallet, walletAddress } = useAuth();
+
+  const isActive = (path: string) => {
+    if (path === '/') {
+      return location.pathname === '/';
+    }
+    return location.pathname.startsWith(path);
+  };
 
   return (
     <div>
@@ -36,21 +44,38 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
             </div>
 
             <div className="flex items-center gap-4 whitespace-nowrap">
-              <Link to="/" className="rounded-lg px-4 py-2 text-sm font-semibold text-white/90 transition hover:text-cyan-300">
+              <Link 
+                to="/" 
+                className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                  isActive('/') ? 'text-cyan-300' : 'text-white/80 hover:text-cyan-300'
+                }`}
+              >
                 Trang Chủ
               </Link>
-              <Link to="/about-us" className="rounded-lg px-4 py-2 text-sm font-semibold text-white/80 transition hover:text-cyan-300">
+              <Link 
+                to="/about-us" 
+                className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                  isActive('/about-us') ? 'text-cyan-300' : 'text-white/80 hover:text-cyan-300'
+                }`}
+              >
                 About Us
               </Link>
               {walletAddress && (
                 <Link
                   to="/user/my-tickets"
-                    className="rounded-lg px-4 py-2 text-sm font-semibold text-cyan-300 transition hover:text-cyan-200"
+                  className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                    isActive('/user/my-tickets') ? 'text-cyan-300' : 'text-white/80 hover:text-cyan-300'
+                  }`}
                 >
                   Vé Của Tôi
                 </Link>
               )}
-              <Link to="/organizer" className="rounded-lg px-4 py-2 text-sm font-semibold text-white/80 transition hover:text-cyan-300">
+              <Link 
+                to="/organizer" 
+                className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                  isActive('/organizer') ? 'text-cyan-300' : 'text-white/80 hover:text-cyan-300'
+                }`}
+              >
                 Dashboard
               </Link>
             </div>
@@ -92,12 +117,40 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
 
         {mobileMenuOpen && (
           <div className="relative mx-4 mb-4 flex flex-col gap-3 rounded-xl border border-cyan-400/20 bg-[rgba(7,20,38,0.98)] p-4 xl:hidden">
-            <Link to="/" className="rounded-lg px-3 py-2 text-sm text-white/85 hover:bg-cyan-400/10">Trang Chủ</Link>
-            <Link to="/about-us" className="rounded-lg px-3 py-2 text-sm text-white/85 hover:bg-cyan-400/10">About Us</Link>
+            <Link 
+              to="/" 
+              className={`rounded-lg px-3 py-2 text-sm transition ${
+                isActive('/') ? 'bg-cyan-400/20 text-cyan-300' : 'text-white/85 hover:bg-cyan-400/10'
+              }`}
+            >
+              Trang Chủ
+            </Link>
+            <Link 
+              to="/about-us" 
+              className={`rounded-lg px-3 py-2 text-sm transition ${
+                isActive('/about-us') ? 'bg-cyan-400/20 text-cyan-300' : 'text-white/85 hover:bg-cyan-400/10'
+              }`}
+            >
+              About Us
+            </Link>
             {walletAddress && (
-              <Link to="/user/my-tickets" className="rounded-lg px-3 py-2 text-sm text-cyan-300 hover:bg-cyan-400/10">Vé Của Tôi</Link>
+              <Link 
+                to="/user/my-tickets" 
+                className={`rounded-lg px-3 py-2 text-sm transition ${
+                  isActive('/user/my-tickets') ? 'bg-cyan-400/20 text-cyan-300' : 'text-white/85 hover:bg-cyan-400/10'
+                }`}
+              >
+                Vé Của Tôi
+              </Link>
             )}
-            <Link to="/organizer" className="rounded-lg px-3 py-2 text-sm text-white/85 hover:bg-cyan-400/10">Dashboard</Link>
+            <Link 
+              to="/organizer" 
+              className={`rounded-lg px-3 py-2 text-sm transition ${
+                isActive('/organizer') ? 'bg-cyan-400/20 text-cyan-300' : 'text-white/85 hover:bg-cyan-400/10'
+              }`}
+            >
+              Dashboard
+            </Link>
             <div className="mt-1 flex items-center gap-2">
               {!walletAddress ? (
                 <button
