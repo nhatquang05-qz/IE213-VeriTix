@@ -13,7 +13,7 @@ const uploadRoutes = require('./src/routes/uploadRoutes');
 const app = express();
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://veritix-sepia.vercel.app'],
+  origin: ['http://localhost:5173', 'https://veritix-sepia.vercel.app', 'https://ie213-veritix.vercel.app'],
   credentials: true
 }));
 
