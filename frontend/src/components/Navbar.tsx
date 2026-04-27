@@ -1,7 +1,7 @@
 import React, { useState } from 'react'; 
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import logoImage from '../assets/images/Logo_VeriTix.png';
+import logoImage from '../assets/images/Logo_VeriTix.webp';
 
 const Navbar = ({ children }: { children: React.ReactNode }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
