@@ -4,7 +4,7 @@ import { ethers } from 'ethers';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
 import { toast } from 'react-toastify';
-import { MdConfirmationNumber, MdClose } from 'react-icons/md';
+import { MdConfirmationNumber, MdClose, MdAccessTime, MdLocationOn } from 'react-icons/md';
 import { QRCodeSVG } from 'qrcode.react';
 
 interface Ticket {
@@ -45,9 +45,9 @@ export default function MyTickets() {
     }
   };
 
-  const handleGenerateQR = async (ticketId: string, blockchainTicketId: number) => {
+  const handleGenerateQR = async (ticket: Ticket) => {
     try {
-      setIsSigning(ticketId);
+      setIsSigning(ticket._id);
       
       if (!window.ethereum) {
         throw new Error("Vui lòng cài đặt ví MetaMask để ký xác nhận tạo mã QR");
@@ -57,15 +57,22 @@ export default function MyTickets() {
       const signer = await provider.getSigner();
 
       const timestamp = Math.floor(Date.now() / 1000);
-      const message = `Check-in VeriTix\nTicket ID: ${blockchainTicketId}\nTimestamp: ${timestamp}`;
+      const eventTime = new Date(ticket.eventId.startTime).toLocaleString('vi-VN', {
+        day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+
+      const message = `VERITIX CHECK-IN\nSự kiện: ${ticket.eventId.name}\nThời gian: ${eventTime}\nID Vé: #${ticket.blockchainTicketId}\nTimestamp: ${timestamp}`;
 
       const signature = await signer.signMessage(message);
 
       const qrPayload = JSON.stringify({
-        blockchainTicketId,
+        "Sự Kiện": ticket.eventId.name,
+        "Thời Gian": eventTime,
+        "ID Vé": `#${ticket.blockchainTicketId}`,
+        blockchainTicketId: ticket.blockchainTicketId,
         timestamp,
         signature
-      });
+      }, null, 2);
 
       setSelectedQR(qrPayload);
     } catch (error: any) {
@@ -85,12 +92,16 @@ export default function MyTickets() {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12 animate-[vtx-fade_0.4s_ease]">
-      <div className="mb-8 border-b border-white/10 pb-6">
-        <h1 className="text-3xl font-extrabold text-white flex items-center gap-3">
-          <MdConfirmationNumber className="text-blue-400" />
-          Vé của tôi
-        </h1>
-        <p className="text-slate-400 mt-2">Quản lý tất cả các vé NFT bạn đã sở hữu trên VeriTix</p>
+      <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-white/10 pb-8">
+        <div>
+          <h1 className="text-4xl font-black text-white flex items-center gap-4">
+            <MdConfirmationNumber className="text-blue-500" />
+            Vé của tôi
+          </h1>
+          <p className="text-slate-400 mt-2">
+            Bạn đang sở hữu <span className="text-blue-400 font-bold">{tickets.length}</span> vé NFT trên hệ thống VeriTix
+          </p>
+        </div>
       </div>
 
       {isLoading ? (
@@ -99,81 +110,87 @@ export default function MyTickets() {
           <p className="text-slate-400">Đang truy xuất dữ liệu từ blockchain...</p>
         </div>
       ) : tickets.length === 0 ? (
-        <div className="bg-[#0d1117] border border-white/10 rounded-2xl p-12 flex flex-col items-center justify-center text-center">
-          <div className="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center mb-4">
-            <MdConfirmationNumber size={40} className="text-slate-600" />
+        <div className="bg-[#0d1117] border border-white/10 rounded-3xl p-16 flex flex-col items-center justify-center text-center">
+          <div className="w-24 h-24 bg-slate-800/50 rounded-full flex items-center justify-center mb-6">
+            <MdConfirmationNumber size={48} className="text-slate-600" />
           </div>
-          <h3 className="text-xl font-bold text-white mb-2">Bạn chưa có vé nào!</h3>
-          <p className="text-slate-400 mb-6">Hãy khám phá các sự kiện và sở hữu cho mình những tấm vé NFT độc bản.</p>
-          <a href="/" className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold transition-colors no-underline">
+          <h3 className="text-2xl font-bold text-white mb-2">Bạn chưa có vé nào!</h3>
+          <p className="text-slate-400 mb-8">Hãy khám phá các sự kiện và sở hữu cho mình những tấm vé NFT độc bản.</p>
+          <a href="/" className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3.5 rounded-2xl font-bold transition-all shadow-lg shadow-blue-900/20 no-underline">
             Khám phá sự kiện
           </a>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {tickets.map((ticket) => (
-            <div key={ticket._id} className="bg-[#111827] border border-white/10 rounded-2xl overflow-hidden hover:border-blue-500/50 transition-colors group flex flex-col">
-              <div className="h-40 overflow-hidden relative">
+            <div key={ticket._id} className="bg-[#161b22] border border-white/5 rounded-3xl overflow-hidden hover:border-blue-500/40 transition-all group shadow-2xl flex flex-col">
+              <div className="h-48 relative overflow-hidden">
                 <img 
                   src={ticket.eventId?.bannerUrl || 'https://via.placeholder.com/400x200'} 
                   alt={ticket.eventId?.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
-                <div className="absolute top-3 right-3">
-                  {ticket.status === 'SOLD' && <span className="bg-emerald-500 text-white px-3 py-1 text-xs font-bold rounded-full shadow-lg">CHƯA SỬ DỤNG</span>}
-                  {ticket.status === 'USED' && <span className="bg-slate-600 text-white px-3 py-1 text-xs font-bold rounded-full shadow-lg">ĐÃ CHECK-IN</span>}
+                <div className="absolute top-4 right-4">
+                  {ticket.status === 'SOLD' && (
+                    <span className="bg-emerald-500 text-white px-4 py-1.5 text-[11px] font-black uppercase tracking-widest rounded-full shadow-2xl">
+                      Hợp lệ
+                    </span>
+                  )}
+                  {ticket.status === 'USED' && (
+                    <span className="bg-slate-700 text-slate-300 px-4 py-1.5 text-[11px] font-black uppercase tracking-widest rounded-full shadow-2xl">
+                      Đã Check-in
+                    </span>
+                  )}
                 </div>
               </div>
 
-              <div className="p-5 flex-1 flex flex-col">
-                <h3 className="text-lg font-bold text-white mb-2 line-clamp-2">{ticket.eventId?.name || 'Sự kiện VeriTix'}</h3>
+              <div className="p-6 flex-1 flex flex-col">
+                <h3 className="text-xl font-bold text-white mb-4 line-clamp-2">{ticket.eventId?.name || 'Sự kiện VeriTix'}</h3>
                 
-                <div className="space-y-2 mt-auto pt-4 border-t border-white/5 text-sm text-slate-400">
-                  <div className="flex justify-between">
-                    <span>Mã vé On-chain:</span>
-                    <span className="font-mono text-blue-400">#{ticket.blockchainTicketId}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Thời gian diễn ra:</span>
+                <div className="space-y-3 mb-6 flex-1">
+                  <div className="flex items-center gap-3 text-slate-400 text-sm">
+                    <MdAccessTime className="text-blue-400" size={18} />
                     <span>{ticket.eventId?.startTime ? new Date(ticket.eventId.startTime).toLocaleString('vi-VN', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
+                      day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
                     }) : 'TBD'}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Thời gian mua:</span>
-                    <span className="text-[#8cceea]">{new Date(ticket.createdAt).toLocaleString('vi-VN', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      second: '2-digit'
+                  <div className="flex items-center gap-3 text-slate-400 text-sm">
+                    <MdLocationOn className="text-blue-400" size={18} />
+                    <span className="line-clamp-1">{ticket.eventId?.location}</span>
+                  </div>
+                </div>
+
+                <div className="bg-black/20 rounded-2xl p-4 border border-white/5 space-y-2 mb-6">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-500">Mã vé On-chain:</span>
+                    <span className="text-blue-400 font-mono font-bold">#{ticket.blockchainTicketId}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-500">Thời gian mua:</span>
+                    <span className="text-slate-300">{new Date(ticket.createdAt).toLocaleString('vi-VN', {
+                      day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
                     })}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Giá thanh toán:</span>
-                    <span className="text-white font-semibold">{parseInt(ticket.purchasePrice).toLocaleString()} VND</span>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-500">Giá thanh toán:</span>
+                    <span className="text-white font-bold">{parseInt(ticket.purchasePrice).toLocaleString()} VND</span>
                   </div>
                 </div>
                 
                 {ticket.status === 'SOLD' ? (
                   <button 
-                    onClick={() => handleGenerateQR(ticket._id, ticket.blockchainTicketId)}
+                    onClick={() => handleGenerateQR(ticket)}
                     disabled={isSigning === ticket._id}
-                    className="mt-5 w-full cursor-pointer bg-[linear-gradient(135deg,rgba(0,102,255,0.2),rgba(0,212,255,0.1))] hover:bg-blue-500/20 border border-blue-500/30 text-blue-300 py-2.5 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold transition-all shadow-lg shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isSigning === ticket._id ? 'Đang chờ ký xác nhận...' : 'Xem mã QR Check-in'}
+                    {isSigning === ticket._id ? 'Đang chờ ký xác nhận...' : 'HIỂN THỊ MÃ QR'}
                   </button>
                 ) : (
                   <button 
                     disabled
-                    className="mt-5 w-full bg-slate-800 border border-slate-700 text-slate-500 py-2.5 rounded-xl font-medium cursor-not-allowed"
+                    className="w-full bg-slate-800 text-slate-500 py-4 rounded-2xl font-bold cursor-not-allowed"
                   >
-                    Vé đã được sử dụng
+                    VÉ ĐÃ SỬ DỤNG
                   </button>
                 )}
               </div>
@@ -183,25 +200,34 @@ export default function MyTickets() {
       )}
 
       {selectedQR && (
-        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/80 backdrop-blur-sm px-4">
-          <div className="bg-[#111827] border border-blue-500/30 rounded-2xl p-8 max-w-sm w-full flex flex-col items-center relative animate-[vtx-fade_0.3s_ease]">
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/90 backdrop-blur-md px-4">
+          <div className="bg-[#0d1117] border border-white/10 rounded-[40px] p-10 max-w-md w-full text-center relative shadow-[0_0_100px_rgba(0,102,255,0.2)] animate-[vtx-fade_0.3s_ease]">
             <button
               onClick={() => setSelectedQR(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors cursor-pointer"
+              className="absolute top-6 right-6 text-slate-500 hover:text-white transition-colors cursor-pointer"
             >
-              <MdClose size={24} />
+              <MdClose size={32} />
             </button>
-            <h2 className="text-xl font-bold text-white mb-2">Mã QR Check-in</h2>
-            <p className="text-[13px] text-red-400 mb-6 text-center leading-relaxed">
-              Mã bảo mật động này chỉ có hiệu lực trong vòng <b>5 phút</b>.<br/>
-              Tuyệt đối không chụp màn hình gửi cho người khác!
-            </p>
-            <div className="bg-white p-4 rounded-xl shadow-[0_0_30px_rgba(0,102,255,0.2)]">
-              <QRCodeSVG value={selectedQR} size={220} level="H" includeMargin={false} />
+            
+            <div className="mb-6">
+              <h2 className="text-2xl font-black text-white">QR Check-in</h2>
+              <p className="text-blue-400 text-sm font-medium mt-1">Mã bảo mật có hiệu lực trong 5 phút</p>
             </div>
+
+            <div className="bg-white p-6 rounded-[32px] inline-block shadow-[0_0_40px_rgba(255,255,255,0.1)]">
+              <QRCodeSVG value={selectedQR} size={240} level="H" includeMargin={false} />
+            </div>
+
+            <div className="mt-8 text-left bg-blue-500/5 rounded-2xl p-4 border border-blue-500/10">
+              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-2">Lưu ý bảo mật:</p>
+              <p className="text-slate-300 text-xs leading-relaxed">
+                Tuyệt đối không chụp màn hình gửi cho người khác. Nhân viên soát vé sẽ quét trực tiếp mã này trên ứng dụng.
+              </p>
+            </div>
+            
             <button
               onClick={() => setSelectedQR(null)}
-              className="mt-8 w-full cursor-pointer bg-[linear-gradient(135deg,#0ea5e9_0%,#2563eb_62%,#1d4ed8_100%)] text-white py-3 rounded-xl font-semibold transition-all hover:shadow-[0_0_20px_rgba(37,99,235,0.4)]"
+              className="mt-6 w-full cursor-pointer bg-slate-800 text-white py-3.5 rounded-2xl font-bold transition-all hover:bg-slate-700"
             >
               Đóng
             </button>

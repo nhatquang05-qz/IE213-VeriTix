@@ -9,39 +9,9 @@ import type { EventFormData } from '../../components/organizer/CreateEventSteps'
 import Step1EventInfo from '../../components/organizer/Step1EventInfo';
 import Step2TicketConfig from '../../components/organizer/Step2TicketConfig';
 import Step3PaymentPublish from '../../components/organizer/Step3PaymentPublish';
-
-/* ══════════════════════════════════════════════════════════════════
-   Veritix — Tạo Sự Kiện (3-Step Wizard)
-   React + Tailwind · Component-based · Responsive
-   ══════════════════════════════════════════════════════════════════ */
+import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../../config/contract';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
-const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || '';
-
-const CREATE_ABI = [
-  {
-    inputs: [
-      { internalType: 'string', name: 'name', type: 'string' },
-      { internalType: 'uint256', name: 'price', type: 'uint256' },
-      { internalType: 'uint256', name: 'maxSupply', type: 'uint256' },
-      { internalType: 'uint256', name: 'maxResellPercentage', type: 'uint256' },
-    ],
-    name: 'createEvent',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      { indexed: true, internalType: 'uint256', name: 'eventId', type: 'uint256' },
-      { indexed: false, internalType: 'string', name: 'name', type: 'string' },
-      { indexed: false, internalType: 'address', name: 'organizer', type: 'address' },
-    ],
-    name: 'EventCreated',
-    type: 'event',
-  },
-] as const;
 
 export default function CreateEventPage() {
   const navigate = useNavigate();
@@ -85,7 +55,6 @@ export default function CreateEventPage() {
     paymentNote: '',
   });
 
-  /* File states */
   const [posterFile, setPosterFile] = useState<File | null>(null);
   const [posterPreview, setPosterPreview] = useState('');
   const [bannerFile, setBannerFile] = useState<File | null>(null);
@@ -115,7 +84,6 @@ export default function CreateEventPage() {
     } else setP('');
   };
 
-  /* ── Body/Root overrides ── */
   useEffect(() => {
     const b = document.body,
       r = document.getElementById('root');
@@ -147,7 +115,6 @@ export default function CreateEventPage() {
     };
   }, []);
 
-  /* ── Responsive ── */
   useEffect(() => {
     const ck = () => {
       const w = window.innerWidth;
@@ -161,7 +128,6 @@ export default function CreateEventPage() {
     return () => window.removeEventListener('resize', ck);
   }, []);
 
-  /* ── Validation ── */
   const validate = (s: number) => {
     const e: Record<string, string> = {};
     if (s === 1) {
@@ -194,14 +160,13 @@ export default function CreateEventPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  /* ── Submit ── */
   const handleSubmit = async () => {
     if (!window.ethereum) {
       toast.error('Vui lòng cài MetaMask!');
       return;
     }
     if (!CONTRACT_ADDRESS) {
-      toast.error('Contract chưa cấu hình .env');
+      toast.error('Chưa cấu hình địa chỉ Contract!');
       return;
     }
     if (!form.bankName || !form.bankAccount || !form.bankOwner) {
@@ -214,8 +179,9 @@ export default function CreateEventPage() {
       setStatusMsg('Đang kết nối MetaMask...');
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, CREATE_ABI, signer);
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
       setStatusMsg('Vui lòng xác nhận giao dịch trên MetaMask...');
+      
       const tx = await contract.createEvent(
         form.name,
         ethers.parseEther(form.price || '0'),
@@ -226,7 +192,7 @@ export default function CreateEventPage() {
       const receipt = await tx.wait();
 
       let eventId: string | null = null;
-      const iface = new ethers.Interface(CREATE_ABI);
+      const iface = new ethers.Interface(CONTRACT_ABI);
       for (const log of receipt.logs) {
         try {
           const p = iface.parseLog({ topics: log.topics as string[], data: log.data });
@@ -240,24 +206,42 @@ export default function CreateEventPage() {
 
       if (eventId) {
         setStatusMsg('Đang upload dữ liệu lên server...');
-        const fd = new FormData();
-        if (bannerFile) fd.append('banner', bannerFile);
-        if (posterFile) fd.append('poster', posterFile);
-        if (logoFile) fd.append('logo', logoFile);
-        fd.append('description', form.description);
-        fd.append('category', form.category);
-        fd.append('orgName', form.orgName);
-        fd.append('bankName', form.bankName);
-        fd.append('bankAccount', form.bankAccount);
-        fd.append('bankOwner', form.bankOwner);
-        fd.append('bankBranch', form.bankBranch);
-        fd.append('paymentNote', form.paymentNote);
+        const bodyData = {
+          name: form.name,
+          description: form.description,
+          category: form.category,
+          location: form.locationType === 'offline' ? form.venueName : 'Online',
+          price: form.price,
+          maxSupply: form.maxSupply,
+          maxResellPercentage: form.resaleRoyalty,
+          startTime: `${form.eventStartDate}T${form.eventStartTime}:00.000Z`,
+          endTime: `${form.eventEndDate}T${form.eventEndTime}:00.000Z`,
+          bankName: form.bankName,
+          bankAccount: form.bankAccount,
+          bankOwner: form.bankOwner,
+          bankBranch: form.bankBranch,
+          paymentNote: form.paymentNote,
+          bannerUrl: bannerPreview
+        };
+
         const tk = localStorage.getItem('token');
-        const h: Record<string, string> = {};
+        const h: Record<string, string> = {
+          'Content-Type': 'application/json'
+        };
         if (tk) h['Authorization'] = `Bearer ${tk}`;
-        await fetch(`${API_URL}/api/events/${eventId}`, { method: 'PUT', headers: h, body: fd });
+        
+        const res = await fetch(`${API_URL}/events/${eventId}`, { 
+          method: 'PUT', 
+          headers: h, 
+          body: JSON.stringify(bodyData) 
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.message || 'Không thể lưu dữ liệu lên database');
+        }
       }
-      toast.success('Tạo sự kiện thành công!');
+      toast.success('Tạo sự kiện và đồng bộ database thành công!');
       setTimeout(() => navigate('/organizer-dashboard'), 1200);
     } catch (err: any) {
       toast.error(err?.reason || err?.message || 'Lỗi giao dịch');
@@ -271,7 +255,6 @@ export default function CreateEventPage() {
 
   return (
     <>
-      {/* ── Global animations & overrides ── */}
       <style>{`
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
       @keyframes vtx-spin{to{transform:rotate(360deg)}}
@@ -289,7 +272,6 @@ export default function CreateEventPage() {
 
       <ToastContainer position="top-right" autoClose={3500} theme="dark" />
 
-      {/* Grid background */}
       <div
         className="fixed inset-0 pointer-events-none z-0"
         style={{
@@ -300,13 +282,11 @@ export default function CreateEventPage() {
       />
 
       <div className="flex min-h-screen bg-[#070a11] text-slate-100 font-['Inter',sans-serif] relative z-[1]">
-        {/* ── Main ── */}
         <main
           className="flex-1 overflow-auto transition-[margin-left] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] min-w-0"
           style={{ marginLeft: sidebarW }}
         >
           <div className="max-w-[880px] mx-auto px-3.5 md:px-8 py-5 md:py-11 pb-16 md:pb-20">
-            {/* ── Stepper ── */}
             <StepIndicator
               currentStep={step}
               onStepClick={(s) => {
@@ -314,7 +294,6 @@ export default function CreateEventPage() {
               }}
             />
 
-            {/* ── Step Title ── */}
             <div className="mb-5 md:mb-7 animate-[vtx-fade_0.4s_ease]">
               <h1 className="text-[22px] md:text-[28px] font-extrabold text-white tracking-tight">
                 {STEPS[step - 1].label}
@@ -326,7 +305,6 @@ export default function CreateEventPage() {
               </p>
             </div>
 
-            {/* ── Steps ── */}
             {step === 1 && (
               <Step1EventInfo
                 form={form}
@@ -353,7 +331,6 @@ export default function CreateEventPage() {
               />
             )}
 
-            {/* ── Navigation ── */}
             <div
               className={`flex items-center mt-5 md:mt-7 gap-3 ${step === 1 ? 'justify-end' : 'justify-between'}`}
             >
@@ -377,7 +354,6 @@ export default function CreateEventPage() {
               )}
             </div>
 
-            {/* Footer */}
             <p className="text-center text-[10px] tracking-[0.18em] uppercase text-slate-800 mt-10">
               Powered by Ethereum · ERC-721 NFT Standard
             </p>

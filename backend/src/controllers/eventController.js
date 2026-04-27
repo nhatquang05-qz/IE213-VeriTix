@@ -1,9 +1,8 @@
 const Event = require('../models/Event');
-
+const cloudinary = require('../config/cloudinary');
 
 const getEvents = async (req, res, next) => {
   try {
-    
     const events = await Event.find({ status: 'ACTIVE' }).sort({ createdAt: -1 });
     res.status(200).json(events);
   } catch (error) {
@@ -11,28 +10,21 @@ const getEvents = async (req, res, next) => {
   }
 };
 
-
 const getEventById = async (req, res, next) => {
   try {
     const { id } = req.params;
-
     if (!id.match(/^[0-9a-fA-F]{24}$/)) {
       return res.status(400).json({ message: 'Định dạng ID sự kiện không hợp lệ' });
     }
-
     const event = await Event.findById(id);
-
     if (!event) {
       return res.status(404).json({ message: 'Không tìm thấy sự kiện' });
     }
-
     res.status(200).json(event);
   } catch (error) {
-    console.error("Chi tiết lỗi getEventById:", error);
     res.status(500).json({ message: 'Lỗi server khi tải chi tiết sự kiện', error: error.message });
   }
 };
-
 
 const updateEventMetadata = async (req, res, next) => {
   try {
@@ -42,7 +34,6 @@ const updateEventMetadata = async (req, res, next) => {
     const event = await Event.findOne({ blockchainId: id });
     if (!event) return res.status(404).json({ message: "Không tìm thấy sự kiện" });
 
-    
     if (event.organizerWallet.toLowerCase() !== req.user.walletAddress.toLowerCase()) {
       return res.status(403).json({ message: "Cảnh báo: Bạn không phải chủ sự kiện này!" });
     }
@@ -104,4 +95,51 @@ const getOrganizerDashboard = async (req, res, next) => {
   }
 };
 
-module.exports = { getEvents, getEventById, updateEventMetadata, getOrganizerDashboard };
+const createOrUpdateEventFromBlockchain = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const walletAddress = req.user.walletAddress.toLowerCase();
+    
+    let event = await Event.findOne({ blockchainId: id });
+    
+    if (!event) {
+      event = new Event({
+        blockchainId: id,
+        organizerWallet: walletAddress,
+        status: 'ACTIVE',
+        isOnChain: true
+      });
+    } else if (event.organizerWallet.toLowerCase() !== walletAddress) {
+       return res.status(403).json({ message: "Bạn không có quyền sửa sự kiện này!" });
+    }
+
+    const fields = ['name', 'description', 'category', 'location', 'price', 'maxSupply', 'maxResellPercentage', 'bankName', 'bankAccount', 'bankOwner', 'bankBranch', 'paymentNote'];
+    
+    fields.forEach(field => {
+       if (req.body[field] !== undefined) {
+           event[field] = req.body[field];
+       }
+    });
+
+    if (req.body.startTime) event.startTime = new Date(req.body.startTime);
+    if (req.body.endTime) event.endTime = new Date(req.body.endTime);
+
+    if (req.body.bannerUrl && req.body.bannerUrl.startsWith('data:image')) {
+      const uploadResponse = await cloudinary.uploader.upload(req.body.bannerUrl, {
+        folder: 'veritix/events',
+      });
+      event.bannerUrl = uploadResponse.secure_url;
+    } else if (req.body.bannerUrl) {
+      event.bannerUrl = req.body.bannerUrl;
+    }
+    
+    await event.save();
+    
+    res.status(200).json({ message: "Lưu sự kiện thành công!", event });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getEvents, getEventById, updateEventMetadata, getOrganizerDashboard, createOrUpdateEventFromBlockchain };

@@ -53,46 +53,39 @@ const checkInTicket = async (req, res, next) => {
     
     const currentTime = Math.floor(Date.now() / 1000);
     if (currentTime - timestamp > 300) {
-      return res.status(400).json({ message: "Mã QR đã hết hạn, vui lòng yêu cầu khách tạo lại mã mới!" });    
+      return res.status(400).json({ message: "Mã QR đã hết hạn (quá 5 phút)!" });    
     }
     
     const ticket = await Ticket.findOne({ blockchainTicketId }).populate('eventId');
     if (!ticket) {
-      return res.status(404).json({ message: "Vé không tồn tại trên hệ thống!" });    
+      return res.status(404).json({ message: "Vé không tồn tại!" });    
     }
     
     if (ticket.eventId.organizerWallet.toLowerCase() !== req.user.walletAddress.toLowerCase()) {
-      return res.status(403).json({ message: "Cảnh báo: Bạn không có quyền soát vé cho sự kiện này!" });
+      return res.status(403).json({ message: "Bạn không có quyền soát vé cho sự kiện này!" });
     }
     
     if (ticket.status === 'USED') {
-      return res.status(400).json({ message: "VÉ NÀY ĐÃ ĐƯỢC SỬ DỤNG TRƯỚC ĐÓ!" });
+      return res.status(400).json({ message: "VÉ ĐÃ ĐƯỢC SỬ DỤNG!" });
     }
+
+    const eventTime = new Date(ticket.eventId.startTime).toLocaleString('vi-VN');
+    const message = `VERITIX CHECK-IN\nSự kiện: ${ticket.eventId.name}\nThời gian: ${eventTime}\nID Vé: #${blockchainTicketId}\nTimestamp: ${timestamp}`;    
     
-    const message = `Check-in VeriTix\nTicket ID: ${blockchainTicketId}\nTimestamp: ${timestamp}`;    
     const recoveredAddress = ethers.verifyMessage(message, signature);
     
     if (recoveredAddress.toLowerCase() !== ticket.ownerWallet.toLowerCase()) {
-      return res.status(401).json({ message: "MÃ QR GIẢ MẠO! Chữ ký không khớp với chủ sở hữu vé." });
+      return res.status(401).json({ message: "MÃ QR GIẢ MẠO!" });
     }
     
     const ticketOwner = await User.findOne({ walletAddress: ticket.ownerWallet });
-    
     ticket.status = 'USED';
     await ticket.save();
 
     res.status(200).json({ 
       message: "CHECK-IN THÀNH CÔNG!", 
-      ticketId: blockchainTicketId,
-      eventInfo: {
-        name: ticket.eventId.name,
-        time: ticket.eventId.startTime,
-        location: ticket.eventId.location
-      },
-      userInfo: {
-        fullName: ticketOwner ? ticketOwner.fullName : "Người dùng ẩn danh",
-        wallet: ticket.ownerWallet
-      }
+      event: ticket.eventId.name,
+      customer: ticketOwner ? ticketOwner.fullName : "Khách hàng"
     });
 
   } catch (error) {
