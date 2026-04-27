@@ -222,23 +222,28 @@ const EventDetail = () => {
               <span className="text-sm text-slate-400">(Tối đa 3 vé/lần)</span>
             </div>
 
-            <div className="flex items-center justify-between gap-[18px] md:flex-col md:items-stretch">
-              <div className="grid gap-2 text-[0.96rem] text-ed-text-subtle">
-                <div>
-                  <span className="font-semibold text-[#8cceea]">Địa điểm:</span> {event.location}
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-[18px] md:flex-col md:items-stretch">
+                <div className="grid gap-2 text-[0.96rem] text-ed-text-subtle">
+                  <div>
+                    <span className="font-semibold text-[#8cceea]">Địa điểm:</span> {event.location}
+                  </div>
+                  <div>
+                    <span className="font-semibold text-[#8cceea]">Số vé còn:</span> {remainingTickets}
+                  </div>
                 </div>
-                <div>
-                  <span className="font-semibold text-[#8cceea]">Số vé còn:</span> {remainingTickets}
+
+                <div className="flex flex-col gap-3 w-full md:w-auto">
+                  
+                  <button
+                    className="min-w-[220px] cursor-pointer rounded-2xl border-0 bg-[linear-gradient(120deg,#0ea5e9_0%,#2563eb_62%,#1d4ed8_100%)] px-[22px] py-[13px] text-base font-bold text-white shadow-ed-btn transition duration-200 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-ed-btn-hover disabled:cursor-not-allowed disabled:opacity-55 md:w-full"
+                    onClick={handleBuyTicket}
+                    disabled={loading || remainingTickets < quantity || !event.blockchainId}
+                  >
+                    {!event.blockchainId ? 'Sự kiện chưa mở' : remainingTickets < quantity ? 'Hết vé' : loading ? 'Đang xử lý...' : `Mua ${quantity} vé ngay`}
+                  </button>
                 </div>
               </div>
-
-              <button
-                className="min-w-[220px] cursor-pointer rounded-2xl border-0 bg-[linear-gradient(120deg,#0ea5e9_0%,#2563eb_62%,#1d4ed8_100%)] px-[22px] py-[13px] text-base font-bold text-white shadow-ed-btn transition duration-200 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-ed-btn-hover disabled:cursor-not-allowed disabled:opacity-55 md:w-full"
-                onClick={handleBuyTicket}
-                disabled={loading || remainingTickets < quantity || !event.blockchainId}
-              >
-                {!event.blockchainId ? 'Sự kiện chưa mở' : remainingTickets < quantity ? 'Hết vé' : loading ? 'Đang xử lý...' : `Mua ${quantity} vé ngay`}
-              </button>
             </div>
           </div>
 
@@ -306,4 +311,4 @@ const EventDetail = () => {
   );
 };
 
-export default EventDetail;
+export default EventDetail;   
