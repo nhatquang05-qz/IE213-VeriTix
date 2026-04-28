@@ -1,14 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { MdClose, MdSearch } from 'react-icons/md';
+import axiosClient from '../../utils/axiosClient';
 
 /* ══════════════════════════════════════════
    AddMemberModal — Popup thêm thành viên
-   
-   Thay đổi:
-   - ✅ Swap SVG icons → react-icons
-   - ✅ Responsive padding (px-4 sm:px-6)
-   - ✅ Footer buttons stack trên mobile
-   - Logic search / debounce / abort: giữ nguyên
    ══════════════════════════════════════════ */
 
 const API_URL = import.meta.env.VITE_API_URL || '';
@@ -61,18 +56,10 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ open, onClose, onAdd })
       },
       {
         _id: 'u2',
-        username: 'tranthib',
-        displayName: 'Trần Thị B',
-        email: 'thib@example.com',
-        walletAddress: '0xabcdef1234567890abcdef1234567890abcdef12',
-      },
-      {
-        _id: 'u3',
-        username: 'lehoangc',
-        displayName: 'Lê Hoàng C',
-        email: 'hoangc@example.com',
-        walletAddress: '0xdeadbeef1234567890abcdef1234567890abcdef',
-      },
+        username: 'qzboy',
+        displayName: 'Nhân viên QZ',
+        email: 'qz@example.com',
+      }
     ],
     []
   );
@@ -109,21 +96,20 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ open, onClose, onAdd })
           return;
         }
 
+        // Lấy Token và GỌI API ĐÚNG CHUẨN
         const token = localStorage.getItem('token');
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-
-        const res = await fetch(`${API_URL}/users/search?q=${encodeURIComponent(q)}&limit=8`, {
-          headers,
-          signal: ctrl.signal,
+        
+        // Truyền headers trực tiếp vào tham số thứ 2 của axiosClient.get
+        const res = await axiosClient.get(`/users/search?q=${encodeURIComponent(q)}&limit=8`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          signal: ctrl.signal
         });
-
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
+        
+        const data = res.data;
         const list: UserSearchResult[] = Array.isArray(data) ? data : data?.data || [];
         setResults(list);
       } catch (err: unknown) {
-        if ((err as { name?: string })?.name === 'AbortError') return;
+        if ((err as { name?: string })?.name === 'CanceledError') return; // axios abort error name
         setError('Không tìm được người dùng. Vui lòng thử lại.');
         setResults([]);
       } finally {
@@ -188,7 +174,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ open, onClose, onAdd })
                       type="text"
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
-                      placeholder="Nhập username, email hoặc tên..."
+                      placeholder="Nhập username, ví hoặc tên..."
                       autoFocus
                       className="
                         w-full bg-[#080b14] border border-white/[0.1] rounded-xl
@@ -235,7 +221,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ open, onClose, onAdd })
                               </p>
                               <p className="text-[11px] text-slate-600 truncate font-mono">
                                 @{u.username}
-                                {u.email && ` • ${u.email}`}
+                                {u.walletAddress && ` • ${u.walletAddress.slice(0, 6)}...`}
                               </p>
                             </div>
                           </button>
@@ -300,7 +286,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ open, onClose, onAdd })
                       }
                     `}
                   >
-                    {r === 'admin' ? 'Quản trị viên' : 'Nhân viên'}
+                    {r === 'admin' ? 'Quản trị viên' : 'Nhân viên soát vé'}
                   </button>
                 ))}
               </div>

@@ -3,7 +3,10 @@ const mongoose = require('mongoose');
 const eventSchema = new mongoose.Schema({
   blockchainId: { type: Number, unique: true, index: true }, 
   organizerWallet: { type: String, required: true, lowercase: true }, 
-
+  staffs: [{
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    role: { type: String, enum: ['admin', 'staff'], default: 'staff' }
+  }],
   name: { type: String, required: true },
   description: { type: String, default: "" },
   category: { type: String, default: "" },

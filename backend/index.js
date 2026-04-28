@@ -9,6 +9,7 @@ const authRoutes = require('./src/routes/authRoutes');
 const eventRoutes = require('./src/routes/eventRoutes');
 const ticketRoutes = require('./src/routes/ticketRoutes');
 const uploadRoutes = require('./src/routes/uploadRoutes');
+const userRoutes = require('./src/routes/userRoutes');
 
 const app = express();
 
@@ -28,7 +29,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes); 
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/upload', uploadRoutes);
-
+app.use('/api/users', userRoutes);
 app.get('/', (req, res) => {
   res.send('VeriTix API đang chạy ngon lành! 🚀');
 });
