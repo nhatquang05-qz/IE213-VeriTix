@@ -6,7 +6,6 @@ const { ethers } = require('ethers');
 
 const getMyTickets = async (req, res, next) => {
   try {    
-    // Đảm bảo lấy ví dạng chữ thường
     const walletAddress = req.user.walletAddress?.toLowerCase();       
     const tickets = await Ticket.find({ ownerWallet: walletAddress })
       .populate('eventId', 'name bannerUrl startTime location')
@@ -21,13 +20,12 @@ const getMyTickets = async (req, res, next) => {
 const createTicket = async (req, res, next) => {
   try {
     const { eventId, transactionHash, price, blockchainTicketIds } = req.body;
-    // Đảm bảo lưu ví dạng chữ thường
     const ownerWallet = req.user.walletAddress?.toLowerCase();
 
     const ticketData = blockchainTicketIds.map(tid => ({
       blockchainTicketId: tid,
       eventId,
-      ownerWallet, // Đã được đưa về chữ thường
+      ownerWallet,
       purchasePrice: price,
       status: 'SOLD'
     }));
@@ -65,19 +63,19 @@ const checkInTicket = async (req, res, next) => {
   try {
     const { blockchainTicketId, timestamp, signature } = req.body;
     
-    // 1. Kiểm tra thời gian hết hạn (5 phút)
+    // 1. Kiểm tra thời hạn QR (5 phút)
     const currentTime = Math.floor(Date.now() / 1000);
     if (currentTime - timestamp > 300) {
       return res.status(400).json({ message: "Mã QR đã hết hạn (quá 5 phút)!" });    
     }
     
-    // 2. Tìm vé trong DB
+    // 2. Tìm vé
     const ticket = await Ticket.findOne({ blockchainTicketId }).populate('eventId');
     if (!ticket) {
-      return res.status(404).json({ message: "Vé không tồn tại trên hệ thống!" });    
+      return res.status(404).json({ message: "Vé không tồn tại!" });    
     }
     
-    // 3. Phân quyền soát vé
+    // 3. KIỂM TRA QUYỀN: Cho phép Chủ sự kiện HOẶC Nhân viên
     const userId = req.user._id || req.user.id;
     const isOrganizer = ticket.eventId.organizerWallet?.toLowerCase() === req.user.walletAddress?.toLowerCase();
     
@@ -90,26 +88,24 @@ const checkInTicket = async (req, res, next) => {
       return res.status(403).json({ message: "Bạn không có quyền soát vé cho sự kiện này!" });
     }
     
-    // 4. Kiểm tra vé đã dùng chưa
+    // 4. Kiểm tra vé đã sử dụng
     if (ticket.status === 'USED') {
-      return res.status(400).json({ message: "VÉ NÀY ĐÃ ĐƯỢC SỬ DỤNG TRƯỚC ĐÓ!" });
+      return res.status(400).json({ message: "VÉ ĐÃ ĐƯỢC SỬ DỤNG!" });
     }
 
-    // 5. Xác thực chữ ký số
-    const eventTime = new Date(ticket.eventId.startTime).toLocaleString('vi-VN');
+    // 5. ĐỒNG BỘ FORMAT THỜI GIAN (Tránh sai lệch trình duyệt và server)
+    const d = new Date(ticket.eventId.startTime);
+    const pad = (n) => n.toString().padStart(2, '0');
+    const eventTime = `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
     
-    // Lưu ý: Chuỗi message này phải khớp 100% với chuỗi được ký ở Frontend
     const message = `VERITIX CHECK-IN\nSự kiện: ${ticket.eventId.name}\nThời gian: ${eventTime}\nID Vé: #${blockchainTicketId}\nTimestamp: ${timestamp}`;    
     
-    // Lấy địa chỉ ví đã thực hiện việc ký
     const recoveredAddress = ethers.verifyMessage(message, signature);
     
-    // FIX: Đưa cả 2 địa chỉ về chữ thường trước khi so sánh
     if (recoveredAddress.toLowerCase() !== ticket.ownerWallet?.toLowerCase()) {
       return res.status(400).json({ message: "MÃ QR GIẢ MẠO, KHÔNG PHẢI CHÍNH CHỦ!" });
     }
     
-    // 6. Check-in thành công, cập nhật trạng thái
     const ticketOwner = await User.findOne({ walletAddress: ticket.ownerWallet });
     ticket.status = 'USED';
     await ticket.save();
@@ -117,11 +113,10 @@ const checkInTicket = async (req, res, next) => {
     res.status(200).json({ 
       message: "CHECK-IN THÀNH CÔNG!", 
       event: ticket.eventId.name,
-      customer: ticketOwner ? ticketOwner.fullName : "Khách hàng ẩn danh"
+      customer: ticketOwner ? ticketOwner.fullName : "Khách hàng"
     });
 
   } catch (error) {
-    console.error("Lỗi Check-in:", error);
     next(error);
   }
 };

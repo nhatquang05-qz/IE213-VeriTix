@@ -57,9 +57,11 @@ export default function MyTickets() {
       const signer = await provider.getSigner();
 
       const timestamp = Math.floor(Date.now() / 1000);
-      const eventTime = new Date(ticket.eventId.startTime).toLocaleString('vi-VN', {
-        day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
-      });
+      
+      // ĐỒNG BỘ FORMAT THỜI GIAN VỚI BACKEND
+      const d = new Date(ticket.eventId.startTime);
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      const eventTime = `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
 
       const message = `VERITIX CHECK-IN\nSự kiện: ${ticket.eventId.name}\nThời gian: ${eventTime}\nID Vé: #${ticket.blockchainTicketId}\nTimestamp: ${timestamp}`;
 
