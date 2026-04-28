@@ -58,10 +58,12 @@ export default function MyTickets() {
 
       const timestamp = Math.floor(Date.now() / 1000);
       
-      // ĐỒNG BỘ FORMAT THỜI GIAN VỚI BACKEND
+      // ĐỒNG BỘ FORMAT THỜI GIAN VỚI BACKEND BẰNG CHUẨN UTC
       const d = new Date(ticket.eventId.startTime);
       const pad = (n: number) => n.toString().padStart(2, '0');
-      const eventTime = `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+      
+      // FIX LỖI TIMEZONE: Sử dụng getUTC... thay vì getLocal...
+      const eventTime = `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} ${pad(d.getUTCDate())}/${pad(d.getUTCMonth() + 1)}/${d.getUTCFullYear()} UTC`;
 
       const message = `VERITIX CHECK-IN\nSự kiện: ${ticket.eventId.name}\nThời gian: ${eventTime}\nID Vé: #${ticket.blockchainTicketId}\nTimestamp: ${timestamp}`;
 

@@ -63,18 +63,15 @@ const checkInTicket = async (req, res, next) => {
   try {
     const { blockchainTicketId, timestamp, signature } = req.body;
     
-    
     const currentTime = Math.floor(Date.now() / 1000);
     if (currentTime - timestamp > 300) {
       return res.status(400).json({ message: "Mã QR đã hết hạn (quá 5 phút)!" });    
     }
     
-    
     const ticket = await Ticket.findOne({ blockchainTicketId }).populate('eventId');
     if (!ticket) {
       return res.status(404).json({ message: "Vé không tồn tại!" });    
     }
-    
     
     const userId = req.user._id || req.user.id;
     const isOrganizer = ticket.eventId.organizerWallet?.toLowerCase() === req.user.walletAddress?.toLowerCase();
@@ -88,15 +85,13 @@ const checkInTicket = async (req, res, next) => {
       return res.status(403).json({ message: "Bạn không có quyền soát vé cho sự kiện này!" });
     }
     
-    
     if (ticket.status === 'USED') {
       return res.status(400).json({ message: "VÉ ĐÃ ĐƯỢC SỬ DỤNG!" });
     }
 
-    
     const d = new Date(ticket.eventId.startTime);
     const pad = (n) => n.toString().padStart(2, '0');
-    const eventTime = `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+    const eventTime = `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} ${pad(d.getUTCDate())}/${pad(d.getUTCMonth() + 1)}/${d.getUTCFullYear()} UTC`;
     
     const message = `VERITIX CHECK-IN\nSự kiện: ${ticket.eventId.name}\nThời gian: ${eventTime}\nID Vé: #${blockchainTicketId}\nTimestamp: ${timestamp}`;    
     
