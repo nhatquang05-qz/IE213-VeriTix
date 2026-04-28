@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { EVENT_STATUS_CONFIG, CATEGORY_EMOJI, CARD_GRADIENTS } from '../../constants/event';
 import type { OrganizerEvent } from '../../types/organizer.type';
 import {
@@ -14,7 +15,6 @@ import {
 
 export type { OrganizerEvent } from '../../types/organizer.type';
 
-/* ── Utils (An toàn hóa) ── */
 const fmtDate = (iso?: string) => {
   if (!iso) return 'Chưa cập nhật';
   try {
@@ -38,7 +38,6 @@ const fmtTime = (iso?: string) => {
   }
 };
 
-/* ── QuickAction ── */
 const QAction: React.FC<{ icon: React.ReactNode; label: string; onClick?: () => void }> = ({
   icon,
   label,
@@ -56,13 +55,16 @@ const QAction: React.FC<{ icon: React.ReactNode; label: string; onClick?: () => 
   </button>
 );
 
-/* ══════════════════════════════════════════ */
 type Props = { event: OrganizerEvent; index: number };
 
 const OrganizerEventCard: React.FC<Props> = ({ event, index }) => {
   const navigate = useNavigate();
+  const { user } = useAuth(); 
 
-  // Safeguard: Fallback status config nếu event.status bị sai/thiếu
+  
+  const isEventOrganizer = user?.walletAddress && event?.organizerWallet && user.walletAddress.toLowerCase() === event.organizerWallet.toLowerCase();
+  const isStaffOnly = !isEventOrganizer; 
+  
   const st = (event?.status && EVENT_STATUS_CONFIG[event.status]) || {
     bg: 'bg-slate-500/10',
     text: 'text-slate-400',
@@ -71,17 +73,14 @@ const OrganizerEventCard: React.FC<Props> = ({ event, index }) => {
     label: event?.status || 'Unknown',
   };
 
-  // Safeguard: Toán học an toàn
   const maxSupply = event?.maxSupply || 0;
   const currentMinted = event?.currentMinted || 0;
   const progress = maxSupply > 0 ? Math.round((currentMinted / maxSupply) * 100) : 0;
 
-  // Safeguard: Gradient array an toàn
   const gradientsList =
     CARD_GRADIENTS && CARD_GRADIENTS.length > 0 ? CARD_GRADIENTS : ['from-slate-800 to-slate-900'];
   const gradient = gradientsList[index % gradientsList.length];
 
-  // Safeguard: Category Emoji
   const categoryEmoji = (event?.category && CATEGORY_EMOJI[event.category]) || '✨';
 
   const goDetail = () => navigate(`/organizer/events/${event?._id || ''}/summary`);
@@ -89,7 +88,7 @@ const OrganizerEventCard: React.FC<Props> = ({ event, index }) => {
   const goMembers = () => navigate(`/organizer/events/${event?._id || ''}/members`);
   const goVouchers = () => navigate(`/organizer/events/${event?._id || ''}/vouchers`);
 
-  if (!event) return null; // Chặn render nếu object event null hoàn toàn
+  if (!event) return null; 
 
   return (
     <div
@@ -97,7 +96,6 @@ const OrganizerEventCard: React.FC<Props> = ({ event, index }) => {
       style={{ animation: `fadeSlideUp 0.4s ease ${index * 60}ms both` }}
     >
       <div className="flex flex-col sm:flex-row">
-        {/* Thumbnail */}
         <div className="relative sm:w-52 md:w-60 h-40 sm:h-auto shrink-0 overflow-hidden">
           {event.bannerUrl ? (
             <img
@@ -132,7 +130,6 @@ const OrganizerEventCard: React.FC<Props> = ({ event, index }) => {
           </div>
         </div>
 
-        {/* Info */}
         <div className="flex-1 p-4 sm:p-5 flex flex-col justify-between min-w-0">
           <div>
             <div className="flex items-start justify-between gap-3 mb-3">
@@ -162,7 +159,7 @@ const OrganizerEventCard: React.FC<Props> = ({ event, index }) => {
               </div>
             </div>
           </div>
-          {/* Progress + Price */}
+
           <div className="mt-4 flex items-end justify-between gap-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-1.5">
@@ -190,16 +187,18 @@ const OrganizerEventCard: React.FC<Props> = ({ event, index }) => {
         </div>
       </div>
 
-      {/* Quick Actions */}
       <div className="border-t border-white/[0.04] px-2 py-1 flex items-center justify-between">
         <div className="flex items-center gap-0.5 overflow-x-auto">
           <QAction onClick={goDetail} label="Tổng quan" icon={<LuClock3 size={15} />} />
 
-          <QAction onClick={goMembers} label="Thành viên" icon={<LuUserRound size={15} />} />
-
-          <QAction onClick={goVouchers} label="Voucher" icon={<LuTicket size={18} />} />
-
-          <QAction onClick={goEdit} label="Chỉnh sửa" icon={<LuSquarePen size={15} />} />
+          {}
+          {!isStaffOnly && (
+            <>
+              <QAction onClick={goMembers} label="Thành viên" icon={<LuUserRound size={15} />} />
+              <QAction onClick={goVouchers} label="Voucher" icon={<LuTicket size={18} />} />
+              <QAction onClick={goEdit} label="Chỉnh sửa" icon={<LuSquarePen size={15} />} />
+            </>
+          )}
         </div>
         <button
           onClick={goDetail}

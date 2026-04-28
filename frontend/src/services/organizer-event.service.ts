@@ -5,10 +5,11 @@ import type {
   UpdateEventPayload,
   UpdateEventResponse,
 } from '../types/organizer.type';
-import type { OrganizerEvent } from '../components/organizer/OrganizerEventList';
+import type { OrganizerEvent } from '../types/organizer.type';
 
 export async function getOrganizerEvents(): Promise<OrganizerEvent[]> {
   try {
+    
     const { data } = await api.get('/events/my-events');
     
     return data.map((e: any) => ({
@@ -25,7 +26,8 @@ export async function getOrganizerEvents(): Promise<OrganizerEvent[]> {
       category: e.category || 'Khác',
       location: e.location || 'Chưa cập nhật',
       sold: e.sold || e.currentMinted || 0,
-      revenueETH: e.revenueETH || "0"
+      revenueETH: e.revenueETH || "0",
+      organizerWallet: e.organizerWallet || "" 
     }));
   } catch (error) {
     console.error('[organizer-event.service] API failed:', error);
