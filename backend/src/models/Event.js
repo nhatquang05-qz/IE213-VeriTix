@@ -5,7 +5,8 @@ const eventSchema = new mongoose.Schema({
   organizerWallet: { type: String, required: true, lowercase: true }, 
   staffs: [{
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    role: { type: String, enum: ['admin', 'staff'], default: 'staff' }
+    role: { type: String, enum: ['admin', 'staff'], default: 'staff' },
+    addedAt: { type: Date, default: Date.now }
   }],
   name: { type: String, required: true },
   description: { type: String, default: "" },

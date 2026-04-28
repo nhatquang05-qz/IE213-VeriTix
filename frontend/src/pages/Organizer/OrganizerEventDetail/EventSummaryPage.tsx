@@ -1,15 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { MdGridView, MdAttachMoney, MdTrendingUp } from 'react-icons/md';
 import { TbCube3dSphere } from 'react-icons/tb';
+import api from '../../../services/api';
 import type { EventDetailContext } from '../../../types/organizer.type';
 
-/* ══════════════════════════════════════════
-   EventSummaryPage — Trang "Tổng kết"
-  
-   ══════════════════════════════════════════ */
-
-/* ── SVG Donut Ring (giữ nguyên - data viz) ── */
 const DonutRing: React.FC<{
   percent: number;
   color: string;
@@ -56,7 +51,7 @@ const DonutRing: React.FC<{
   );
 };
 
-/* ── RevenueChart (giữ nguyên SVG - data viz) ── */
+
 type TimeFrame = '24h' | '30d';
 type ChartPoint = { label: string; revenue: number; tickets: number };
 
@@ -209,23 +204,20 @@ const RevenueChart: React.FC<{ data: ChartPoint[]; timeframe: TimeFrame }> = ({
 export default function EventSummaryPage() {
   const { event } = useOutletContext<EventDetailContext>();
   const [timeframe, setTimeframe] = useState<TimeFrame>('24h');
+  const [chartData, setChartData] = useState<ChartPoint[]>([]);
 
-  const chartData: ChartPoint[] = useMemo(() => {
-    if (!event) return [];
-    const price = parseFloat(event.price || '0');
-    if (timeframe === '24h') {
-      return Array.from({ length: 22 }, (_, i) => ({
-        label: `${i.toString().padStart(2, '0')}:00`,
-        revenue: 0,
-        tickets: 0,
-      }));
-    }
-    return Array.from({ length: 30 }, (_, i) => ({
-      label: `${i + 1}`,
-      revenue: 0 * price,
-      tickets: 0,
-    }));
-  }, [timeframe, event]);
+  useEffect(() => {
+    const fetchChartData = async () => {
+      if (!event) return;
+      try {
+        const { data } = await api.get(`/events/${event._id}/summary-chart?timeframe=${timeframe}`);
+        setChartData(data);
+      } catch (error) {
+        console.error('Lỗi khi tải dữ liệu biểu đồ:', error);
+      }
+    };
+    fetchChartData();
+  }, [event?._id, timeframe]);
 
   if (!event) return null;
 
@@ -235,7 +227,7 @@ export default function EventSummaryPage() {
   const price = parseFloat(event.price || '0');
   const revenueETH = ticketsSold * price;
 
-  // Stat cards - đã swap sang react-icons
+  
   const stats = [
     {
       label: 'Tổng vé phát hành',
@@ -279,7 +271,7 @@ export default function EventSummaryPage() {
 
   return (
     <div className="max-w-[960px] mx-auto animate-[vtx-fade_0.35s_ease]">
-      {/* ══════ Section 1: Doanh thu ══════ */}
+      {}
       <h2 className="text-base sm:text-lg font-bold text-white mb-4">Doanh thu</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-6">
         <div className="bg-[#0d1117] border border-white/[0.06] rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-4 hover:border-white/[0.1] transition-colors">
@@ -310,7 +302,7 @@ export default function EventSummaryPage() {
         </div>
       </div>
 
-      {/* ══════ Section 2: Biểu đồ ══════ */}
+      {}
       <div className="bg-[#0d1117] border border-white/[0.06] rounded-2xl p-4 sm:p-5 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <div className="flex items-center gap-4 sm:gap-5 flex-wrap">
@@ -347,10 +339,10 @@ export default function EventSummaryPage() {
         <RevenueChart data={chartData} timeframe={timeframe} />
       </div>
 
-      {/* ══════ Section 3: "Vé đã bán" - RESPONSIVE ══════ */}
+      {}
       <h3 className="text-[14px] sm:text-[15px] font-bold text-white mb-3">Vé đã bán</h3>
 
-      {/* Desktop: Table */}
+      {}
       <div className="hidden md:block bg-[#0d1117] border border-white/[0.06] rounded-2xl overflow-x-auto mb-6">
         <table className="w-full min-w-[640px]">
           <thead>
@@ -401,13 +393,12 @@ export default function EventSummaryPage() {
         </table>
       </div>
 
-      {/* Mobile: Card stack */}
+      {}
       <div className="md:hidden flex flex-col gap-2.5 mb-6">
         {ticketRows.map((row) => {
           const percent = row.total > 0 ? Math.round((row.sold / row.total) * 100) : 0;
           return (
             <div key={row.type} className="bg-[#0d1117] border border-white/[0.06] rounded-xl p-4">
-              {/* Header */}
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="min-w-0">
                   <p className="text-[13.5px] font-semibold text-slate-200 truncate">{row.type}</p>
@@ -420,7 +411,6 @@ export default function EventSummaryPage() {
                 </span>
               </div>
 
-              {/* Data grid */}
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div>
                   <p className="text-[10.5px] text-slate-600 uppercase tracking-wider mb-0.5">
@@ -440,7 +430,6 @@ export default function EventSummaryPage() {
                 </div>
               </div>
 
-              {/* Progress bar */}
               <div className="h-2 rounded-full bg-white/[0.04] overflow-hidden">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-amber-500 to-yellow-400 transition-all duration-700"
@@ -452,7 +441,7 @@ export default function EventSummaryPage() {
         })}
       </div>
 
-      {/* ══════ Section 4: Chi tiết (stats) ══════ */}
+      {}
       <h2 className="text-base sm:text-lg font-bold text-white mb-4">Chi tiết</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-3">
         {stats.map((s) => (

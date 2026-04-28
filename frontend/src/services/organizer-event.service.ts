@@ -9,8 +9,9 @@ import type { OrganizerEvent } from '../components/organizer/OrganizerEventList'
 
 export async function getOrganizerEvents(): Promise<OrganizerEvent[]> {
   try {
-    const { data } = await api.get<OrganizerDashboardResponse>('/events/organizer/dashboard');
-    return data.events.map((e: any) => ({
+    const { data } = await api.get('/events/my-events');
+    
+    return data.map((e: any) => ({
       _id: e._id,
       blockchainId: e.blockchainId,
       name: e.name,

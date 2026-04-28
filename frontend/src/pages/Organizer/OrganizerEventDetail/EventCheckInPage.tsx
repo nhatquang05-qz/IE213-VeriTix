@@ -1,12 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { Html5Qrcode } from 'html5-qrcode';
 import {
   MdCameraAlt,
   MdCheckCircleOutline,
   MdErrorOutline,
-  MdLogout,
-  MdPeopleOutline,
   MdQrCodeScanner,
   MdRefresh,
   MdFileUpload,
@@ -67,12 +65,29 @@ export default function EventCheckInPage() {
   const [isScannerReady, setIsScannerReady] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Stop camera an toàn
+  
+  useEffect(() => {
+    const fetchCheckinStats = async () => {
+      if (!event?._id) return;
+      try {
+        const { data } = await api.get(`/events/${event._id}/checkin-stats`);
+        setSummaryState({
+          checkedIn: data.checkedIn,
+          insideNow: data.insideNow,
+          leftVenue: data.leftVenue
+        });
+      } catch (error) {
+        console.error("Lỗi lấy dữ liệu thống kê:", error);
+      }
+    };
+    
+    fetchCheckinStats();
+  }, [event?._id]);
+
   const stopScanner = async () => {
     if (scannerRef.current && scannerRef.current.isScanning) {
       try {
         await scannerRef.current.stop();
-        // Cố tình không gọi clear() để không phá vỡ DOM, giúp component sống dai hơn
       } catch (err) {
         console.error("Lỗi khi dừng camera:", err);
       }
@@ -80,7 +95,6 @@ export default function EventCheckInPage() {
     setIsScannerReady(false);
   };
 
-  // Hàm xử lý chung (Cả Camera và File ảnh đều dùng hàm này)
   const processPayload = async (rawText: string) => {
     if (scanLockRef.current) return;
     scanLockRef.current = true;
@@ -98,12 +112,12 @@ export default function EventCheckInPage() {
 
     try {
       const response = await api.post<CheckInResponse>('/tickets/checkin', payload);
+      
       setSummaryState(prev => ({ ...prev, checkedIn: prev.checkedIn + 1, insideNow: prev.insideNow + 1 }));
       setFeedback({ status: 'success', title: 'Thành công', message: response.data?.message || 'Vé hợp lệ.', ticketId: payload.blockchainTicketId, scannedAt: new Date().toISOString() });
     } catch (error: any) {
       const msg = error.response?.data?.message || getErrorMessage(error);
       
-      // Nếu API báo lỗi 401 thì mới chuyển hướng về login
       if (error.response?.status === 401) {
         toast.error("Phiên đăng nhập hết hạn, vui lòng đăng nhập lại!");
         navigate('/login');
@@ -113,39 +127,34 @@ export default function EventCheckInPage() {
       setFeedback({ status: 'error', title: 'Thất bại', message: msg, ticketId: payload.blockchainTicketId, scannedAt: new Date().toISOString() });
     } finally {
       setIsSubmitting(false);
-      setTimeout(() => { scanLockRef.current = false; }, 2500); // 2.5s sau mới quét tiếp được
+      setTimeout(() => { scanLockRef.current = false; }, 2500); 
     }
   };
 
-  // Hàm xử lý upload ảnh
   const handleFileScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     try {
-      // 1. Nếu scanner chưa khởi tạo, tạo mới
       if (!scannerRef.current) {
         scannerRef.current = new Html5Qrcode(scannerContainerId);
       }
       
-      // 2. Dừng quét camera (nếu đang chạy) nhưng không xoá DOM
       if (scannerRef.current.isScanning) {
         await scannerRef.current.stop();
         setIsScannerReady(false);
       }
 
-      // 3. Quét ảnh
       const decodedText = await scannerRef.current.scanFile(file, true);
       void processPayload(decodedText);
     } catch (err) {
       toast.error("Không tìm thấy mã QR trong ảnh này!");
       setFeedback({ status: 'error', title: 'Lỗi đọc ảnh', message: 'Vui lòng chọn ảnh rõ nét hơn.', scannedAt: new Date().toISOString() });
     } finally {
-      if (fileInputRef.current) fileInputRef.current.value = ''; // Reset input để chọn lại file cũ được
+      if (fileInputRef.current) fileInputRef.current.value = ''; 
     }
   };
 
-  // Khởi động Camera
   const startScanner = async () => {
     if (startingScannerRef.current) return;
     startingScannerRef.current = true;
@@ -187,13 +196,12 @@ export default function EventCheckInPage() {
     <div className="max-w-4xl mx-auto p-4">
       <div className="grid grid-cols-1 md:grid-cols-[1fr_300px] gap-6">
         
-        {/* CỘT TRÁI: CAMERA & NÚT */}
+        {}
         <div className="bg-[#0d1117] rounded-3xl border border-white/10 p-6 overflow-hidden flex flex-col justify-between">
           <div className="mb-4">
              <div className="flex items-center gap-2 text-white font-bold mb-3">
                <MdCameraAlt size={20} /> Màn hình Quét
              </div>
-             {/* Khu vực chứa video HTML5 */}
              <div id={scannerContainerId} className="w-full aspect-[4/3] bg-[#050814] rounded-2xl overflow-hidden relative shadow-inner">
                {!isScannerReady && (
                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 z-10">
@@ -204,7 +212,6 @@ export default function EventCheckInPage() {
           </div>
 
           <div className="flex flex-wrap gap-3 mt-auto">
-            {/* Nút tải ảnh */}
             <button 
               type="button" 
               onClick={() => fileInputRef.current?.click()} 
@@ -215,7 +222,6 @@ export default function EventCheckInPage() {
             </button>
             <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileScan} />
             
-            {/* Nút bật/tắt camera */}
             <button 
               type="button" 
               onClick={isScannerReady ? stopScanner : startScanner} 
@@ -227,9 +233,9 @@ export default function EventCheckInPage() {
           </div>
         </div>
 
-        {/* CỘT PHẢI: KẾT QUẢ & THỐNG KÊ */}
+        {}
         <div className="flex flex-col gap-4">
-           {/* THỐNG KÊ */}
+           {}
            <div className="bg-[#0d1117] border border-white/10 rounded-3xl p-5 flex items-center justify-between">
               <div>
                 <p className="text-[13px] text-slate-500 mb-1">Đã check-in</p>
@@ -239,7 +245,7 @@ export default function EventCheckInPage() {
               <DonutRing percent={checkinPercent} color="#0ea5e9" size={80} />
            </div>
 
-           {/* FEEDBACK QUÉT MÃ */}
+           {}
            <div className={`flex-1 rounded-3xl border ${tone.shell} p-6 flex flex-col items-center justify-center text-center shadow-lg transition-colors`}>
              <div className={`text-5xl mb-4 flex justify-center ${tone.accent}`}>
                {feedback.status === 'success' ? <MdCheckCircleOutline /> : feedback.status === 'error' ? <MdErrorOutline /> : <MdQrCodeScanner />}
@@ -247,7 +253,7 @@ export default function EventCheckInPage() {
              <h3 className={`text-xl font-bold mb-2 ${tone.accent}`}>{feedback.title}</h3>
              <p className="text-slate-300 text-sm leading-relaxed mb-6 max-w-[200px]">{feedback.message}</p>
              {feedback.ticketId && <div className="w-full bg-black/40 py-2 px-3 rounded-lg font-mono text-[13px] text-white truncate shadow-inner">ID: #{feedback.ticketId}</div>}
-           </div>
+           </div> 
         </div>
 
       </div>
