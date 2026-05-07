@@ -9,7 +9,7 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div>
-      <nav className="fixed top-0 right-0 left-0 z-[1000] border-b border-cyan-400/10 bg-[rgba(7,20,38,0.9)] backdrop-blur-xl">
+      <nav className="sticky top-0 right-0 left-0 z-[1000] border-b border-cyan-400/10 bg-[rgba(7,20,38,0.9)] backdrop-blur-xl">
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(0,102,255,0.05)_0%,rgba(0,212,255,0.02)_50%,rgba(0,102,255,0.05)_100%)]" />
 
         <div className="relative mx-auto flex h-[86px] w-full max-w-[1640px] items-center justify-between gap-6 px-10 max-[1024px]:h-[72px] max-[1024px]:px-6">

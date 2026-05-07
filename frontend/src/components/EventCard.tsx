@@ -1,7 +1,7 @@
 import type { IEvent } from "../types/event.type";
 
 const EventCard = ({ event }: { event: IEvent }) => {
-  const formattedTime = new Date(event.startDate).toLocaleDateString('vi-VN', {
+  const formattedDate = new Date(event.startDate).toLocaleDateString('vi-VN', {
     weekday: 'long',
     day: '2-digit',
     month: '2-digit',
@@ -15,6 +15,7 @@ const EventCard = ({ event }: { event: IEvent }) => {
       <div className="event-info">
         <h3>{event.title}</h3>
         <p>{event.location}</p>
+        <p>{formattedDate}</p>
         <p>{event.startTime}</p>
         <div className="event-footer">
           <span className="event-price">{event.price.toLocaleString()}đ</span>

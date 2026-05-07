@@ -7,6 +7,7 @@ import MyTickets from './pages/User/MyTickets';
 import MainLayout from './layouts/MainLayout';
 import OrganizerLayout from './layouts/OrganizerLayout';
 import OrganizerEventDetailLayout from './layouts/OrganizerEventDetailLayout';
+import AdminLayout from './layouts/AdminLayout';
 
 // Public pages
 import HomePage from './pages/HomePage';
@@ -27,6 +28,11 @@ import EventCheckInPage from './pages/Organizer/OrganizerEventDetail/EventCheckI
 import EventMembersPage from './pages/Organizer/OrganizerEventDetail/EventMembersPage';
 import EventEditPage from './pages/Organizer/OrganizerEventDetail/EventEditPage';
 import EventVouchersPage from './pages/Organizer/OrganizerEventDetail/EventVouchersPage';
+
+// Admin pages
+import UserManagementPage from './pages/Admin/UserManagementPage';
+import EventManagementPage from './pages/Admin/EventManagementPage';
+import StatisticsPage from './pages/Admin/StatisticsPage';
 
 // Contexts
 import { AuthProvider } from './contexts/AuthContext';
@@ -116,6 +122,14 @@ function App() {
             <Route element={<MainLayout />}>
               {/* <Route path="/user/profile" element={<ProfilePage />} /> */}
               <Route path="/user/my-tickets" element={<MyTickets />} /> {/* Mở khóa dòng này */}
+            </Route>
+
+            {/* ═══ ADMIN — AdminLayout (sidebar chính) ═══ */}
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<Navigate to="statistics" replace />} />
+              <Route path="users" element={<UserManagementPage />} />
+              <Route path="events" element={<EventManagementPage />} />
+              <Route path="statistics" element={<StatisticsPage />} />
             </Route>
 
             {/* Fallback */}

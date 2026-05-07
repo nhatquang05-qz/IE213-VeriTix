@@ -46,6 +46,7 @@ const featuredEvents = featuredConfigs
       title: event.title,
       location: event.location,
       date: new Date(event.startDate).toLocaleDateString('vi-VN'),
+      startTime: event.startTime,
       price: `${event.price.toLocaleString('vi-VN')}đ`,
       imageUrl: event.imageUrl,
     };
@@ -54,6 +55,7 @@ const featuredEvents = featuredConfigs
     title: string;
     location: string;
     date: string;
+    startTime: string;
     price: string;
     imageUrl: string;
   } => event !== null);
@@ -124,7 +126,7 @@ const EventCarousel: React.FC = () => {
                     {currentEvent.location}
                   </p>
                   <p className="flex items-center justify-center gap-2 text-base max-[768px]:text-sm max-[480px]:text-xs">
-                    {currentEvent.date}
+                    {currentEvent.date} • {currentEvent.startTime}
                   </p>
                 </div>
                 <div className="mb-7 flex flex-col items-center gap-2 max-[768px]:mb-5">
