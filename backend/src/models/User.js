@@ -1,22 +1,22 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-  // 1. Định danh chính bằng Web3 (Bắt buộc)
   walletAddress: { 
     type: String, 
-    required: true, 
     unique: true,
     lowercase: true,
     trim: true,
-    index: true
+    index: true,
+    sparse: true
   },
-
-  // 2. Thông tin cá nhân Có thể cập nhật sau khi login ví
-  email: { 
+  username: { 
     type: String, 
-    trim: true,
-    lowercase: true,
-    default: '' 
+    unique: true, 
+    sparse: true,
+    trim: true
+  },
+  password: { 
+    type: String 
   },
   fullName: { 
     type: String, 
@@ -24,21 +24,16 @@ const userSchema = new mongoose.Schema({
   },
   phone: { 
     type: String, 
-    default: '' 
+    trim: true,
+    sparse: true
   },
-  
-  // 3. Phân quyền linh hoạt (Dùng cờ Flag thay vì Enum để dễ nâng cấp user)
   isOrganizer: { type: Boolean, default: false }, 
   isAdmin: { type: Boolean, default: false },
-
-  // 4. Mã bảo mật cho Web3
+  isStaff: { type: Boolean, default: false },
   nonce: { 
-    type: String, 
-    required: true 
+    type: String
   }, 
-
 }, { 
-  // 5. Tự động thêm createdAt và updatedAt
   timestamps: true 
 });
 

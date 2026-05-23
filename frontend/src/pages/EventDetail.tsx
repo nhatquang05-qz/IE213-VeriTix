@@ -2,9 +2,12 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ethers } from "ethers";
 import { getEventById } from "../services/api";
-import { buyTicket } from "../services/contract.service";
+import { buyTicketsBatch} from "../services/contract.service";
+import { getEthToVndRate } from "../services/currency.service";
 import { useWeb3 } from "../hooks/useWeb3";
+import api from "../services/api";
 import type { IEvent } from "../types/event.type";
+import { CONTRACT_ADDRESS, CONTRACT_ABI } from "../config/contract";
 
 const EventDetail = () => {
   const { id } = useParams();
@@ -13,6 +16,8 @@ const EventDetail = () => {
   const [transactionHash, setTransactionHash] = useState<string | null>(null);
   const [confirmations, setConfirmations] = useState<number>(0);
   const [transactionStatus, setTransactionStatus] = useState<'pending' | 'confirmed' | 'failed' | null>(null);
+  const [ethRate, setEthRate] = useState<number>(80000000);
+  const [quantity, setQuantity] = useState<number>(1);
   const { account, connectWallet } = useWeb3();
 
   const handleBuyTicket = async () => {
@@ -23,8 +28,13 @@ const EventDetail = () => {
 
     if (!event) return;
 
-    if (remainingTickets <= 0) {
-      alert('Vé đã hết!');
+    if (!event.blockchainId || event.blockchainId === 0) {
+      alert('Sự kiện này chưa được đồng bộ lên Blockchain. Vui lòng liên hệ ban tổ chức!');
+      return;
+    }
+
+    if (remainingTickets < quantity) {
+      alert('Không đủ vé!');
       return;
     }
 
@@ -34,25 +44,46 @@ const EventDetail = () => {
     setConfirmations(0);
 
     try {
-      // Sử dụng onChainId của event
-      const eventId = event.onChainId;
-      // tokenURI có thể là một string mặc định hoặc từ event
-      const tokenURI = `https://example.com/ticket/${eventId}`;
-      // Giá vé tính bằng ETH, giả sử 0.01 ETH cho mỗi vé
-      const priceInEth = (event.price / 1000000).toString(); // Giả sử chuyển đổi từ VND sang ETH
+      const eventId = event.blockchainId;
+      
+      let totalPriceEth = "0";
+      try {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const readContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+        const eventOnChain = await readContract.events(eventId);
+        const exactTicketPriceWei = eventOnChain.ticketPrice;
+        const totalPriceWei = exactTicketPriceWei * BigInt(quantity);
+        totalPriceEth = ethers.formatEther(totalPriceWei);
+      } catch (err) {
+        const singlePriceEth = parseInt(event.price) / ethRate;
+        totalPriceEth = (singlePriceEth * quantity * 1.05).toFixed(18).toString();
+      }
+      
+      const tokenURIs = Array.from({ length: quantity }).map((_, i) => 
+        `https://veritix.com/ticket/${eventId}/${Date.now()}-${i}`
+      );
 
-      const tx = await buyTicket(eventId, tokenURI, priceInEth);
+      const tx = await buyTicketsBatch(eventId, quantity, tokenURIs, totalPriceEth);
       setTransactionHash(tx.hash);
 
-      // Theo dõi confirmations
       const provider = new ethers.BrowserProvider(window.ethereum);
-      await provider.waitForTransaction(tx.hash, 1); // Chờ 1 confirmation
-      setConfirmations(1);
-      setTransactionStatus('confirmed');
+      const receipt = await provider.waitForTransaction(tx.hash, 1);
+      
+      if (receipt && receipt.status === 1) {
+        const ticketsToSync = Array.from({ length: quantity }).map(() => Math.floor(Math.random() * 1000000));
 
-      alert('Mua vé thành công! Transaction hash: ' + tx.hash);
+        await api.post('/tickets', {
+          eventId: event._id,
+          transactionHash: tx.hash,
+          price: event.price,
+          blockchainTicketIds: ticketsToSync 
+        });
+
+        setConfirmations(1);
+        setTransactionStatus('confirmed');
+        alert(`Mua thành công ${quantity} vé và đã đồng bộ hệ thống!`);
+      }
     } catch (error) {
-      console.error('Error buying ticket:', error);
       setTransactionStatus('failed');
       alert('Lỗi khi mua vé: ' + (error as Error).message);
     } finally {
@@ -63,6 +94,7 @@ const EventDetail = () => {
   useEffect(() => {
     if (!id) return;
     getEventById(id).then(setEvent);
+    getEthToVndRate().then(setEthRate);
   }, [id]);
 
   if (!event) {
@@ -75,15 +107,27 @@ const EventDetail = () => {
     );
   }
 
-  const remainingTickets = event.maxSupply - event.soldCount;
-  const soldPercent = event.maxSupply > 0 ? Math.min((event.soldCount / event.maxSupply) * 100, 100) : 0;
-  const eventDateLong = new Date(event.startDate).toLocaleDateString("vi-VN", {
+  const remainingTickets = event.maxSupply - event.currentMinted;
+  const soldPercent = event.maxSupply > 0 ? Math.min((event.currentMinted / event.maxSupply) * 100, 100) : 0;
+  
+  const eventDateLong = new Date(event.startTime).toLocaleString("vi-VN", {
     weekday: "long",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
   });
-  const eventDateShort = new Date(event.startDate).toLocaleDateString("vi-VN");
+
+  const eventDateShort = new Date(event.startTime).toLocaleString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
+  const estimatedEthPrice = (parseInt(event.price) / ethRate).toFixed(6);
 
   const txStatusLabel =
     transactionStatus === "pending"
@@ -118,7 +162,7 @@ const EventDetail = () => {
 
       <header
         className="relative min-h-[500px] overflow-hidden border-b border-sky-300/20 bg-cover bg-center"
-        style={{ backgroundImage: `url(${event.imageUrl})` }}
+        style={{ backgroundImage: `url(${event.bannerUrl})` }}
       >
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,8,23,0.68)_0%,rgba(2,8,23,0.32)_55%,rgba(2,8,23,0.64)_100%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,9,19,0.2)_0%,rgba(4,9,19,0.72)_70%,rgba(4,9,19,0.94)_100%)]" />
@@ -137,12 +181,14 @@ const EventDetail = () => {
               Sự kiện nổi bật
             </span>
             <h1 className="mt-3 mb-2 text-[clamp(2rem,5vw,3.8rem)] leading-[1.06] tracking-[-0.02em] max-[480px]:text-[1.8rem]">
-              {event.title}
+              {event.name}
             </h1>
             <p className="m-0 text-[clamp(0.92rem,2vw,1.05rem)] text-ed-text-subtle">{event.location} • {eventDateLong} • {event.startTime}</p>
             <div className="mt-[18px] inline-flex w-fit items-center gap-[10px] rounded-2xl border border-sky-400/28 bg-[rgba(6,12,26,0.78)] px-[14px] py-[10px] font-semibold text-[#9adff7] max-[480px]:flex max-[480px]:w-full max-[480px]:justify-between">
               <span>Giá từ</span>
-              <strong className="text-[1.36rem] tracking-[-0.02em] text-white">{event.price.toLocaleString()}đ</strong>
+              <strong className="text-[1.36rem] tracking-[-0.02em] text-white">
+                {parseInt(event.price).toLocaleString()}đ <span className="text-[1rem] text-[#bcefff] font-normal">(~{estimatedEthPrice} ETH)</span>
+              </strong>
             </div>
           </div>
         </div>
@@ -166,23 +212,51 @@ const EventDetail = () => {
             </div>
           </div>
 
-          <div className="mt-6 flex items-center justify-between gap-[18px] md:flex-col md:items-stretch">
-            <div className="grid gap-2 text-[0.96rem] text-ed-text-subtle">
-              <div>
-                <span className="font-semibold text-[#8cceea]">Địa điểm:</span> {event.location}
+          <div className="mt-8 flex flex-col gap-6">
+            <div className="flex items-center gap-4">
+              <span className="text-[1rem] font-bold text-[#eff8ff]">Số lượng vé:</span>
+              <div className="flex items-center gap-1 rounded-xl bg-white/5 border border-white/10 p-1">
+                {[1, 2, 3].map((num) => (
+                  <button
+                    key={num}
+                    onClick={() => setQuantity(num)}
+                    className={`h-10 w-12 rounded-lg text-sm font-bold transition-all ${
+                      quantity === num
+                        ? "bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]"
+                        : "text-slate-400 hover:bg-white/10"
+                    }`}
+                  >
+                    {num}
+                  </button>
+                ))}
               </div>
-              <div>
-                <span className="font-semibold text-[#8cceea]">Số vé còn:</span> {remainingTickets}
-              </div>
+              <span className="text-sm text-slate-400">(Tối đa 3 vé/lần)</span>
             </div>
 
-            <button
-              className="min-w-[186px] cursor-pointer rounded-2xl border-0 bg-[linear-gradient(120deg,#0ea5e9_0%,#2563eb_62%,#1d4ed8_100%)] px-[22px] py-[13px] text-base font-bold text-white shadow-ed-btn transition duration-200 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-ed-btn-hover disabled:cursor-not-allowed disabled:opacity-55 md:w-full"
-              onClick={handleBuyTicket}
-              disabled={loading || remainingTickets <= 0}
-            >
-              {remainingTickets <= 0 ? 'Hết vé' : loading ? 'Đang xử lý...' : 'Mua vé ngay'}
-            </button>
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-[18px] md:flex-col md:items-stretch">
+                <div className="grid gap-2 text-[0.96rem] text-ed-text-subtle">
+                  <div>
+                    <span className="font-semibold text-[#8cceea]">Địa điểm:</span> {event.location}
+                  </div>
+                  <div>
+                    <span className="font-semibold text-[#8cceea]">Số vé còn:</span> {remainingTickets}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3 w-full md:w-auto">
+                
+
+                  <button
+                    className="min-w-[220px] cursor-pointer rounded-2xl border-0 bg-[linear-gradient(120deg,#0ea5e9_0%,#2563eb_62%,#1d4ed8_100%)] px-[22px] py-[13px] text-base font-bold text-white shadow-ed-btn transition duration-200 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-ed-btn-hover disabled:cursor-not-allowed disabled:opacity-55 md:w-full"
+                    onClick={handleBuyTicket}
+                    disabled={loading || remainingTickets < quantity || !event.blockchainId}
+                  >
+                    {!event.blockchainId ? 'Sự kiện chưa mở' : remainingTickets < quantity ? 'Hết vé' : loading ? 'Đang xử lý...' : `Mua ${quantity} vé ngay`}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
           {transactionStatus && (
@@ -199,7 +273,7 @@ const EventDetail = () => {
                   <p>
                     <strong className="text-[#8cceea]">Transaction Hash:</strong>{' '}
                     <a
-                      href={`https://etherscan.io/tx/${transactionHash}`}
+                      href={`https://sepolia.etherscan.io/tx/${transactionHash}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="border-b border-dashed border-b-[rgba(137,219,255,0.6)] text-[#89dbff] no-underline hover:border-b-[rgba(216,245,255,0.88)] hover:text-[#d8f5ff]"
@@ -232,7 +306,7 @@ const EventDetail = () => {
             </div>
             <div className="flex items-center justify-between gap-[10px] rounded-[14px] border border-slate-400/18 bg-white/3 p-[13px] text-[0.92rem] text-ed-text-soft md:flex-col md:items-start">
               <span>Giá vé</span>
-              <strong className="text-right font-semibold text-[#eff8ff] md:text-left">{event.price.toLocaleString()}đ</strong>
+              <strong className="text-right font-semibold text-[#eff8ff] md:text-left">{parseInt(event.price).toLocaleString()}đ</strong>
             </div>
             <div className="flex items-center justify-between gap-[10px] rounded-[14px] border border-slate-400/18 bg-white/3 p-[13px] text-[0.92rem] text-ed-text-soft md:flex-col md:items-start">
               <span>Số lượng</span>
@@ -240,7 +314,7 @@ const EventDetail = () => {
             </div>
             <div className="flex items-center justify-between gap-[10px] rounded-[14px] border border-slate-400/18 bg-white/3 p-[13px] text-[0.92rem] text-ed-text-soft md:flex-col md:items-start">
               <span>Đã bán</span>
-              <strong className="text-right font-semibold text-[#eff8ff] md:text-left">{event.soldCount.toLocaleString()}</strong>
+              <strong className="text-right font-semibold text-[#eff8ff] md:text-left">{event.currentMinted.toLocaleString()}</strong>
             </div>
             <div className="rounded-[14px] border border-slate-400/18 bg-white/3 p-[13px]">
               <div className="mb-2 text-[0.9rem] text-ed-text-soft">Ví nhà tổ chức</div>

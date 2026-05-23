@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useState, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from './config/contract';
-import MyTickets from './pages/User/MyTickets';
-// Layouts
+import LoadingSpinner from './components/common/LoadingSpinner';
+
+import { AuthProvider } from './contexts/AuthContext';
+import { Web3Provider } from './contexts/Web3Context';
+
 import MainLayout from './layouts/MainLayout';
 import OrganizerLayout from './layouts/OrganizerLayout';
 import OrganizerEventDetailLayout from './layouts/OrganizerEventDetailLayout';
@@ -21,6 +24,7 @@ import MyEventsPage from './pages/Organizer/MyEventsPage';
 import CreateEventPage from './pages/Organizer/CreateEventPage';
 import ReportsPage from './pages/Organizer/ReportsPage';
 import TermsPage from './pages/Organizer/TermsPage';
+import ResellMarketplacePage from './pages/User/ResellMarketplacePage'; // Mở khóa dòng này
 
 // Organizer Event Detail pages
 import EventSummaryPage from './pages/Organizer/OrganizerEventDetail/EventSummaryPage';
@@ -38,7 +42,6 @@ import StatisticsPage from './pages/Admin/StatisticsPage';
 import { AuthProvider } from './contexts/AuthContext';
 import { Web3Provider } from './contexts/Web3Context';
 
-// Giữ lại hàm Test Connection của 
 function TestConnection() {
   const [status, setStatus] = useState("");
   const [address, setAddress] = useState("");
@@ -134,6 +137,7 @@ function App() {
 
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="/resell" element={<ResellMarketplacePage />} />
           </Routes>
         </BrowserRouter>
       </Web3Provider>

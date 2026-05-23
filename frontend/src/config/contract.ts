@@ -1,4 +1,4 @@
-export const CONTRACT_ADDRESS = "0x0161eC9C96b7446744CD32793dCdEBaE1812F2b7"; 
+export const CONTRACT_ADDRESS = "0x6f25c6195def88a7263A92E131c78Ed8822c1eF1";
 
 export const CONTRACT_ABI = [
     {
@@ -137,6 +137,56 @@ export const CONTRACT_ABI = [
       "type": "error"
     },
     {
+      "inputs": [],
+      "name": "VeriTix__EventClosed",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "VeriTix__InsufficientFunds",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "VeriTix__InvalidQuantity",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "VeriTix__MissingTokenURIs",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "VeriTix__NotTicketOwner",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "VeriTix__PriceExceedsMax",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "VeriTix__SoldOut",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "VeriTix__TicketAlreadyUsed",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "VeriTix__TicketNotForSale",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "VeriTix__TransferFailed",
+      "type": "error"
+    },
+    {
       "anonymous": false,
       "inputs": [
         {
@@ -210,9 +260,9 @@ export const CONTRACT_ABI = [
       "inputs": [
         {
           "indexed": true,
-          "internalType": "uint256",
+          "internalType": "uint64",
           "name": "eventId",
-          "type": "uint256"
+          "type": "uint64"
         },
         {
           "indexed": false,
@@ -317,9 +367,9 @@ export const CONTRACT_ABI = [
         },
         {
           "indexed": true,
-          "internalType": "uint256",
+          "internalType": "uint64",
           "name": "eventId",
-          "type": "uint256"
+          "type": "uint64"
         },
         {
           "indexed": false,
@@ -440,9 +490,9 @@ export const CONTRACT_ABI = [
     {
       "inputs": [
         {
-          "internalType": "uint256",
+          "internalType": "uint64",
           "name": "eventId",
-          "type": "uint256"
+          "type": "uint64"
         },
         {
           "internalType": "string",
@@ -458,6 +508,29 @@ export const CONTRACT_ABI = [
           "type": "uint256"
         }
       ],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint64",
+          "name": "eventId",
+          "type": "uint64"
+        },
+        {
+          "internalType": "uint64",
+          "name": "quantity",
+          "type": "uint64"
+        },
+        {
+          "internalType": "string[]",
+          "name": "_tokenURIs",
+          "type": "string[]"
+        }
+      ],
+      "name": "buyTickets",
+      "outputs": [],
       "stateMutability": "payable",
       "type": "function"
     },
@@ -487,9 +560,9 @@ export const CONTRACT_ABI = [
           "type": "uint256"
         },
         {
-          "internalType": "uint256",
+          "internalType": "uint64",
           "name": "maxSupply",
-          "type": "uint256"
+          "type": "uint64"
         },
         {
           "internalType": "uint256",
@@ -500,9 +573,9 @@ export const CONTRACT_ABI = [
       "name": "createEvent",
       "outputs": [
         {
-          "internalType": "uint256",
+          "internalType": "uint64",
           "name": "",
-          "type": "uint256"
+          "type": "uint64"
         }
       ],
       "stateMutability": "nonpayable",
@@ -511,23 +584,13 @@ export const CONTRACT_ABI = [
     {
       "inputs": [
         {
-          "internalType": "uint256",
+          "internalType": "uint64",
           "name": "",
-          "type": "uint256"
+          "type": "uint64"
         }
       ],
       "name": "events",
       "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "id",
-          "type": "uint256"
-        },
-        {
-          "internalType": "string",
-          "name": "name",
-          "type": "string"
-        },
         {
           "internalType": "uint256",
           "name": "price",
@@ -539,14 +602,24 @@ export const CONTRACT_ABI = [
           "type": "uint256"
         },
         {
-          "internalType": "uint256",
-          "name": "maxSupply",
-          "type": "uint256"
+          "internalType": "uint64",
+          "name": "id",
+          "type": "uint64"
         },
         {
-          "internalType": "uint256",
+          "internalType": "uint64",
+          "name": "maxSupply",
+          "type": "uint64"
+        },
+        {
+          "internalType": "uint64",
           "name": "currentMinted",
-          "type": "uint256"
+          "type": "uint64"
+        },
+        {
+          "internalType": "bool",
+          "name": "isActive",
+          "type": "bool"
         },
         {
           "internalType": "address",
@@ -554,9 +627,9 @@ export const CONTRACT_ABI = [
           "type": "address"
         },
         {
-          "internalType": "bool",
-          "name": "isActive",
-          "type": "bool"
+          "internalType": "string",
+          "name": "name",
+          "type": "string"
         }
       ],
       "stateMutability": "view",
@@ -747,6 +820,24 @@ export const CONTRACT_ABI = [
     {
       "inputs": [
         {
+          "internalType": "uint64",
+          "name": "eventId",
+          "type": "uint64"
+        },
+        {
+          "internalType": "uint64",
+          "name": "tokenId",
+          "type": "uint64"
+        }
+      ],
+      "name": "setInitialIds",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "bytes4",
           "name": "interfaceId",
           "type": "bytes4"
@@ -793,18 +884,18 @@ export const CONTRACT_ABI = [
         },
         {
           "internalType": "uint256",
-          "name": "eventId",
+          "name": "resalePrice",
           "type": "uint256"
+        },
+        {
+          "internalType": "uint64",
+          "name": "eventId",
+          "type": "uint64"
         },
         {
           "internalType": "bool",
           "name": "isUsed",
           "type": "bool"
-        },
-        {
-          "internalType": "uint256",
-          "name": "resalePrice",
-          "type": "uint256"
         },
         {
           "internalType": "address",

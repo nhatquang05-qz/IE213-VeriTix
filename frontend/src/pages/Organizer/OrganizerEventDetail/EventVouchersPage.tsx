@@ -10,13 +10,12 @@ import VoucherHistoryModal from '../../../components/organizer-detail-event/Vouc
 import ConfirmDialog from '../../../components/common/ConfirmDialog';
 import EmptyState from '../../../components/common/EmptyState';
 
-// IMPORT AXIOS API CỦA BRO VÀO ĐÂY (Thay vì dùng Mock)
 import api, { getErrorMessage } from '../../../services/api'; 
 
 export default function EventVouchersPage() {
   const { event } = useOutletContext<EventDetailContext>();
   const [vouchers, setVouchers] = useState<IVoucher[]>([]);
-  const [isLoading, setIsLoading] = useState(false); // Thêm state loading
+  const [isLoading, setIsLoading] = useState(false); 
 
   const [formModal, setFormModal] = useState<{ open: boolean; editing: IVoucher | null }>({
     open: false,

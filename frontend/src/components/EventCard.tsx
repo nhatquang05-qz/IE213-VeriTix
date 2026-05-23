@@ -1,4 +1,5 @@
 import type { IEvent } from "../types/event.type";
+import { optimizeCloudinaryUrl } from '../utils/axiosClient';
 
 const EventCard = ({ event }: { event: IEvent }) => {
   const formattedDate = new Date(event.startDate).toLocaleDateString('vi-VN', {
@@ -8,17 +9,21 @@ const EventCard = ({ event }: { event: IEvent }) => {
     year: 'numeric',
   });
 
+  const priceFormatted = `${parseInt(event.price).toLocaleString('vi-VN')}đ`;
+
   return (
     <div className="event-card">
-      <img src={event.imageUrl} alt={event.title} />
+      <img src={optimizeCloudinaryUrl(event.bannerUrl, 600)} 
+      alt={event.name}
+      loading="lazy"/>
 
       <div className="event-info">
-        <h3>{event.title}</h3>
+        <h3>{event.name}</h3>
         <p>{event.location}</p>
         <p>{formattedDate}</p>
         <p>{event.startTime}</p>
         <div className="event-footer">
-          <span className="event-price">{event.price.toLocaleString()}đ</span>
+          <span className="event-price">{priceFormatted}</span>
           <div className="detail-button">Xem chi tiết</div>
         </div>
       </div>

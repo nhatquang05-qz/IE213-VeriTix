@@ -80,12 +80,26 @@ export function getErrorMessage(error: unknown): string {
 
 /* ── TẠM THỜI GIỮ LẠI HÀM MOCK DATA ĐỂ TRANG CHỦ KHÔNG BỊ LỖI ── */
 export const getEvents = async (): Promise<IEvent[]> => {
-  return Promise.resolve(mockEvents);
+  try {
+    const response = await api.get('/events');
+    return response.data;
+  } catch (error) {
+    console.error('[API] Failed to fetch events:', error);
+    // Fallback to mock data if API fails
+    return Promise.resolve(mockEvents);
+  }
 };
 
 export const getEventById = async (id: string): Promise<IEvent | null> => {
-  const found = mockEvents.find((event) => event._id === id);
-  return Promise.resolve(found ?? null);
+  try {
+    const response = await api.get(`/events/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('[API] Failed to fetch event:', error);
+    // Fallback to mock data if API fails
+    const found = mockEvents.find((event) => event._id === id);
+    return Promise.resolve(found ?? null);
+  }
 };
 
 export default api;

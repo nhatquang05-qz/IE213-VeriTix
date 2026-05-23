@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext'; 
 import {
   MdChevronLeft,
   MdChevronRight,
@@ -16,10 +17,6 @@ import {
 import { TbCube3dSphere } from 'react-icons/tb';
 import { EVENT_DETAIL_NAV } from '../../constants/sidebar';
 
-/* ══════════════════════════════════════════
-   EventDetailSidebar — Sidebar cấp 2
-   ══════════════════════════════════════════ */
-
 const NAV_ICONS: Record<string, React.ReactNode> = {
   summary: <MdBarChart size={15} />,
   checkin: <MdCheckCircle size={15} />,
@@ -28,7 +25,6 @@ const NAV_ICONS: Record<string, React.ReactNode> = {
   vouchers: <MdLocalOffer size={15} />,
 };
 
-/* Group heading icons — đã chuyển sang react-icons */
 const GROUP_ICONS: Record<string, React.ReactNode> = {
   'Báo cáo': <MdInsertChart size={12} />,
   'Cài đặt sự kiện': <MdSettings size={12} />,
@@ -137,6 +133,7 @@ type EventDetailSidebarProps = {
   eventName?: string;
   expanded: boolean;
   onToggle: () => void;
+  organizerWallet?: string; 
 };
 
 const EventDetailSidebar: React.FC<EventDetailSidebarProps> = ({
@@ -144,10 +141,30 @@ const EventDetailSidebar: React.FC<EventDetailSidebarProps> = ({
   eventName,
   expanded,
   onToggle,
+  organizerWallet, 
 }) => {
   const navigate = useNavigate();
   const { eventId: paramId } = useParams();
   const basePath = `/organizer/events/${eventId || paramId}`;
+  
+  const { user } = useAuth(); 
+
+  
+  const isEventOrganizer = user?.walletAddress && organizerWallet && user.walletAddress.toLowerCase() === organizerWallet.toLowerCase();
+  const isStaffOnly = !isEventOrganizer;
+
+  
+  const filteredNav = EVENT_DETAIL_NAV.map(group => {
+    return {
+      ...group,
+      items: group.items.filter(item => {
+        if (isStaffOnly) {
+          return item.key === 'summary' || item.key === 'checkin';
+        }
+        return true;
+      })
+    };
+  }).filter(group => group.items.length > 0);
 
   return (
     <aside
@@ -194,7 +211,8 @@ const EventDetailSidebar: React.FC<EventDetailSidebarProps> = ({
 
           <div className="mx-0 my-2 border-t border-sky-400/[0.08]" />
 
-          {EVENT_DETAIL_NAV.map((group, groupIdx) => (
+          {}
+          {filteredNav.map((group, groupIdx) => (
             <div key={group.group} className={`flex flex-col gap-1 ${groupIdx > 0 ? 'mt-1' : ''}`}>
               <GroupHeading label={group.group} icon={GROUP_ICONS[group.group]} />
               {group.items.map((item) => (
@@ -241,6 +259,7 @@ type MobileEventDetailSidebarProps = {
   onClose: () => void;
   eventId: string;
   eventName?: string;
+  organizerWallet?: string; 
 };
 
 export const MobileEventDetailSidebar: React.FC<MobileEventDetailSidebarProps> = ({
@@ -248,14 +267,33 @@ export const MobileEventDetailSidebar: React.FC<MobileEventDetailSidebarProps> =
   onClose,
   eventId,
   eventName,
+  organizerWallet, 
 }) => {
   const navigate = useNavigate();
   const { eventId: paramId } = useParams();
   const basePath = `/organizer/events/${eventId || paramId}`;
 
+  const { user } = useAuth(); 
+
+  
+  const isEventOrganizer = user?.walletAddress && organizerWallet && user.walletAddress.toLowerCase() === organizerWallet.toLowerCase();
+  const isStaffOnly = !isEventOrganizer;
+
+  
+  const filteredNav = EVENT_DETAIL_NAV.map(group => {
+    return {
+      ...group,
+      items: group.items.filter(item => {
+        if (isStaffOnly) {
+          return item.key === 'summary' || item.key === 'checkin';
+        }
+        return true;
+      })
+    };
+  }).filter(group => group.items.length > 0);
+
   return (
     <>
-      {/* Backdrop */}
       <div
         onClick={onClose}
         className={`
@@ -265,7 +303,6 @@ export const MobileEventDetailSidebar: React.FC<MobileEventDetailSidebarProps> =
         `}
       />
 
-      {/* Drawer */}
       <aside
         className={`
           fixed top-0 left-0 bottom-0 z-[100] w-[270px]
@@ -275,7 +312,6 @@ export const MobileEventDetailSidebar: React.FC<MobileEventDetailSidebarProps> =
           ${open ? 'translate-x-0 shadow-[8px_0_40px_rgba(0,0,0,0.5)]' : '-translate-x-full shadow-none'}
         `}
       >
-        {/* Header */}
         <div className="px-5 pb-5 border-b border-sky-400/[0.12] flex items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="text-[11px] text-slate-500 tracking-[0.06em] uppercase font-medium mb-0.5">
@@ -293,9 +329,7 @@ export const MobileEventDetailSidebar: React.FC<MobileEventDetailSidebarProps> =
           </button>
         </div>
 
-        {/* Navigation */}
         <nav className="!static !inset-auto !z-auto !bg-transparent !backdrop-blur-none !shadow-none !p-0 flex-1 px-3 pt-4 flex flex-col gap-1 overflow-y-auto">
-          {/* Back button */}
           <button
             onClick={() => {
               navigate('/organizer/events');
@@ -309,7 +343,8 @@ export const MobileEventDetailSidebar: React.FC<MobileEventDetailSidebarProps> =
 
           <div className="mx-0 my-2 border-t border-sky-400/[0.08]" />
 
-          {EVENT_DETAIL_NAV.map((group, groupIdx) => (
+          {}
+          {filteredNav.map((group, groupIdx) => (
             <div
               key={group.group}
               className={`flex flex-col gap-0.5 ${groupIdx > 0 ? 'mt-1' : ''}`}
@@ -348,7 +383,6 @@ export const MobileEventDetailSidebar: React.FC<MobileEventDetailSidebarProps> =
           ))}
         </nav>
 
-        {/* Footer */}
         <div className="px-5 pt-4 border-t border-sky-400/[0.12] flex items-center gap-2">
           <TbCube3dSphere className="text-slate-600 shrink-0" size={13} />
           <span className="text-[10px] tracking-[0.08em] uppercase text-slate-600">

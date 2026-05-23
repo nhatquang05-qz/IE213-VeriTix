@@ -38,11 +38,6 @@ const EMPTY_FORM: EventFormData = {
   earlyBirdQty: '',
   vipPrice: '',
   vipQty: '',
-  bankName: '',
-  bankAccount: '',
-  bankOwner: '',
-  bankBranch: '',
-  paymentNote: '',
 };
 
 const splitDateTime = (iso?: string): { date: string; time: string } => {
