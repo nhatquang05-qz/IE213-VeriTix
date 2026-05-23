@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { EventFormData } from './CreateEventSteps';
+import { getEthToVndRate } from '../../services/currency.service';
 
 type Props = {
   form: EventFormData;
@@ -28,14 +29,7 @@ const DateTimeField: React.FC<{
     <div className="grid grid-cols-2 gap-2.5">
       <div className="relative">
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none">
-          <svg
-            width="15"
-            height="15"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth="1.5"
-          >
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
             <rect x="3" y="4" width="18" height="18" rx="2" />
             <line x1="16" y1="2" x2="16" y2="6" />
             <line x1="8" y1="2" x2="8" y2="6" />
@@ -51,14 +45,7 @@ const DateTimeField: React.FC<{
       </div>
       <div className="relative">
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none">
-          <svg
-            width="15"
-            height="15"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth="1.5"
-          >
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 16 14" />
           </svg>
@@ -76,7 +63,19 @@ const DateTimeField: React.FC<{
 );
 
 const Step2TicketConfig: React.FC<Props> = ({ form, errors, set }) => {
+  const [ethRate, setEthRate] = useState<number>(80000000);
+
+  useEffect(() => {
+    getEthToVndRate().then(setEthRate);
+  }, []);
+
   const royaltyPct = (form.resaleRoyalty / 30) * 100;
+
+  // Hàm hỗ trợ format tiền tệ hiển thị (VND -> ETH)
+  const calculateEth = (vndPrice: string) => {
+    if (!vndPrice || isNaN(Number(vndPrice))) return '0';
+    return (Number(vndPrice) / ethRate).toFixed(6);
+  };
 
   return (
     <div className="flex flex-col gap-3.5 animate-[vtx-fade_0.4s_ease]">
@@ -88,21 +87,24 @@ const Step2TicketConfig: React.FC<Props> = ({ form, errors, set }) => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="text-[13px] font-medium text-slate-400 flex items-center gap-1 mb-2">
-              <span className="text-rose-500 text-sm">*</span> Giá vé (ETH)
+            <label className="text-[13px] font-medium text-slate-400 flex items-center justify-between mb-2">
+              <span className="flex items-center gap-1"><span className="text-rose-500 text-sm">*</span> Giá vé (VND)</span>
+              {form.price && (
+                <span className="text-blue-400 font-semibold text-xs tracking-wide">
+                  ≈ {calculateEth(form.price)} ETH
+                </span>
+              )}
             </label>
             <div className="relative">
               <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[15px] font-semibold text-slate-600 pointer-events-none">
-                Ξ
+                ₫
               </span>
               <input
-                type="number"
-                step="0.0001"
-                min="0"
+                type="text"
                 value={form.price}
-                onChange={(e) => set('price', e.target.value)}
-                placeholder="0.05"
-                className={`${inputCls(!!errors.price)} pl-8`}
+                onChange={(e) => set('price', e.target.value.replace(/\D/g, ''))} // Chỉ cho nhập số
+                placeholder="100000"
+                className={`${inputCls(!!errors.price)} pl-8 font-mono`}
               />
             </div>
             {errors.price && <p className="text-[11px] text-rose-500 mt-1">{errors.price}</p>}
@@ -161,15 +163,16 @@ const Step2TicketConfig: React.FC<Props> = ({ form, errors, set }) => {
             <p className="text-[13px] font-semibold text-blue-400 mb-3.5">🎟️ Early Bird</p>
             <div className="flex flex-col gap-3">
               <div>
-                <label className="text-xs font-medium text-slate-400 mb-1.5 block">Giá (ETH)</label>
+                <label className="text-xs font-medium text-slate-400 mb-1.5 flex justify-between">
+                  <span>Giá (VND)</span>
+                  {form.earlyBirdPrice && <span className="text-blue-400">≈ {calculateEth(form.earlyBirdPrice)} ETH</span>}
+                </label>
                 <input
-                  type="number"
-                  step="0.0001"
-                  min="0"
+                  type="text"
                   value={form.earlyBirdPrice}
-                  onChange={(e) => set('earlyBirdPrice', e.target.value)}
-                  placeholder="0.03"
-                  className={`${inputCls()} text-[13px] py-2.5`}
+                  onChange={(e) => set('earlyBirdPrice', e.target.value.replace(/\D/g, ''))}
+                  placeholder="80000"
+                  className={`${inputCls()} text-[13px] py-2.5 font-mono`}
                 />
               </div>
               <div>
@@ -190,15 +193,16 @@ const Step2TicketConfig: React.FC<Props> = ({ form, errors, set }) => {
             <p className="text-[13px] font-semibold text-purple-400 mb-3.5">👑 VIP</p>
             <div className="flex flex-col gap-3">
               <div>
-                <label className="text-xs font-medium text-slate-400 mb-1.5 block">Giá (ETH)</label>
+                <label className="text-xs font-medium text-slate-400 mb-1.5 flex justify-between">
+                  <span>Giá (VND)</span>
+                  {form.vipPrice && <span className="text-purple-400">≈ {calculateEth(form.vipPrice)} ETH</span>}
+                </label>
                 <input
-                  type="number"
-                  step="0.0001"
-                  min="0"
+                  type="text"
                   value={form.vipPrice}
-                  onChange={(e) => set('vipPrice', e.target.value)}
-                  placeholder="0.1"
-                  className={`${inputCls()} text-[13px] py-2.5`}
+                  onChange={(e) => set('vipPrice', e.target.value.replace(/\D/g, ''))}
+                  placeholder="250000"
+                  className={`${inputCls()} text-[13px] py-2.5 font-mono`}
                 />
               </div>
               <div>
@@ -223,22 +227,8 @@ const Step2TicketConfig: React.FC<Props> = ({ form, errors, set }) => {
           📅 Lịch trình bán vé
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <DateTimeField
-            dateKey="saleStartDate"
-            timeKey="saleStartTime"
-            label="Bắt đầu bán vé"
-            form={form}
-            errors={errors}
-            set={set}
-          />
-          <DateTimeField
-            dateKey="saleEndDate"
-            timeKey="saleEndTime"
-            label="Kết thúc bán vé"
-            form={form}
-            errors={errors}
-            set={set}
-          />
+          <DateTimeField dateKey="saleStartDate" timeKey="saleStartTime" label="Bắt đầu bán vé" form={form} errors={errors} set={set} />
+          <DateTimeField dateKey="saleEndDate" timeKey="saleEndTime" label="Kết thúc bán vé" form={form} errors={errors} set={set} />
         </div>
       </div>
 
@@ -248,22 +238,8 @@ const Step2TicketConfig: React.FC<Props> = ({ form, errors, set }) => {
           🗓️ Lịch trình sự kiện
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <DateTimeField
-            dateKey="eventStartDate"
-            timeKey="eventStartTime"
-            label="Ngày bắt đầu"
-            form={form}
-            errors={errors}
-            set={set}
-          />
-          <DateTimeField
-            dateKey="eventEndDate"
-            timeKey="eventEndTime"
-            label="Ngày kết thúc"
-            form={form}
-            errors={errors}
-            set={set}
-          />
+          <DateTimeField dateKey="eventStartDate" timeKey="eventStartTime" label="Ngày bắt đầu" form={form} errors={errors} set={set} />
+          <DateTimeField dateKey="eventEndDate" timeKey="eventEndTime" label="Ngày kết thúc" form={form} errors={errors} set={set} />
         </div>
       </div>
     </div>

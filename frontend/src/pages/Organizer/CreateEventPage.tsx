@@ -9,39 +9,10 @@ import type { EventFormData } from '../../components/organizer/CreateEventSteps'
 import Step1EventInfo from '../../components/organizer/Step1EventInfo';
 import Step2TicketConfig from '../../components/organizer/Step2TicketConfig';
 import Step3PaymentPublish from '../../components/organizer/Step3PaymentPublish';
-
-/* ══════════════════════════════════════════════════════════════════
-   Veritix — Tạo Sự Kiện (3-Step Wizard)
-   React + Tailwind · Component-based · Responsive
-   ══════════════════════════════════════════════════════════════════ */
+import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../../config/contract';
+import { getEthToVndRate } from '../../services/currency.service'; // Import hàm lấy tỷ giá
 
 const API_URL = import.meta.env.VITE_API_URL || '';
-const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || '';
-
-const CREATE_ABI = [
-  {
-    inputs: [
-      { internalType: 'string', name: 'name', type: 'string' },
-      { internalType: 'uint256', name: 'price', type: 'uint256' },
-      { internalType: 'uint256', name: 'maxSupply', type: 'uint256' },
-      { internalType: 'uint256', name: 'maxResellPercentage', type: 'uint256' },
-    ],
-    name: 'createEvent',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      { indexed: true, internalType: 'uint256', name: 'eventId', type: 'uint256' },
-      { indexed: false, internalType: 'string', name: 'name', type: 'string' },
-      { indexed: false, internalType: 'address', name: 'organizer', type: 'address' },
-    ],
-    name: 'EventCreated',
-    type: 'event',
-  },
-] as const;
 
 export default function CreateEventPage() {
   const navigate = useNavigate();
@@ -53,45 +24,23 @@ export default function CreateEventPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [form, setForm] = useState<EventFormData>({
-    name: '',
-    category: '',
-    locationType: 'offline',
-    venueName: '',
-    city: '',
-    ward: '',
-    address: '',
-    description: '',
-    orgName: '',
-    orgInfo: '',
-    price: '',
-    maxSupply: '',
-    resaleRoyalty: 10,
-    saleStartDate: '',
-    saleStartTime: '09:00',
-    saleEndDate: '',
-    saleEndTime: '23:59',
-    eventStartDate: '',
-    eventStartTime: '18:00',
-    eventEndDate: '',
-    eventEndTime: '22:00',
-    earlyBirdPrice: '',
-    earlyBirdQty: '',
-    vipPrice: '',
-    vipQty: '',
-    bankName: '',
-    bankAccount: '',
-    bankOwner: '',
-    bankBranch: '',
-    paymentNote: '',
+    name: '', category: '', locationType: 'offline', venueName: '',
+    city: '', ward: '', address: '', description: '', orgName: '', orgInfo: '',
+    price: '', maxSupply: '', resaleRoyalty: 10,
+    saleStartDate: '', saleStartTime: '09:00', saleEndDate: '', saleEndTime: '23:59',
+    eventStartDate: '', eventStartTime: '18:00', eventEndDate: '', eventEndTime: '22:00',
+    earlyBirdPrice: '', earlyBirdQty: '', vipPrice: '', vipQty: ''
   });
 
-  /* File states */
-  const [posterFile, setPosterFile] = useState<File | null>(null);
+  const [, setPosterFile] = useState<File | null>(null);
   const [posterPreview, setPosterPreview] = useState('');
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState('');
-  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState('');
+
+  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+  const [uploadedBannerUrl, setUploadedBannerUrl] = useState('');
 
   const set = useCallback(
     (k: keyof EventFormData, v: string | number) => {
@@ -115,39 +64,51 @@ export default function CreateEventPage() {
     } else setP('');
   };
 
-  /* ── Body/Root overrides ── */
+  const handleUploadBanner = async () => {
+    if (!bannerFile) {
+      toast.warning('Vui lòng chọn file ảnh Banner trước!');
+      return;
+    }
+    try {
+      setIsUploadingBanner(true);
+      const formData = new FormData();
+      formData.append('image', bannerFile);
+
+      const tk = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/upload/image`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${tk}` },
+        body: formData
+      });
+
+      if (!res.ok) throw new Error('Lỗi khi tải ảnh lên Cloudinary');
+      
+      const data = await res.json();
+      setUploadedBannerUrl(data.imageUrl); 
+      toast.success('Tải ảnh lên Cloudinary thành công!');
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setIsUploadingBanner(false);
+    }
+  };
+
   useEffect(() => {
     const b = document.body,
       r = document.getElementById('root');
     const p = {
-      bg: b.style.backgroundColor,
-      c: b.style.color,
-      mw: r?.style.maxWidth || '',
-      m: r?.style.margin || '',
-      pd: r?.style.padding || '',
-      ta: r?.style.textAlign || '',
+      bg: b.style.backgroundColor, c: b.style.color,
+      mw: r?.style.maxWidth || '', m: r?.style.margin || '',
+      pd: r?.style.padding || '', ta: r?.style.textAlign || '',
     };
-    b.style.backgroundColor = '#070a11';
-    b.style.color = '#f1f5f9';
-    if (r) {
-      r.style.maxWidth = 'none';
-      r.style.margin = '0';
-      r.style.padding = '0';
-      r.style.textAlign = 'left';
-    }
+    b.style.backgroundColor = '#070a11'; b.style.color = '#f1f5f9';
+    if (r) { r.style.maxWidth = 'none'; r.style.margin = '0'; r.style.padding = '0'; r.style.textAlign = 'left'; }
     return () => {
-      b.style.backgroundColor = p.bg;
-      b.style.color = p.c;
-      if (r) {
-        r.style.maxWidth = p.mw;
-        r.style.margin = p.m;
-        r.style.padding = p.pd;
-        r.style.textAlign = p.ta;
-      }
+      b.style.backgroundColor = p.bg; b.style.color = p.c;
+      if (r) { r.style.maxWidth = p.mw; r.style.margin = p.m; r.style.padding = p.pd; r.style.textAlign = p.ta; }
     };
   }, []);
 
-  /* ── Responsive ── */
   useEffect(() => {
     const ck = () => {
       const w = window.innerWidth;
@@ -156,12 +117,10 @@ export default function CreateEventPage() {
       if (w >= 768 && w < 1024) setSidebarExpanded(false);
       if (w >= 1024) setSidebarExpanded(true);
     };
-    ck();
-    window.addEventListener('resize', ck);
+    ck(); window.addEventListener('resize', ck);
     return () => window.removeEventListener('resize', ck);
   }, []);
 
-  /* ── Validation ── */
   const validate = (s: number) => {
     const e: Record<string, string> = {};
     if (s === 1) {
@@ -184,49 +143,48 @@ export default function CreateEventPage() {
   };
 
   const next = () => {
-    if (validate(step)) {
-      setStep((s) => Math.min(s + 1, 3));
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    if (validate(step)) { setStep((s) => Math.min(s + 1, 3)); window.scrollTo({ top: 0, behavior: 'smooth' }); }
   };
+  
   const prev = () => {
-    setStep((s) => Math.max(s - 1, 1));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setStep((s) => Math.max(s - 1, 1)); window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  /* ── Submit ── */
   const handleSubmit = async () => {
-    if (!window.ethereum) {
-      toast.error('Vui lòng cài MetaMask!');
-      return;
-    }
-    if (!CONTRACT_ADDRESS) {
-      toast.error('Contract chưa cấu hình .env');
-      return;
-    }
-    if (!form.bankName || !form.bankAccount || !form.bankOwner) {
-      toast.error('Vui lòng nhập đầy đủ thông tin thanh toán');
-      return;
-    }
+    if (!window.ethereum) { toast.error('Vui lòng cài MetaMask!'); return; }
+    if (!CONTRACT_ADDRESS) { toast.error('Chưa cấu hình địa chỉ Contract!'); return; }
+    if (!uploadedBannerUrl) { toast.error('Vui lòng Tải ảnh Banner lên Cloudinary ở Bước 1 trước khi phát hành!'); return; }
 
     try {
       setLoading(true);
-      setStatusMsg('Đang kết nối MetaMask...');
+      setStatusMsg('Đang quy đổi VND sang ETH và kết nối MetaMask...');
+
+      // 1. Quy đổi giá VND sang ETH để gửi lên Blockchain
+      const currentEthRate = await getEthToVndRate();
+      let ethPriceStr = "0";
+      if (form.price && Number(form.price) > 0) {
+        // toFixed(18) để đảm bảo không bị lỗi số thập phân của ethers
+        ethPriceStr = (Number(form.price) / currentEthRate).toFixed(18);
+      }
+
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, CREATE_ABI, signer);
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+      
       setStatusMsg('Vui lòng xác nhận giao dịch trên MetaMask...');
+      
       const tx = await contract.createEvent(
         form.name,
-        ethers.parseEther(form.price || '0'),
+        ethers.parseEther(ethPriceStr), // Đưa ETH vào contract
         Number(form.maxSupply || 0),
         Number(form.resaleRoyalty)
       );
+      
       setStatusMsg('Đang chờ xác nhận từ blockchain...');
       const receipt = await tx.wait();
 
       let eventId: string | null = null;
-      const iface = new ethers.Interface(CREATE_ABI);
+      const iface = new ethers.Interface(CONTRACT_ABI);
       for (const log of receipt.logs) {
         try {
           const p = iface.parseLog({ topics: log.topics as string[], data: log.data });
@@ -239,26 +197,39 @@ export default function CreateEventPage() {
       toast.success(`On-chain thành công! Event #${eventId || 'N/A'}`);
 
       if (eventId) {
-        setStatusMsg('Đang upload dữ liệu lên server...');
-        const fd = new FormData();
-        if (bannerFile) fd.append('banner', bannerFile);
-        if (posterFile) fd.append('poster', posterFile);
-        if (logoFile) fd.append('logo', logoFile);
-        fd.append('description', form.description);
-        fd.append('category', form.category);
-        fd.append('orgName', form.orgName);
-        fd.append('bankName', form.bankName);
-        fd.append('bankAccount', form.bankAccount);
-        fd.append('bankOwner', form.bankOwner);
-        fd.append('bankBranch', form.bankBranch);
-        fd.append('paymentNote', form.paymentNote);
+        setStatusMsg('Đang lưu thông tin sự kiện vào Database...');
+        
+        // 2. Gửi nguyên giá VND (form.price) xuống Database
+        const bodyData = {
+          name: form.name,
+          description: form.description,
+          category: form.category,
+          location: form.locationType === 'offline' ? form.venueName : 'Online',
+          price: form.price, // Lưu VND vào Database
+          maxSupply: form.maxSupply,
+          maxResellPercentage: form.resaleRoyalty,
+          startTime: `${form.eventStartDate}T${form.eventStartTime}:00.000Z`,
+          endTime: `${form.eventEndDate}T${form.eventEndTime}:00.000Z`,
+          bannerUrl: uploadedBannerUrl
+        };
+
         const tk = localStorage.getItem('token');
-        const h: Record<string, string> = {};
+        const h: Record<string, string> = { 'Content-Type': 'application/json' };
         if (tk) h['Authorization'] = `Bearer ${tk}`;
-        await fetch(`${API_URL}/api/events/${eventId}`, { method: 'PUT', headers: h, body: fd });
+        
+        const res = await fetch(`${API_URL}/events/${eventId}`, { 
+          method: 'PUT', 
+          headers: h, 
+          body: JSON.stringify(bodyData) 
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.message || 'Không thể lưu dữ liệu lên database');
+        }
       }
-      toast.success('Tạo sự kiện thành công!');
-      setTimeout(() => navigate('/organizer-dashboard'), 1200);
+      toast.success('Tạo sự kiện và đồng bộ database thành công!');
+      setTimeout(() => navigate('/organizer/events'), 1500);
     } catch (err: any) {
       toast.error(err?.reason || err?.message || 'Lỗi giao dịch');
       setStatusMsg('');
@@ -271,13 +242,11 @@ export default function CreateEventPage() {
 
   return (
     <>
-      {/* ── Global animations & overrides ── */}
       <style>{`
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
       @keyframes vtx-spin{to{transform:rotate(360deg)}}
       @keyframes vtx-fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
       @keyframes vtx-pulse{0%,100%{opacity:1}50%{opacity:.4}}
-      @keyframes vtx-tooltip-in{from{opacity:0;transform:translateY(-50%) translateX(-6px)}to{opacity:1;transform:translateY(-50%) translateX(0)}}
       .vtx-toggle-btn:hover{color:#38bdf8!important;background:rgba(56,189,248,.15)!important}
       input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;background:#3b82f6;border-radius:50%;border:2.5px solid #fff;box-shadow:0 0 10px rgba(59,130,246,.3);cursor:pointer;transition:transform .15s}
       input[type="range"]::-webkit-slider-thumb:hover{transform:scale(1.2)}
@@ -286,39 +255,16 @@ export default function CreateEventPage() {
       ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#1e293b;border-radius:99px}
       ::placeholder{color:#334155}
     `}</style>
-
       <ToastContainer position="top-right" autoClose={3500} theme="dark" />
-
-      {/* Grid background */}
-      <div
-        className="fixed inset-0 pointer-events-none z-0"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(59,130,246,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,0.025) 1px,transparent 1px)',
-          backgroundSize: '48px 48px',
-        }}
-      />
+      <div className="fixed inset-0 pointer-events-none z-0" style={{ backgroundImage: 'linear-gradient(rgba(59,130,246,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,0.025) 1px,transparent 1px)', backgroundSize: '48px 48px' }} />
 
       <div className="flex min-h-screen bg-[#070a11] text-slate-100 font-['Inter',sans-serif] relative z-[1]">
-        {/* ── Main ── */}
-        <main
-          className="flex-1 overflow-auto transition-[margin-left] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] min-w-0"
-          style={{ marginLeft: sidebarW }}
-        >
+        <main className="flex-1 overflow-auto transition-[margin-left] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] min-w-0" style={{ marginLeft: sidebarW }}>
           <div className="max-w-[880px] mx-auto px-3.5 md:px-8 py-5 md:py-11 pb-16 md:pb-20">
-            {/* ── Stepper ── */}
-            <StepIndicator
-              currentStep={step}
-              onStepClick={(s) => {
-                if (step > s) setStep(s);
-              }}
-            />
+            <StepIndicator currentStep={step} onStepClick={(s) => { if (step > s) setStep(s); }} />
 
-            {/* ── Step Title ── */}
             <div className="mb-5 md:mb-7 animate-[vtx-fade_0.4s_ease]">
-              <h1 className="text-[22px] md:text-[28px] font-extrabold text-white tracking-tight">
-                {STEPS[step - 1].label}
-              </h1>
+              <h1 className="text-[22px] md:text-[28px] font-extrabold text-white tracking-tight">{STEPS[step - 1].label}</h1>
               <p className="text-[13px] text-slate-600 mt-1.5">
                 {step === 1 && 'Nhập thông tin cơ bản về sự kiện của bạn'}
                 {step === 2 && 'Cấu hình loại vé, giá, số lượng và thời gian bán'}
@@ -326,61 +272,45 @@ export default function CreateEventPage() {
               </p>
             </div>
 
-            {/* ── Steps ── */}
             {step === 1 && (
-              <Step1EventInfo
-                form={form}
-                errors={errors}
-                set={set}
-                posterPreview={posterPreview}
-                bannerPreview={bannerPreview}
-                logoPreview={logoPreview}
-                onPoster={(f) => filePrev(f, setPosterFile, setPosterPreview)}
-                onBanner={(f) => filePrev(f, setBannerFile, setBannerPreview)}
-                onLogo={(f) => filePrev(f, setLogoFile, setLogoPreview)}
-              />
+              <div className="mb-8 p-5 border border-dashed border-blue-500/40 bg-blue-900/10 rounded-2xl">
+                <h3 className="text-[15px] text-blue-400 font-bold mb-3">Tải ảnh Banner lên Hệ thống (Bắt buộc)</h3>
+                <div className="flex items-center gap-4 flex-wrap">
+                  <div className="flex-1">
+                    <p className="text-xs text-slate-400 mb-2">Hãy chọn ảnh ở form bên dưới, sau đó bấm nút tải lên.</p>
+                  </div>
+                  <button type="button" onClick={handleUploadBanner} disabled={isUploadingBanner || !bannerFile} className="px-5 py-2.5 bg-[linear-gradient(135deg,#3b82f6_0%,#2563eb_100%)] rounded-xl text-white text-sm font-bold disabled:opacity-50 transition-all hover:shadow-[0_0_15px_rgba(59,130,246,0.4)] cursor-pointer">
+                    {isUploadingBanner ? 'Đang tải...' : 'Tải ảnh lên Cloudinary'}
+                  </button>
+                </div>
+                {uploadedBannerUrl && (
+                  <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+                    <span className="text-emerald-400 text-sm font-semibold">✓ Ảnh đã được lưu thành công trên hệ thống.</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {step === 1 && (
+              <Step1EventInfo form={form} errors={errors} set={set} posterPreview={posterPreview} bannerPreview={bannerPreview} logoPreview={logoPreview} onPoster={(f) => filePrev(f, setPosterFile, setPosterPreview)} onBanner={(f) => filePrev(f, setBannerFile, setBannerPreview)} onLogo={(f) => filePrev(f, setLogoFile, setLogoPreview)} />
             )}
             {step === 2 && <Step2TicketConfig form={form} errors={errors} set={set} />}
             {step === 3 && (
-              <Step3PaymentPublish
-                form={form}
-                errors={errors}
-                set={set}
-                bannerFile={bannerFile}
-                loading={loading}
-                statusMsg={statusMsg}
-                onSubmit={handleSubmit}
-              />
+              <Step3PaymentPublish form={form} errors={errors} set={set} bannerFile={bannerFile} loading={loading} statusMsg={statusMsg} onSubmit={handleSubmit} />
             )}
 
-            {/* ── Navigation ── */}
-            <div
-              className={`flex items-center mt-5 md:mt-7 gap-3 ${step === 1 ? 'justify-end' : 'justify-between'}`}
-            >
+            <div className={`flex items-center mt-5 md:mt-7 gap-3 ${step === 1 ? 'justify-end' : 'justify-between'}`}>
               {step > 1 && (
-                <button
-                  type="button"
-                  onClick={prev}
-                  className="px-7 py-3 rounded-[10px] bg-transparent border border-white/10 text-slate-500 text-sm font-medium cursor-pointer transition-all duration-200 hover:border-blue-500 hover:text-slate-100"
-                >
+                <button type="button" onClick={prev} className="px-7 py-3 rounded-[10px] bg-transparent border border-white/10 text-slate-500 text-sm font-medium cursor-pointer transition-all hover:border-blue-500 hover:text-slate-100">
                   ← Quay lại
                 </button>
               )}
               {step < 3 && (
-                <button
-                  type="button"
-                  onClick={next}
-                  className="px-8 py-3 rounded-[10px] bg-blue-500 border-none text-white text-sm font-semibold cursor-pointer transition-all duration-200 shadow-[0_4px_16px_rgba(59,130,246,0.25)] hover:bg-blue-600 hover:-translate-y-0.5"
-                >
+                <button type="button" onClick={next} className="px-8 py-3 rounded-[10px] bg-blue-500 border-none text-white text-sm font-semibold cursor-pointer transition-all shadow-[0_4px_16px_rgba(59,130,246,0.25)] hover:bg-blue-600 hover:-translate-y-0.5">
                   Tiếp tục →
                 </button>
               )}
             </div>
-
-            {/* Footer */}
-            <p className="text-center text-[10px] tracking-[0.18em] uppercase text-slate-800 mt-10">
-              Powered by Ethereum · ERC-721 NFT Standard
-            </p>
           </div>
         </main>
       </div>

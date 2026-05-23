@@ -3,17 +3,20 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
   walletAddress: { 
     type: String, 
-    required: true, 
     unique: true,
     lowercase: true,
     trim: true,
-    index: true
+    index: true,
+    sparse: true
   },
-  email: { 
+  username: { 
     type: String, 
-    trim: true,
-    lowercase: true,
-    sparse: true 
+    unique: true, 
+    sparse: true,
+    trim: true
+  },
+  password: { 
+    type: String 
   },
   fullName: { 
     type: String, 
@@ -26,9 +29,9 @@ const userSchema = new mongoose.Schema({
   },
   isOrganizer: { type: Boolean, default: false }, 
   isAdmin: { type: Boolean, default: false },
+  isStaff: { type: Boolean, default: false },
   nonce: { 
-    type: String, 
-    required: true 
+    type: String
   }, 
 }, { 
   timestamps: true 

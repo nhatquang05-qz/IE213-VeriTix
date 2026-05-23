@@ -42,7 +42,6 @@ export default function OrganizerEventDetailLayout() {
     fetchEvent,
   } = useEventDetail();
 
-  // Mobile drawer state
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const handleOpenDrawer = useCallback(() => setMobileDrawerOpen(true), []);
   const handleCloseDrawer = useCallback(() => setMobileDrawerOpen(false), []);
@@ -60,39 +59,27 @@ export default function OrganizerEventDetailLayout() {
   const sidebarWidth = isMobile ? 0 : sidebarExpanded ? SIDEBAR_EXPANDED_W : SIDEBAR_COLLAPSED_W;
 
   return (
-    /*
-     * overflow-x-hidden: ngăn horizontal scroll do fixed sidebar + marginLeft.
-     * min-h-screen thay vì min-h-[calc(100vh-64px)] để cover toàn màn hình.
-     */
     <div className="flex min-h-screen bg-[#070a11] overflow-x-hidden">
-      {/* ── Desktop Sidebar (position: fixed) ── */}
       {!isMobile && (
         <EventDetailSidebar
           eventId={eventId!}
           eventName={event.name}
           expanded={sidebarExpanded}
           onToggle={() => setSidebarExpanded((prev) => !prev)}
+          organizerWallet={event.organizerWallet} 
         />
       )}
 
-      {/* ── Mobile Sidebar Drawer ── */}
       {isMobile && (
         <MobileEventDetailSidebar
           open={mobileDrawerOpen}
           onClose={handleCloseDrawer}
           eventId={eventId!}
           eventName={event.name}
+          organizerWallet={event.organizerWallet} 
         />
       )}
 
-      {/* ── Main Content Area ── */}
-      {/*
-       * BUG FIX (same as OrganizerLayout):
-       * EventDetailSidebar là `position: fixed` → thoát flex flow.
-       * flex-1 trên main = 100% viewport + marginLeft → tràn ra ngoài.
-       *
-       * Fix: dùng width: calc(100% - sidebarWidth) + min-w-0 thay vì flex-1.
-       */}
       <main
         className="flex flex-col min-h-screen min-w-0 transition-[margin-left,width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
         style={{
@@ -100,7 +87,6 @@ export default function OrganizerEventDetailLayout() {
           width: `calc(100% - ${sidebarWidth}px)`,
         }}
       >
-        {/* Event Header Bar — truyền hamburger props cho mobile */}
         <EventDetailHeader
           event={event}
           statusCfg={statusCfg}

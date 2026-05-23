@@ -30,11 +30,6 @@ export type EventFormData = {
   earlyBirdQty: string;
   vipPrice: string;
   vipQty: string;
-  bankName: string;
-  bankAccount: string;
-  bankOwner: string;
-  bankBranch: string;
-  paymentNote: string;
 };
 
 export const STEPS = [
@@ -65,22 +60,6 @@ export const CITIES = [
   'Huế',
   'Hải Phòng',
   'Đắk Lắk',
-];
-
-export const BANKS = [
-  'Vietcombank',
-  'Techcombank',
-  'MB Bank',
-  'VPBank',
-  'BIDV',
-  'Agribank',
-  'ACB',
-  'Sacombank',
-  'TPBank',
-  'VIB',
-  'HDBank',
-  'OCB',
-  'Khác',
 ];
 
 /* ══════════════════════════════════════════

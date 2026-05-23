@@ -60,6 +60,7 @@ export interface OrganizerEvent {
   price: string;
   category: string;
   location: string;
+  organizerWallet: string;
 }
 
 /**

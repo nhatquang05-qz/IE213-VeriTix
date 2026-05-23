@@ -32,13 +32,22 @@ axiosClient.interceptors.response.use(
   (error) => {
     // lỗi 401
     if (error.response?.status === 401) {
-      console.error("Lỗi 401: Chưa đăng nhập hoặc Token hết hạn!");
-      // TODO: Thêm logic điều hướng về trang Login hoặc xóa token ở đây
-      // localStorage.removeItem('token');
-      // window.location.href = '/login';
+      const configUrl = error.config?.url || '';
+      
+      // FIX LỖI VĂNG APP: Chỉ xoá token và chuyển hướng nếu không phải là API verify hay checkin lỗi logic
+      if (!configUrl.includes('/auth/login') && !configUrl.includes('/tickets/checkin')) {
+        console.error("Lỗi 401: Token hết hạn, đang đăng xuất...");
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
 );
+
+export const optimizeCloudinaryUrl = (url: string, width: number = 800) => {
+  if (!url || !url.includes('cloudinary.com')) return url;
+  return url.replace('/upload/', `/upload/f_auto,q_auto,w_${width}/`);
+};
 
 export default axiosClient;

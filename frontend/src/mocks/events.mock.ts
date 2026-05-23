@@ -137,7 +137,7 @@ export const MOCK_EVENTS_FULL: IEventFull[] = [
   },
 ];
 
-/* ── Mapping: IEventFull ↔ category (off-chain, chỉ có trong mock) ── */
+
 const EVENT_CATEGORY_MAP: Record<string, string> = {
   '1': 'Hội nghị / Hội thảo',
   '2': 'Âm nhạc / Concert',
@@ -164,6 +164,7 @@ export function toOrganizerEvent(full: IEventFull): OrganizerEvent {
     price: full.price,
     category: EVENT_CATEGORY_MAP[full._id] || 'Khác',
     location: full.location,
+    organizerWallet: full.organizerWallet || "", 
   };
 }
 

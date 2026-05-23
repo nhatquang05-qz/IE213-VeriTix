@@ -102,7 +102,7 @@ export default function MyTickets() {
     }
   };
 
-  const handleGenerateQR = async (ticketId: string, blockchainTicketId: number) => {
+  const handleGenerateQR = async (ticket: Ticket) => {
     try {
       setIsSigning(ticketId);
       if (!window.ethereum) throw new Error("Vui lòng cài đặt ví MetaMask");
@@ -110,7 +110,15 @@ export default function MyTickets() {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const timestamp = Math.floor(Date.now() / 1000);
-      const message = `Check-in VeriTix\nTicket ID: ${blockchainTicketId}\nTimestamp: ${timestamp}`;
+      
+      // ĐỒNG BỘ FORMAT THỜI GIAN VỚI BACKEND BẰNG CHUẨN UTC
+      const d = new Date(ticket.eventId.startTime);
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      
+      // FIX LỖI TIMEZONE: Sử dụng getUTC... thay vì getLocal...
+      const eventTime = `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} ${pad(d.getUTCDate())}/${pad(d.getUTCMonth() + 1)}/${d.getUTCFullYear()} UTC`;
+
+      const message = `VERITIX CHECK-IN\nSự kiện: ${ticket.eventId.name}\nThời gian: ${eventTime}\nID Vé: #${ticket.blockchainTicketId}\nTimestamp: ${timestamp}`;
 
       const signature = await signer.signMessage(message);
       setSelectedQR(JSON.stringify({ blockchainTicketId, timestamp, signature }));
@@ -177,7 +185,7 @@ export default function MyTickets() {
           <h3 className="text-xl font-bold text-white mb-2">Bạn chưa có vé nào!</h3>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {tickets.map((ticket) => (
             <div key={ticket._id} className="bg-[#111827] border border-white/10 rounded-2xl overflow-hidden group flex flex-col">
               <div className="h-40 overflow-hidden relative">

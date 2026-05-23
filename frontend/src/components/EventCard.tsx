@@ -1,4 +1,5 @@
 import type { IEvent } from "../types/event.type";
+import { optimizeCloudinaryUrl } from '../utils/axiosClient';
 
 const EventCard = ({ event }: { event: IEvent }) => {
   const formattedTime = new Date(event.startTime).toLocaleDateString('vi-VN', {
@@ -12,7 +13,9 @@ const EventCard = ({ event }: { event: IEvent }) => {
 
   return (
     <div className="event-card">
-      <img src={event.bannerUrl || event.name} alt={event.name} />
+      <img src={optimizeCloudinaryUrl(event.bannerUrl, 600)} 
+      alt={event.name}
+      loading="lazy"/>
 
       <div className="event-info">
         <h3>{event.name}</h3>
