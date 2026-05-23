@@ -27,4 +27,10 @@ export const ROUTES = {
   ORGANIZER_EVENT_EDIT: '/organizer/events/:eventId/edit',
   ORGANIZER_EVENT_VOUCHERS: '/organizer/events/:eventId/vouchers',
   ORGANIZER_EVENT_VOUCHER_CREATE: '/organizer/events/:eventId/vouchers/create',
+
+  // Admin
+  ADMIN: '/admin',
+  ADMIN_USERS: '/admin/users',
+  ADMIN_EVENTS: '/admin/events',
+  ADMIN_STATISTICS: '/admin/statistics',
 } as const;

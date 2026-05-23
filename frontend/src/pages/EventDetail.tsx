@@ -183,7 +183,7 @@ const EventDetail = () => {
             <h1 className="mt-3 mb-2 text-[clamp(2rem,5vw,3.8rem)] leading-[1.06] tracking-[-0.02em] max-[480px]:text-[1.8rem]">
               {event.name}
             </h1>
-            <p className="m-0 text-[clamp(0.92rem,2vw,1.05rem)] text-ed-text-subtle">{event.location} • {eventDateLong}</p>
+            <p className="m-0 text-[clamp(0.92rem,2vw,1.05rem)] text-ed-text-subtle">{event.location} • {eventDateLong} • {event.startTime}</p>
             <div className="mt-[18px] inline-flex w-fit items-center gap-[10px] rounded-2xl border border-sky-400/28 bg-[rgba(6,12,26,0.78)] px-[14px] py-[10px] font-semibold text-[#9adff7] max-[480px]:flex max-[480px]:w-full max-[480px]:justify-between">
               <span>Giá từ</span>
               <strong className="text-[1.36rem] tracking-[-0.02em] text-white">
@@ -299,6 +299,10 @@ const EventDetail = () => {
             <div className="flex items-center justify-between gap-[10px] rounded-[14px] border border-slate-400/18 bg-white/3 p-[13px] text-[0.92rem] text-ed-text-soft md:flex-col md:items-start">
               <span>Ngày tổ chức</span>
               <strong className="text-right font-semibold text-[#eff8ff] md:text-left">{eventDateShort}</strong>
+            </div>
+            <div className="flex items-center justify-between gap-[10px] rounded-[14px] border border-slate-400/18 bg-white/3 p-[13px] text-[0.92rem] text-ed-text-soft md:flex-col md:items-start">
+              <span>Giờ bắt đầu</span>
+              <strong className="text-right font-semibold text-[#eff8ff] md:text-left">{event.startTime}</strong>
             </div>
             <div className="flex items-center justify-between gap-[10px] rounded-[14px] border border-slate-400/18 bg-white/3 p-[13px] text-[0.92rem] text-ed-text-soft md:flex-col md:items-start">
               <span>Giá vé</span>

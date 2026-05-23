@@ -18,6 +18,30 @@ const featuredConfigs = [
   { badge: 'SPORT', gradient: 'from-amber-600 to-yellow-500' },
 ];
 
+const featuredEvents = featuredConfigs
+  .map((config) => {
+    const event = mockEvents.find((item) => item._id === config.id);
+    if (!event) return null;
+
+    return {
+      ...config,
+      title: event.title,
+      location: event.location,
+      date: new Date(event.startDate).toLocaleDateString('vi-VN'),
+      startTime: event.startTime,
+      price: `${event.price.toLocaleString('vi-VN')}đ`,
+      imageUrl: event.imageUrl,
+    };
+  })
+  .filter((event): event is FeaturedEvent & {
+    title: string;
+    location: string;
+    date: string;
+    startTime: string;
+    price: string;
+    imageUrl: string;
+  } => event !== null);
+
 const EventCarousel: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
@@ -147,7 +171,7 @@ const EventCarousel: React.FC = () => {
                     📍 {currentEvent.location}
                   </p>
                   <p className="flex items-center justify-center gap-2 text-base max-[768px]:text-sm max-[480px]:text-xs">
-                    📅 {currentEvent.dateFormatted}
+                    {currentEvent.date} • {currentEvent.startTime}
                   </p>
                 </div>
                 <div className="mb-7 flex flex-col items-center gap-2 max-[768px]:mb-5">

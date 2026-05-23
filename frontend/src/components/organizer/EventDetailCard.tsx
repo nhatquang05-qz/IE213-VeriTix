@@ -1,6 +1,6 @@
 import React from 'react'; 
 import { Link } from 'react-router-dom';
-import { useWeb3 } from '../../hooks/useWeb3';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Navbar = ({ children }: { children: React.ReactNode }) => {
   const { connectWallet, account } = useWeb3();
