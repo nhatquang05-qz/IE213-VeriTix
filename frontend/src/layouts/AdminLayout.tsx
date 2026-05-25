@@ -57,9 +57,21 @@ export default function AdminLayout() {
     setMobileOpen(false);
   }, []);
 
-  // ── BẢO VỆ ROUTE: CHỈ ADMIN MỚI ĐƯỢC VÀO ──
-  // Đặt sau tất cả các Hooks (useState, useCallback, useEffect) để tránh lỗi Rules of Hooks
-  if (!user || !user.isAdmin) {
+  // ĐỌC TRỰC TIẾP TỪ LOCALSTORAGE ĐỂ PHÒNG NGỪA RACE CONDITION KHI HARD REFRESH TRÊN URL
+  const savedUserStr = localStorage.getItem('user');
+  let savedUser = null;
+  if (savedUserStr) {
+    try {
+      savedUser = JSON.parse(savedUserStr);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  // Hợp nhất quyền Admin từ Context State và bộ nhớ tạm thời LocalStorage
+  const isAuthorizedAdmin = user?.isAdmin || savedUser?.isAdmin;
+
+  if (!isAuthorizedAdmin) {
     return <Navigate to="/" replace />;
   }
 
