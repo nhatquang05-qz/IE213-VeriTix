@@ -34,7 +34,7 @@ const updateEventMetadata = async (req, res, next) => {
     const event = await Event.findOne({ blockchainId: id });
     if (!event) return res.status(404).json({ message: "Không tìm thấy sự kiện" });
 
-    if (event.organizerWallet.toLowerCase() !== req.user.walletAddress.toLowerCase()) {
+    if (event.organizerWallet?.toLowerCase() !== req.user.walletAddress?.toLowerCase()) {
       return res.status(403).json({ message: "Cảnh báo: Bạn không phải chủ sự kiện này!" });
     }
 
@@ -72,7 +72,12 @@ const getMyEvents = async (req, res, next) => {
 
 const getOrganizerDashboard = async (req, res, next) => {
   try {
-    const walletAddress = req.user.walletAddress.toLowerCase();
+    const walletAddress = req.user.walletAddress?.toLowerCase();
+    
+    if (!walletAddress) {
+      return res.status(400).json({ message: "Không tìm thấy địa chỉ ví của người dùng" });
+    }
+
     const events = await Event.find({ organizerWallet: walletAddress }).sort({ createdAt: -1 });
     
     let totalTicketsSold = 0;
@@ -113,13 +118,17 @@ const getOrganizerDashboard = async (req, res, next) => {
 const createOrUpdateEventFromBlockchain = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const walletAddress = req.user.walletAddress.toLowerCase();
+    const walletAddress = req.user.walletAddress?.toLowerCase();
+    
+    if (!walletAddress) {
+      return res.status(400).json({ message: "Không tìm thấy địa chỉ ví của người dùng" });
+    }
     
     let event = await Event.findOne({ blockchainId: id });
     
     if (!event) {
       event = new Event({ blockchainId: id, organizerWallet: walletAddress, status: 'ACTIVE', isOnChain: true });
-    } else if (event.organizerWallet.toLowerCase() !== walletAddress) {
+    } else if (event.organizerWallet?.toLowerCase() !== walletAddress) {
        return res.status(403).json({ message: "Bạn không có quyền sửa sự kiện này!" });
     }
 
