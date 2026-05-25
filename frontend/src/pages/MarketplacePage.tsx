@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react';
 import { MdConfirmationNumber, MdAccessTime, MdLocationOn, MdShoppingCart, MdSearch } from 'react-icons/md';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-// import api from '../services/api'; // Mở comment này khi link backend
+import { ethers } from 'ethers';
+import api from '../services/api';
+import { buyResellTicket } from '../services/contract.service';
+import { getEthToVndRate } from '../services/currency.service';
 
 interface ResellTicket {
   _id: string;
@@ -22,61 +25,88 @@ export default function MarketplacePage() {
   const [tickets, setTickets] = useState<ResellTicket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isBuying, setIsBuying] = useState<string | null>(null); // Lưu ID vé đang mua
+  const [ethRate, setEthRate] = useState<number>(0);
 
-  // Tạm thời dùng Mock Data để hiển thị UI
-  // Khi link Backend, sẽ thay bằng hàm gọi API thực tế
   useEffect(() => {
-    const loadMarketplace = async () => {
-      setIsLoading(true);
-      try {
-        // const response = await api.get('/tickets/marketplace');
-        // setTickets(response.data);
-        
-        // --- Mock Data ---
-        setTimeout(() => {
-          setTickets([
-            {
-              _id: "tk1",
-              blockchainTicketId: 105,
-              purchasePrice: "1200000",
-              ownerWallet: "0x123...abc",
-              eventId: {
-                _id: "ev1",
-                name: "Rap Việt All-Star Concert 2026",
-                startTime: new Date(Date.now() + 86400000 * 5).toISOString(),
-                location: "SECC, Quận 7, TP.HCM",
-                bannerUrl: "https://via.placeholder.com/400x200?text=Rap+Viet"
-              }
-            },
-            {
-              _id: "tk2",
-              blockchainTicketId: 992,
-              purchasePrice: "850000",
-              ownerWallet: "0x987...xyz",
-              eventId: {
-                _id: "ev2",
-                name: "Tech Summit - Tương lai AI",
-                startTime: new Date(Date.now() + 86400000 * 12).toISOString(),
-                location: "Landmark 81, TP.HCM",
-                bannerUrl: "https://via.placeholder.com/400x200?text=Tech+Summit"
-              }
-            }
-          ]);
-          setIsLoading(false);
-        }, 800);
-        // -----------------
-
-      } catch (error) {
-        toast.error("Không thể tải danh sách vé bán lại");
-        setIsLoading(false);
-      }
+    const fetchRate = async () => {
+      const rate = await getEthToVndRate();
+      setEthRate(rate);
     };
+    fetchRate();
+  }, []);
+
+  const loadMarketplace = async () => {
+    setIsLoading(true);
+    try {
+      const response = await api.get('/tickets/marketplace');
+      setTickets(response.data);
+    } catch (error) {
+      toast.error("Không thể tải danh sách vé bán lại từ máy chủ");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     loadMarketplace();
   }, []);
 
-  const handleBuyTicket = (ticketId: string) => {
-    // Logic mua vé sẽ được thực hiện khi gọi smart contract
-    toast.info("Chức năng Mua vé đang được kết nối với Blockchain...");
+  const handleBuyTicket = async (ticket: ResellTicket) => {
+    if (!window.ethereum) {
+      toast.error('Vui lòng cài đặt ví MetaMask để mua vé!');
+      return;
+    }
+
+    try {
+      setIsBuying(ticket._id);
+      
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const accounts = await provider.send("eth_requestAccounts", []);
+      const buyerWallet = accounts[0].toLowerCase();
+
+      if (buyerWallet === ticket.ownerWallet.toLowerCase()) {
+        toast.warning('Bạn không thể tự mua vé của chính mình!');
+        setIsBuying(null);
+        return;
+      }
+
+      toast.info('Vui lòng xác nhận giao dịch trên MetaMask...');
+
+      // Quy đổi giá từ VND sang ETH để gửi lên Smart Contract
+      let ethPriceStr = "0";
+      if (ethRate > 0) {
+        ethPriceStr = (Number(ticket.purchasePrice) / ethRate).toFixed(18);
+      } else {
+         throw new Error("Không lấy được tỷ giá ETH/VND. Vui lòng thử lại sau.");
+      }
+
+      // Gọi hàm buyResellTicket trên Smart Contract
+      const tx = await buyResellTicket(ticket.blockchainTicketId, ethPriceStr);
+      
+      toast.info('Đang chờ xác nhận từ Blockchain...');
+      await tx.wait(); // Đợi giao dịch được đào
+
+      // Cập nhật Database Backend
+      await api.post(`/tickets/${ticket._id}/buy`, {
+        transactionHash: tx.hash
+      });
+
+      toast.success('Mua vé thành công!');
+      loadMarketplace(); // Tải lại danh sách
+    } catch (error: any) {
+      console.error(error);
+      const errorMsg = error.reason || error.message || "Đã xảy ra lỗi khi mua vé";
+      if (errorMsg.includes('insufficient funds')) {
+        toast.error('Số dư ETH trong ví của bạn không đủ để thanh toán!');
+      } else if (errorMsg.includes('user rejected')) {
+        toast.error('Bạn đã từ chối giao dịch trên MetaMask.');
+      } else {
+        toast.error(`Lỗi giao dịch: ${errorMsg}`);
+      }
+    } finally {
+      setIsBuying(null);
+    }
   };
 
   const filteredTickets = tickets.filter(t => 
@@ -113,7 +143,7 @@ export default function MarketplacePage() {
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-32">
           <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mb-4" />
-          <p className="text-slate-400 animate-pulse">Đang đồng bộ dữ liệu từ Blockchain...</p>
+          <p className="text-slate-400 animate-pulse">Đang tải danh sách vé...</p>
         </div>
       ) : filteredTickets.length === 0 ? (
         <div className="bg-[#0d1117] border border-white/10 rounded-3xl p-16 flex flex-col items-center justify-center text-center">
@@ -175,17 +205,32 @@ export default function MarketplacePage() {
                   <div className="h-px bg-white/5 w-full my-3" />
                   <div className="flex justify-between items-end">
                     <span className="text-sm text-slate-400 font-medium">Giá chuyển nhượng</span>
-                    <span className="text-2xl text-white font-black">{parseInt(ticket.purchasePrice).toLocaleString()} VND</span>
+                    <div className="text-right">
+                      <div className="text-2xl text-white font-black">{parseInt(ticket.purchasePrice).toLocaleString()} VND</div>
+                      {ethRate > 0 && (
+                        <div className="text-[11px] text-slate-500 mt-1">~{(Number(ticket.purchasePrice) / ethRate).toFixed(6)} ETH</div>
+                      )}
+                    </div>
                   </div>
                 </div>
                 
                 {/* Action Button */}
                 <button 
-                  onClick={() => handleBuyTicket(ticket._id)}
-                  className="w-full bg-[linear-gradient(135deg,#0066ff_0%,#00d4ff_100%)] hover:opacity-90 text-white py-4 rounded-2xl font-bold transition-all shadow-[0_6px_20px_rgba(0,212,255,0.3)] flex items-center justify-center gap-2"
+                  onClick={() => handleBuyTicket(ticket)}
+                  disabled={isBuying === ticket._id}
+                  className="w-full bg-[linear-gradient(135deg,#0066ff_0%,#00d4ff_100%)] hover:opacity-90 text-white py-4 rounded-2xl font-bold transition-all shadow-[0_6px_20px_rgba(0,212,255,0.3)] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <MdShoppingCart size={20} />
-                  MUA NGAY
+                  {isBuying === ticket._id ? (
+                    <span className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ĐANG XỬ LÝ...
+                    </span>
+                  ) : (
+                    <>
+                      <MdShoppingCart size={20} />
+                      MUA NGAY
+                    </>
+                  )}
                 </button>
               </div>
             </div>

@@ -72,7 +72,11 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-2 rounded-[12px] border border-emerald-500/35 bg-emerald-500/10 px-4 py-2.5 font-mono text-sm text-emerald-300">
                   <div className="h-2 w-2 rounded-full bg-emerald-400" />
-                  <span>{user.walletAddress.slice(0, 6)}...{user.walletAddress.slice(-4)}</span>
+                  <span>
+                    {user.walletAddress 
+                      ? `${user.walletAddress.slice(0, 6)}...${user.walletAddress.slice(-4)}` 
+                      : '0x00...0000'}
+                  </span>
                 </div>
                 <button
                   type="button"

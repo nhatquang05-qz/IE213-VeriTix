@@ -51,7 +51,7 @@ const EventDetail = () => {
         const provider = new ethers.BrowserProvider(window.ethereum);
         const readContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
         const eventOnChain = await readContract.events(eventId);
-        const exactTicketPriceWei = eventOnChain.ticketPrice;
+        const exactTicketPriceWei = eventOnChain.price; // Sửa lỗi ở đây: thuộc tính trong SC là price, không phải ticketPrice
         const totalPriceWei = exactTicketPriceWei * BigInt(quantity);
         totalPriceEth = ethers.formatEther(totalPriceWei);
       } catch (err) {
@@ -70,7 +70,33 @@ const EventDetail = () => {
       const receipt = await provider.waitForTransaction(tx.hash, 1);
       
       if (receipt && receipt.status === 1) {
-        const ticketsToSync = Array.from({ length: quantity }).map(() => Math.floor(Math.random() * 1000000));
+        // --- BẮT ĐẦU SỬA LỖI: Lấy ID vé thực tế từ Smart Contract Events ---
+        const contractInfo = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+        const ticketsToSync: number[] = [];
+
+        for (const log of receipt.logs) {
+          try {
+            // Chỉ bắt các sự kiện (logs) phát ra từ Contract VeriTix
+            if (log.address.toLowerCase() === CONTRACT_ADDRESS.toLowerCase()) {
+              const parsedLog = contractInfo.interface.parseLog({
+                topics: [...log.topics],
+                data: log.data
+              });
+              
+              // Nếu là sự kiện TicketMinted, lấy ID vé vừa được tạo
+              if (parsedLog && parsedLog.name === 'TicketMinted') {
+                ticketsToSync.push(Number(parsedLog.args[0])); // args[0] tương ứng với ticketId
+              }
+            }
+          } catch (e) {
+            // Bỏ qua các log không parse được
+          }
+        }
+
+        if (ticketsToSync.length === 0) {
+          throw new Error("Giao dịch thành công nhưng không tìm thấy ID vé. Có thể Blockchain chưa kịp emit event.");
+        }
+        // --- KẾT THÚC SỬA LỖI ---
 
         await api.post('/tickets', {
           eventId: event._id,

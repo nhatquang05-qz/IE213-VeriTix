@@ -10,7 +10,7 @@ import Step1EventInfo from '../../components/organizer/Step1EventInfo';
 import Step2TicketConfig from '../../components/organizer/Step2TicketConfig';
 import Step3PaymentPublish from '../../components/organizer/Step3PaymentPublish';
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../../config/contract';
-import { getEthToVndRate } from '../../services/currency.service'; // Import hàm lấy tỷ giá
+import { getEthToVndRate } from '../../services/currency.service'; 
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -159,11 +159,9 @@ export default function CreateEventPage() {
       setLoading(true);
       setStatusMsg('Đang quy đổi VND sang ETH và kết nối MetaMask...');
 
-      // 1. Quy đổi giá VND sang ETH để gửi lên Blockchain
       const currentEthRate = await getEthToVndRate();
       let ethPriceStr = "0";
       if (form.price && Number(form.price) > 0) {
-        // toFixed(18) để đảm bảo không bị lỗi số thập phân của ethers
         ethPriceStr = (Number(form.price) / currentEthRate).toFixed(18);
       }
 
@@ -175,9 +173,9 @@ export default function CreateEventPage() {
       
       const tx = await contract.createEvent(
         form.name,
-        ethers.parseEther(ethPriceStr), // Đưa ETH vào contract
+        ethers.parseEther(ethPriceStr),
         Number(form.maxSupply || 0),
-        Number(form.resaleRoyalty)
+        100 // FIX BUG TẠI ĐÂY: Truyền 100% để cho phép bán lại lên đến 100% giá vé ban đầu, không dùng resaleRoyalty nữa
       );
       
       setStatusMsg('Đang chờ xác nhận từ blockchain...');
@@ -199,13 +197,12 @@ export default function CreateEventPage() {
       if (eventId) {
         setStatusMsg('Đang lưu thông tin sự kiện vào Database...');
         
-        // 2. Gửi nguyên giá VND (form.price) xuống Database
         const bodyData = {
           name: form.name,
           description: form.description,
           category: form.category,
           location: form.locationType === 'offline' ? form.venueName : 'Online',
-          price: form.price, // Lưu VND vào Database
+          price: form.price,
           maxSupply: form.maxSupply,
           maxResellPercentage: form.resaleRoyalty,
           startTime: `${form.eventStartDate}T${form.eventStartTime}:00.000Z`,

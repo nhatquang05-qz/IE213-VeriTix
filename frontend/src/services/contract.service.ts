@@ -33,3 +33,11 @@ export const listTicket = async (ticketId: number, priceInEth: string) => {
   const tx = await contract.listTicket(ticketId, ethers.parseEther(priceInEth));
   return tx;
 };
+
+export const buyResellTicket = async (ticketId: number, priceInEth: string) => {
+  const contract = await getContract();
+  const tx = await contract.buyResellTicket(ticketId, {
+    value: ethers.parseEther(priceInEth)
+  });
+  return tx;
+};
