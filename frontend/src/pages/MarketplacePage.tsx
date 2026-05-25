@@ -6,6 +6,7 @@ import { ethers } from 'ethers';
 import api from '../services/api';
 import { buyResellTicket } from '../services/contract.service';
 import { getEthToVndRate } from '../services/currency.service';
+import { useAuth } from '../contexts/AuthContext';
 
 interface ResellTicket {
   _id: string;
@@ -22,16 +23,21 @@ interface ResellTicket {
 }
 
 export default function MarketplacePage() {
+  const { isAuthenticated, login } = useAuth();
   const [tickets, setTickets] = useState<ResellTicket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isBuying, setIsBuying] = useState<string | null>(null); // Lưu ID vé đang mua
+  const [isBuying, setIsBuying] = useState<string | null>(null);
   const [ethRate, setEthRate] = useState<number>(0);
 
   useEffect(() => {
     const fetchRate = async () => {
-      const rate = await getEthToVndRate();
-      setEthRate(rate);
+      try {
+        const rate = await getEthToVndRate();
+        setEthRate(rate);
+      } catch (error) {
+        setEthRate(0);
+      }
     };
     fetchRate();
   }, []);
@@ -40,9 +46,9 @@ export default function MarketplacePage() {
     setIsLoading(true);
     try {
       const response = await api.get('/tickets/marketplace');
-      setTickets(response.data);
+      setTickets(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
-      toast.error("Không thể tải danh sách vé bán lại từ máy chủ");
+      toast.error("Không thể tải danh sách vé bán lại");
     } finally {
       setIsLoading(false);
     }
@@ -53,6 +59,12 @@ export default function MarketplacePage() {
   }, []);
 
   const handleBuyTicket = async (ticket: ResellTicket) => {
+    if (!isAuthenticated) {
+      toast.warning('Bạn cần kết nối ví và đăng nhập hệ thống trước!');
+      await login();
+      return;
+    }
+
     if (!window.ethereum) {
       toast.error('Vui lòng cài đặt ví MetaMask để mua vé!');
       return;
@@ -65,7 +77,7 @@ export default function MarketplacePage() {
       const accounts = await provider.send("eth_requestAccounts", []);
       const buyerWallet = accounts[0].toLowerCase();
 
-      if (buyerWallet === ticket.ownerWallet.toLowerCase()) {
+      if (ticket.ownerWallet && buyerWallet === ticket.ownerWallet.toLowerCase()) {
         toast.warning('Bạn không thể tự mua vé của chính mình!');
         setIsBuying(null);
         return;
@@ -73,36 +85,32 @@ export default function MarketplacePage() {
 
       toast.info('Vui lòng xác nhận giao dịch trên MetaMask...');
 
-      // Quy đổi giá từ VND sang ETH để gửi lên Smart Contract
-      let ethPriceStr = "0";
-      if (ethRate > 0) {
-        ethPriceStr = (Number(ticket.purchasePrice) / ethRate).toFixed(18);
-      } else {
-         throw new Error("Không lấy được tỷ giá ETH/VND. Vui lòng thử lại sau.");
+      let currentRate = ethRate;
+      if (currentRate <= 0) {
+        currentRate = 60000000;
       }
+      
+      const ethPriceStr = (Number(ticket.purchasePrice) / currentRate).toFixed(18);
 
-      // Gọi hàm buyResellTicket trên Smart Contract
       const tx = await buyResellTicket(ticket.blockchainTicketId, ethPriceStr);
       
       toast.info('Đang chờ xác nhận từ Blockchain...');
-      await tx.wait(); // Đợi giao dịch được đào
+      await tx.wait();
 
-      // Cập nhật Database Backend
       await api.post(`/tickets/${ticket._id}/buy`, {
         transactionHash: tx.hash
       });
 
       toast.success('Mua vé thành công!');
-      loadMarketplace(); // Tải lại danh sách
+      loadMarketplace(); 
     } catch (error: any) {
-      console.error(error);
-      const errorMsg = error.reason || error.message || "Đã xảy ra lỗi khi mua vé";
+      const errorMsg = error.reason || error.message || "Lỗi giao dịch";
       if (errorMsg.includes('insufficient funds')) {
-        toast.error('Số dư ETH trong ví của bạn không đủ để thanh toán!');
-      } else if (errorMsg.includes('user rejected')) {
+        toast.error('Số dư ETH trong ví của bạn không đủ!');
+      } else if (errorMsg.includes('user rejected') || error.code === 4001 || error.code === 'ACTION_REJECTED') {
         toast.error('Bạn đã từ chối giao dịch trên MetaMask.');
       } else {
-        toast.error(`Lỗi giao dịch: ${errorMsg}`);
+        toast.error(`Lỗi: ${errorMsg}`);
       }
     } finally {
       setIsBuying(null);
@@ -110,12 +118,11 @@ export default function MarketplacePage() {
   };
 
   const filteredTickets = tickets.filter(t => 
-    t.eventId.name.toLowerCase().includes(searchTerm.toLowerCase())
+    t.eventId?.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12 animate-[vtx-fade_0.4s_ease]">
-      {/* Header Section */}
       <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/10 pb-8">
         <div>
           <h1 className="text-4xl font-black text-white flex items-center gap-4">
@@ -127,7 +134,6 @@ export default function MarketplacePage() {
           </p>
         </div>
         
-        {/* Thanh tìm kiếm */}
         <div className="relative w-full md:w-[350px]">
           <MdSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={22} />
           <input 
@@ -158,7 +164,6 @@ export default function MarketplacePage() {
           {filteredTickets.map((ticket) => (
             <div key={ticket._id} className="bg-[#161b22] border border-white/5 rounded-3xl overflow-hidden hover:border-cyan-500/40 transition-all group shadow-xl hover:shadow-[0_10px_40px_rgba(0,212,255,0.15)] flex flex-col">
               
-              {/* Banner Image */}
               <Link to={`/events/${ticket.eventId._id}`} className="h-48 relative overflow-hidden block">
                 <img 
                   src={ticket.eventId?.bannerUrl} 
@@ -172,7 +177,6 @@ export default function MarketplacePage() {
                 </div>
               </Link>
 
-              {/* Card Body */}
               <div className="p-6 flex-1 flex flex-col">
                 <Link to={`/events/${ticket.eventId._id}`} className="text-xl font-bold text-white mb-4 line-clamp-2 hover:text-cyan-400 transition-colors">
                   {ticket.eventId?.name}
@@ -191,7 +195,6 @@ export default function MarketplacePage() {
                   </div>
                 </div>
 
-                {/* Ticket Info Panel */}
                 <div className="bg-black/30 rounded-2xl p-5 border border-white/5 mb-6 relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500" />
                   <div className="flex justify-between items-center mb-3">
@@ -200,7 +203,7 @@ export default function MarketplacePage() {
                   </div>
                   <div className="flex justify-between items-center mb-3">
                     <span className="text-xs text-slate-500 font-medium">Người bán</span>
-                    <span className="text-slate-300 font-mono text-xs">{ticket.ownerWallet.slice(0,6)}...{ticket.ownerWallet.slice(-4)}</span>
+                    <span className="text-slate-300 font-mono text-xs">{ticket.ownerWallet ? `${ticket.ownerWallet.slice(0,6)}...${ticket.ownerWallet.slice(-4)}` : ''}</span>
                   </div>
                   <div className="h-px bg-white/5 w-full my-3" />
                   <div className="flex justify-between items-end">
@@ -214,7 +217,6 @@ export default function MarketplacePage() {
                   </div>
                 </div>
                 
-                {/* Action Button */}
                 <button 
                   onClick={() => handleBuyTicket(ticket)}
                   disabled={isBuying === ticket._id}
