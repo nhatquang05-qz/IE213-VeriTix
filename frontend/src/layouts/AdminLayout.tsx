@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, Navigate } from 'react-router-dom';
 import AdminSidebar, { MobileSidebar } from '../components/admin/AdminSidebar';
 import AdminHeader from '../components/admin/AdminHeader';
+import { useAuth } from '../contexts/AuthContext';
 
 /* ══════════════════════════════════════════
    AdminLayout — Admin Dashboard
@@ -16,6 +17,7 @@ const SIDEBAR_COLLAPSED_W = 68;
 const MOBILE_BREAKPOINT = 768;
 
 export default function AdminLayout() {
+  const { user } = useAuth();
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -54,6 +56,12 @@ export default function AdminLayout() {
   const handleCloseMobile = useCallback(() => {
     setMobileOpen(false);
   }, []);
+
+  // ── BẢO VỆ ROUTE: CHỈ ADMIN MỚI ĐƯỢC VÀO ──
+  // Đặt sau tất cả các Hooks (useState, useCallback, useEffect) để tránh lỗi Rules of Hooks
+  if (!user || !user.isAdmin) {
+    return <Navigate to="/" replace />;
+  }
 
   const sidebarWidth = isMobile ? 0 : sidebarExpanded ? SIDEBAR_EXPANDED_W : SIDEBAR_COLLAPSED_W;
 
