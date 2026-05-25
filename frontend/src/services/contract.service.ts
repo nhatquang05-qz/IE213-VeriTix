@@ -27,3 +27,9 @@ export const buyTicketsBatch = async (eventId: number, quantity: number, tokenUR
   });
   return tx;
 };
+
+export const listTicket = async (ticketId: number, priceInEth: string) => {
+  const contract = await getContract();
+  const tx = await contract.listTicket(ticketId, ethers.parseEther(priceInEth));
+  return tx;
+};

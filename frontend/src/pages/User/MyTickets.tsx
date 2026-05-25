@@ -6,6 +6,8 @@ import api from '../../services/api';
 import { toast } from 'react-toastify';
 import { MdConfirmationNumber, MdClose, MdAccessTime, MdLocationOn } from 'react-icons/md';
 import { QRCodeSVG } from 'qrcode.react';
+import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../../config/contract';
+import { getEthToVndRate } from '../../services/currency.service';
 
 interface Ticket {
   _id: string;
@@ -28,6 +30,21 @@ export default function MyTickets() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSigning, setIsSigning] = useState<string | null>(null);
   const [selectedQR, setSelectedQR] = useState<string | null>(null);
+
+  // States cho tính năng Bán lại (Resell)
+  const [resellModal, setResellModal] = useState<{ isOpen: boolean; ticket: Ticket | null }>({ isOpen: false, ticket: null });
+  const [resellPriceVnd, setResellPriceVnd] = useState('');
+  const [resellPriceEth, setResellPriceEth] = useState('');
+  const [isReselling, setIsReselling] = useState(false);
+  const [ethRate, setEthRate] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchRate = async () => {
+      const rate = await getEthToVndRate();
+      setEthRate(rate);
+    };
+    fetchRate();
+  }, []);
 
   if (!user) {
     return <Navigate to="/" replace />;
@@ -58,11 +75,9 @@ export default function MyTickets() {
 
       const timestamp = Math.floor(Date.now() / 1000);
       
-      // ĐỒNG BỘ FORMAT THỜI GIAN VỚI BACKEND BẰNG CHUẨN UTC
       const d = new Date(ticket.eventId.startTime);
       const pad = (n: number) => n.toString().padStart(2, '0');
       
-      // FIX LỖI TIMEZONE: Sử dụng getUTC... thay vì getLocal...
       const eventTime = `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} ${pad(d.getUTCDate())}/${pad(d.getUTCMonth() + 1)}/${d.getUTCFullYear()} UTC`;
 
       const message = `VERITIX CHECK-IN\nSự kiện: ${ticket.eventId.name}\nThời gian: ${eventTime}\nID Vé: #${ticket.blockchainTicketId}\nTimestamp: ${timestamp}`.normalize('NFC');
@@ -87,6 +102,79 @@ export default function MyTickets() {
       }
     } finally {
       setIsSigning(null);
+    }
+  };
+
+  const handleOpenResellModal = (ticket: Ticket) => {
+    setResellModal({ isOpen: true, ticket });
+    setResellPriceVnd('');
+    setResellPriceEth('');
+  };
+
+  const handleVndPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const vnd = e.target.value;
+    setResellPriceVnd(vnd);
+    
+    if (vnd && !isNaN(Number(vnd)) && ethRate > 0) {
+      const ethValue = Number(vnd) / ethRate;
+      setResellPriceEth(ethValue.toFixed(18).replace(/\.?0+$/, ''));
+    } else {
+      setResellPriceEth('');
+    }
+  };
+
+  const handleListResell = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resellModal.ticket || !resellPriceVnd || !resellPriceEth) return;
+
+    // Kiểm tra giới hạn giá (95% giá gốc)
+    const maxAllowedVnd = Number(resellModal.ticket.purchasePrice) * 0.95;
+    if (Number(resellPriceVnd) > maxAllowedVnd) {
+      toast.error(`Giá bán lại không được vượt quá 95% giá gốc (${maxAllowedVnd.toLocaleString('vi-VN')} VND)!`);
+      return;
+    }
+
+    try {
+      setIsReselling(true);
+      if (!window.ethereum) throw new Error("Vui lòng cài đặt ví MetaMask");
+
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+
+      // 1. Tương tác với Smart Contract để list vé
+      const tx = await contract.listTicket(resellModal.ticket.blockchainTicketId, ethers.parseEther(resellPriceEth));
+      await tx.wait();
+
+      // 2. Cập nhật trạng thái trên Backend (MongoDB)
+      await api.post(`/tickets/${resellModal.ticket._id}/resell`, { price: resellPriceVnd });
+
+      toast.success('Đã niêm yết vé lên Marketplace thành công!');
+      setResellModal({ isOpen: false, ticket: null });
+      setResellPriceVnd('');
+      setResellPriceEth('');
+      fetchMyTickets();
+    } catch (error: any) {
+      const errStr = JSON.stringify(error, Object.getOwnPropertyNames(error));
+      if (errStr.includes('VeriTix__PriceExceedsMax')) {
+        toast.error('Lỗi Web3: Smart Contract từ chối vì giá niêm yết vượt mức tối đa.');
+      } else if (errStr.includes('0x7e273289')) {
+        toast.error('Lỗi Web3: Vé không tồn tại trên Blockchain (Dữ liệu DB và chuỗi bị lệch). Vui lòng mua vé mới để đồng bộ!');
+      } else {
+        toast.error(error.message || 'Lỗi khi bán lại vé. Vui lòng kiểm tra lại!');
+      }
+    } finally {
+      setIsReselling(false);
+    }
+  };
+
+  const handleCancelResell = async (ticketId: string) => {
+    try {
+      await api.post(`/tickets/${ticketId}/cancel-resell`);
+      toast.success('Đã hủy bán lại vé!');
+      fetchMyTickets();
+    } catch (error: any) {
+      toast.error(error.message || 'Lỗi khi hủy bán lại vé');
     }
   };
 
@@ -140,6 +228,11 @@ export default function MyTickets() {
                       Hợp lệ
                     </span>
                   )}
+                  {ticket.status === 'RESELLING' && (
+                    <span className="bg-yellow-500 text-white px-4 py-1.5 text-[11px] font-black uppercase tracking-widest rounded-full shadow-2xl">
+                      Đang Bán Lại
+                    </span>
+                  )}
                   {ticket.status === 'USED' && (
                     <span className="bg-slate-700 text-slate-300 px-4 py-1.5 text-[11px] font-black uppercase tracking-widest rounded-full shadow-2xl">
                       Đã Check-in
@@ -176,19 +269,42 @@ export default function MyTickets() {
                     })}</span>
                   </div>
                   <div className="flex justify-between text-xs">
-                    <span className="text-slate-500">Giá thanh toán:</span>
+                    <span className="text-slate-500">{ticket.status === 'RESELLING' ? 'Giá đang niêm yết:' : 'Giá thanh toán:'}</span>
                     <span className="text-white font-bold">{parseInt(ticket.purchasePrice).toLocaleString()} VND</span>
                   </div>
                 </div>
                 
                 {ticket.status === 'SOLD' ? (
-                  <button 
-                    onClick={() => handleGenerateQR(ticket)}
-                    disabled={isSigning === ticket._id}
-                    className="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold transition-all shadow-lg shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isSigning === ticket._id ? 'Đang chờ ký xác nhận...' : 'HIỂN THỊ MÃ QR'}
-                  </button>
+                  <div className="flex flex-col gap-3">
+                    <button 
+                      onClick={() => handleGenerateQR(ticket)}
+                      disabled={isSigning === ticket._id}
+                      className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3.5 rounded-2xl font-bold transition-all shadow-lg shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isSigning === ticket._id ? 'Đang chờ ký xác nhận...' : 'HIỂN THỊ MÃ QR'}
+                    </button>
+                    <button 
+                      onClick={() => handleOpenResellModal(ticket)}
+                      className="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white py-3.5 rounded-2xl font-bold transition-all shadow-lg"
+                    >
+                      BÁN LẠI TỚI MARKETPLACE
+                    </button>
+                  </div>
+                ) : ticket.status === 'RESELLING' ? (
+                  <div className="flex flex-col gap-3">
+                    <button 
+                      disabled
+                      className="w-full bg-yellow-600/20 text-yellow-500 py-3.5 rounded-2xl font-bold cursor-not-allowed border border-yellow-500/20"
+                    >
+                      ĐANG BÁN TRÊN MARKETPLACE
+                    </button>
+                    <button 
+                      onClick={() => handleCancelResell(ticket._id)}
+                      className="w-full bg-red-600/20 hover:bg-red-600/40 border border-red-500/20 text-red-500 py-3.5 rounded-2xl font-bold transition-all shadow-lg"
+                    >
+                      HỦY BÁN LẠI
+                    </button>
+                  </div>
                 ) : (
                   <button 
                     disabled
@@ -235,6 +351,70 @@ export default function MyTickets() {
             >
               Đóng
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Bán Lại Vé */}
+      {resellModal.isOpen && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/90 backdrop-blur-md px-4">
+          <div className="bg-[#0d1117] border border-white/10 rounded-[32px] p-8 max-w-md w-full relative shadow-2xl animate-[vtx-fade_0.3s_ease]">
+            <button
+              onClick={() => setResellModal({ isOpen: false, ticket: null })}
+              className="absolute top-6 right-6 text-slate-500 hover:text-white transition-colors cursor-pointer"
+            >
+              <MdClose size={28} />
+            </button>
+            
+            <h2 className="text-2xl font-black text-white mb-2">Bán lại vé</h2>
+            <p className="text-slate-400 text-sm mb-6">Thiết lập giá để niêm yết vé của bạn lên Marketplace.</p>
+            
+            <form onSubmit={handleListResell} className="space-y-5">
+              <div>
+                <label className="block text-sm font-bold text-slate-300 mb-2">Giá hiển thị (VND)</label>
+                <input
+                  type="number"
+                  required
+                  min="10000"
+                  step="10000"
+                  value={resellPriceVnd}
+                  onChange={handleVndPriceChange}
+                  className="w-full bg-[#161b22] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                  placeholder="Tối thiểu 10,000 VND"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-300 mb-2">Giá Smart Contract (ETH/MATIC)</label>
+                <input
+                  type="text"
+                  readOnly
+                  value={resellPriceEth ? `${resellPriceEth} ETH` : ''}
+                  className="w-full bg-[#161b22]/50 border border-white/5 rounded-xl px-4 py-3.5 text-slate-400 cursor-not-allowed"
+                  placeholder="Tự động quy đổi..."
+                />
+                
+                {/* HIỂN THỊ LIMIT DỰA TRÊN 95% GIÁ GỐC */}
+                {resellModal.ticket && (
+                  <p className="text-[13px] text-yellow-500 mt-2 font-medium">
+                    * Giới hạn giá tối đa (95% giá gốc): {(Number(resellModal.ticket.purchasePrice) * 0.95).toLocaleString('vi-VN')} VND
+                  </p>
+                )}
+              </div>
+              
+              <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl mt-4">
+                <p className="text-xs text-blue-300 leading-relaxed">
+                  Lưu ý: Vé sẽ bị khóa vào Smart Contract cho đến khi có người mua hoặc bạn hủy bán. Nền tảng sẽ thu phí bản quyền (5%) dựa trên giá trị giao dịch thành công.
+                </p>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isReselling}
+                className="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold transition-all disabled:opacity-50 mt-2 shadow-lg shadow-blue-900/20"
+              >
+                {isReselling ? 'Đang xử lý giao dịch Web3...' : 'XÁC NHẬN BÁN LẠI'}
+              </button>
+            </form>
           </div>
         </div>
       )}
