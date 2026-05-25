@@ -78,7 +78,8 @@ const verifySignature = async (req, res, next) => {
         id: user._id,
         walletAddress: user.walletAddress,
         fullName: user.fullName,
-        isOrganizer: user.isOrganizer
+        isOrganizer: user.isOrganizer,
+        isAdmin: user.isAdmin
       }
     });
 

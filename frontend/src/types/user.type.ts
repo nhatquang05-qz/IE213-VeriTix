@@ -11,4 +11,7 @@ export interface User {
   walletAddress: string;
   name?: string;
   role: UserRole;
+  isAdmin?: boolean;       
+  isOrganizer?: boolean;   
+  isStaff?: boolean;     
 }
