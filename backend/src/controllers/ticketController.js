@@ -116,4 +116,86 @@ const checkInTicket = async (req, res, next) => {
   }
 };
 
-module.exports = { getMyTickets, createTicket, checkInTicket };
+const getMarketplaceTickets = async (req, res, next) => {
+  try {
+    const tickets = await Ticket.find({ status: 'RESELLING' })
+      .populate('eventId', 'name bannerUrl startTime location')
+      .sort({ updatedAt: -1 });
+    res.status(200).json(tickets);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const listTicketForResell = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { price } = req.body;
+    const walletAddress = req.user.walletAddress?.toLowerCase();
+
+    const ticket = await Ticket.findOne({ _id: id, ownerWallet: walletAddress });
+    if (!ticket) return res.status(404).json({ message: "Không tìm thấy vé hoặc bạn không phải chủ sở hữu" });
+    if (ticket.status !== 'SOLD') return res.status(400).json({ message: "Chỉ vé đang sở hữu hợp lệ mới được bán lại" });
+
+    ticket.status = 'RESELLING';
+    ticket.purchasePrice = price.toString();
+    await ticket.save();
+
+    res.status(200).json({ message: "Đã niêm yết vé lên Marketplace thành công!", ticket });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const cancelResellTicket = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const walletAddress = req.user.walletAddress?.toLowerCase();
+
+    const ticket = await Ticket.findOne({ _id: id, ownerWallet: walletAddress });
+    if (!ticket) return res.status(404).json({ message: "Không tìm thấy vé hoặc bạn không phải chủ sở hữu" });
+    if (ticket.status !== 'RESELLING') return res.status(400).json({ message: "Vé này không nằm trên Marketplace" });
+
+    ticket.status = 'SOLD';
+    await ticket.save();
+
+    res.status(200).json({ message: "Đã hủy niêm yết vé. Vé đã quay về ví của bạn.", ticket });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const buyResellTicket = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const buyerWallet = req.user.walletAddress?.toLowerCase();
+    const { transactionHash } = req.body;
+
+    const ticket = await Ticket.findOne({ _id: id, status: 'RESELLING' });
+    if (!ticket) return res.status(404).json({ message: "Vé không tồn tại hoặc đã có người khác mua" });
+    if (ticket.ownerWallet === buyerWallet) return res.status(400).json({ message: "Bạn không thể tự mua vé của chính mình" });
+
+    if (transactionHash) {
+      await Transaction.create({
+        txHash: transactionHash,
+        type: 'RESELL',
+        fromWallet: buyerWallet,
+        toWallet: ticket.ownerWallet,
+        amount: ticket.purchasePrice
+      });
+    }
+
+    ticket.ownerWallet = buyerWallet;
+    ticket.status = 'SOLD';
+    await ticket.save();
+
+    res.status(200).json({ message: "Chúc mừng! Bạn đã mua vé thành công", ticket });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { 
+  getMyTickets, createTicket, checkInTicket,
+  getMarketplaceTickets, listTicketForResell, cancelResellTicket, buyResellTicket 
+};

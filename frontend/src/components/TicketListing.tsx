@@ -34,10 +34,8 @@ const TicketListing = () => {
         setIsLoading(true);
         const events = await getEvents();
         
-        // Filter active events and group by category
         const activeEvents = events.filter(event => event.status === 'ACTIVE');
         
-        // Create categories based on available events
         const categorized: TicketCategory[] = [
           {
             name: 'Âm Nhạc & Concert Nổi Bật',

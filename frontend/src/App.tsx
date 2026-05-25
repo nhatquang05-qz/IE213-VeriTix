@@ -15,6 +15,7 @@ import AboutUsPage from './pages/AboutUsPage';
 import EventDetail from './pages/EventDetail'; // Giữ lại của bro
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import MarketplacePage from './pages/MarketplacePage';
 
 // Organizer pages
 import MyEventsPage from './pages/Organizer/MyEventsPage';
@@ -37,6 +38,7 @@ import StatisticsPage from './pages/Admin/StatisticsPage';
 // Contexts
 import { AuthProvider } from './contexts/AuthContext';
 import { Web3Provider } from './contexts/Web3Context';
+
 
 // Giữ lại hàm Test Connection của 
 function TestConnection() {
@@ -97,6 +99,7 @@ function App() {
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/events/:id" element={<EventDetail />} /> {/* Khôi phục link Detail của bro */}
               <Route path="/test" element={<TestConnection />} /> {/* Khôi phục link Test của bro */}
+              <Route path="/marketplace" element={<MarketplacePage />} />
             </Route>
 
             {/* ═══ ORGANIZER CẤP 1 — OrganizerLayout (sidebar chính) ═══ */}

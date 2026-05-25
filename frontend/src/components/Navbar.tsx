@@ -15,7 +15,6 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
         <div className="relative z-10 mx-auto flex h-[86px] w-full max-w-[1640px] items-center justify-between gap-6 px-10 max-[1024px]:h-[72px] max-[1024px]:px-6">
           <Link to="/" className="flex items-center gap-3 no-underline">
             <div className="relative flex h-[42px] w-[42px] items-center justify-center rounded-[14px] border border-cyan-400/30 bg-[linear-gradient(135deg,rgba(0,102,255,0.2),rgba(0,212,255,0.1))] p-[7px]">
-              {/* 2. SỬ DỤNG BIẾN ẢNH VÀO THUỘC TÍNH SRC */}
               <img
                 src={logoImage}
                 alt="VeriTix Logo"
@@ -39,6 +38,9 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
             <div className="flex items-center gap-4 whitespace-nowrap">
               <Link to="/" className="rounded-lg px-4 py-2 text-sm font-semibold text-white/90 transition hover:text-cyan-300">
                 Trang Chủ
+              </Link>
+              <Link to="/marketplace" className="rounded-lg px-4 py-2 text-sm font-semibold text-cyan-400 transition hover:text-cyan-300">
+                Marketplace 
               </Link>
               <Link to="/about-us" className="rounded-lg px-4 py-2 text-sm font-semibold text-white/80 transition hover:text-cyan-300">
                 About Us
