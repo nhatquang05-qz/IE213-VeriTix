@@ -59,63 +59,54 @@ export default function MarketplacePage() {
   }, []);
 
   const handleBuyTicket = async (ticket: ResellTicket) => {
-    if (!isAuthenticated) {
-      toast.warning('Bạn cần kết nối ví và đăng nhập hệ thống trước!');
-      await login();
-      return;
-    }
+    console.log("Nút Mua đã được bấm! ID vé:", ticket._id);
+  if (!isAuthenticated) {
+    toast.warning('Vui lòng kết nối ví để mua vé!');
+    login();
+    return;
+  }
 
-    if (!window.ethereum) {
-      toast.error('Vui lòng cài đặt ví MetaMask để mua vé!');
-      return;
-    }
+  try {
+    setIsBuying(ticket._id);
+    
+    // 1. Kiểm tra ví trên trình duyệt
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    const buyerWallet = (await signer.getAddress()).toLowerCase();
 
-    try {
-      setIsBuying(ticket._id);
-      
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const accounts = await provider.send("eth_requestAccounts", []);
-      const buyerWallet = accounts[0].toLowerCase();
-
-      if (ticket.ownerWallet && buyerWallet === ticket.ownerWallet.toLowerCase()) {
-        toast.warning('Bạn không thể tự mua vé của chính mình!');
-        setIsBuying(null);
-        return;
-      }
-
-      toast.info('Vui lòng xác nhận giao dịch trên MetaMask...');
-
-      let currentRate = ethRate;
-      if (currentRate <= 0) {
-        currentRate = 60000000;
-      }
-      
-      const ethPriceStr = (Number(ticket.purchasePrice) / currentRate).toFixed(18);
-
-      const tx = await buyResellTicket(ticket.blockchainTicketId, ethPriceStr);
-      
-      toast.info('Đang chờ xác nhận từ Blockchain...');
-      await tx.wait();
-
-      await api.post(`/tickets/${ticket._id}/buy`, {
-        transactionHash: tx.hash
-      });
-
-      toast.success('Mua vé thành công!');
-      loadMarketplace(); 
-    } catch (error: any) {
-      const errorMsg = error.reason || error.message || "Lỗi giao dịch";
-      if (errorMsg.includes('insufficient funds')) {
-        toast.error('Số dư ETH trong ví của bạn không đủ!');
-      } else if (errorMsg.includes('user rejected') || error.code === 4001 || error.code === 'ACTION_REJECTED') {
-        toast.error('Bạn đã từ chối giao dịch trên MetaMask.');
-      } else {
-        toast.error(`Lỗi: ${errorMsg}`);
-      }
-    } finally {
+    // 2. Kiểm tra quyền sở hữu
+    if (buyerWallet === ticket.ownerWallet.toLowerCase()) {
+      toast.error('Bạn không thể tự mua vé của chính mình!');
       setIsBuying(null);
+      return;
     }
-  };
+
+    // 3. Tính toán giá ETH
+    const rate = ethRate || 60000000;
+    const ethPrice = (Number(ticket.purchasePrice) / rate).toFixed(18);
+
+    // 4. Gọi Smart Contract
+    const tx = await buyResellTicket(ticket.blockchainTicketId, ethPrice);
+    
+    toast.info('Đang xác nhận giao dịch...');
+    await tx.wait(); // Chờ Blockchain xác nhận
+
+    // 5. Cập nhật Database
+    await api.post(`/tickets/${ticket._id}/buy`, { transactionHash: tx.hash });
+
+    toast.success('Mua vé thành công!');
+    loadMarketplace();
+  } catch (error: any) {
+    console.error(error);
+    if (error.code === 4001) {
+      toast.error('Bạn đã từ chối giao dịch trên ví.');
+    } else {
+      toast.error('Mua vé thất bại, vui lòng thử lại.');
+    }
+  } finally {
+    setIsBuying(null);
+  }
+};
 
   const filteredTickets = tickets.filter(t => 
     t.eventId?.name?.toLowerCase().includes(searchTerm.toLowerCase())
