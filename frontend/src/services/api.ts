@@ -96,7 +96,6 @@ export const getEventById = async (id: string): Promise<IEvent | null> => {
     return response.data;
   } catch (error) {
     console.error('[API] Failed to fetch event:', error);
-    // Fallback to mock data if API fails
     const found = mockEvents.find((event) => event._id === id);
     return Promise.resolve(found ?? null);
   }
