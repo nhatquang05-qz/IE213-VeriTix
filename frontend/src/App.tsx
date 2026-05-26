@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from './config/contract';
 import MyTickets from './pages/User/MyTickets';
+import ScanLoginPage from './pages/ScanLoginPage';
 // Layouts
 import MainLayout from './layouts/MainLayout';
 import OrganizerLayout from './layouts/OrganizerLayout';
@@ -91,6 +92,7 @@ function App() {
       <Web3Provider>
         <BrowserRouter>
           <Routes>
+            <Route path="/scan" element={<ScanLoginPage />} />
             {/* ═══ PUBLIC — MainLayout (Navbar + Footer) ═══ */}
             <Route element={<MainLayout />}>
               <Route path="/" element={<HomePage />} />
